@@ -1,0 +1,285 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Plus, Search, ArrowRight, Feather } from "lucide-react";
+import { getBooks, deleteBook } from "@/lib/store";
+import type { Book } from "@/lib/types";
+import { totalWordCount, progressPercent } from "@/lib/utils";
+import { BookCard } from "@/components/dashboard/BookCard";
+import { AppNav } from "@/components/layout/AppNav";
+import { useAuth } from "@/lib/auth/context";
+import { cn } from "@/lib/utils";
+
+// ─── Featured "continue writing" strip ──────────────────────────────────────
+function FeaturedBook({ book }: { book: Book }) {
+  const wordCount = totalWordCount(book.chapters);
+  const progress  = progressPercent(wordCount, book.targetWordCount);
+  const lastCh    = book.chapters.find((c) => c.id === book.lastEditedChapterId)
+                 ?? book.chapters.at(-1);
+
+  return (
+    <Link href={`/books/${book.id}`}>
+      <div className="group relative flex gap-7 items-start bg-white rounded-2xl p-6 mb-10 cursor-pointer overflow-hidden transition-all duration-300 shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.09)] hover:-translate-y-0.5">
+
+        {book.cover.imageUrl && (
+          <div
+            className="absolute inset-0 opacity-[0.04] pointer-events-none scale-110"
+            style={{
+              backgroundImage: `url(${book.cover.imageUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "blur(48px)",
+            }}
+          />
+        )}
+
+        {/* Portrait cover */}
+        <div
+          className="relative shrink-0 rounded-xl overflow-hidden shadow-[0_6px_28px_rgba(0,0,0,0.18)] transition-transform duration-300 group-hover:scale-[1.015]"
+          style={{ width: 108, height: 162, backgroundColor: book.cover.backgroundColor }}
+        >
+          {book.cover.imageUrl ? (
+            <Image src={book.cover.imageUrl} alt={book.title} fill className="object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex flex-col justify-end p-3">
+              <p className="font-serif text-[11px] font-semibold leading-tight" style={{ color: book.cover.titleColor }}>
+                {book.title}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between" style={{ minHeight: 162 }}>
+          <div>
+            <p className="text-[10px] font-sans uppercase tracking-[0.16em] text-ink-faint mb-2.5">
+              Resume where you left off · {book.genre}
+            </p>
+            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-ink leading-tight tracking-tight mb-2.5 group-hover:text-sage transition-colors duration-300 line-clamp-1">
+              {book.title}
+            </h2>
+            {book.blurb && (
+              <p className="font-serif italic text-sm text-ink-muted leading-relaxed line-clamp-2 max-w-lg">
+                {book.blurb}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2.5">
+            {lastCh && (
+              <p className="text-xs text-ink-faint">
+                <span className="text-ink-muted font-medium">Ch. {lastCh.number} — {lastCh.title}</span>
+                <span className="ml-2 opacity-60">
+                  {wordCount.toLocaleString()} words · {progress}%
+                </span>
+              </p>
+            )}
+            <div className="h-[2px] w-48 bg-parchment-deep rounded-full overflow-hidden">
+              <div className="h-full bg-sage/80 rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="flex items-center gap-1.5 text-sage group-hover:text-sage-dark transition-colors">
+              <Feather className="w-3 h-3" strokeWidth={1.5} />
+              <span className="text-xs font-sans font-semibold tracking-wide">Continue Writing</span>
+              <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ─── Empty state ─────────────────────────────────────────────────────────────
+function EmptyLibrary({ userName }: { userName: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="w-16 h-16 rounded-full bg-parchment-warm flex items-center justify-center mb-6">
+        <Feather className="w-7 h-7 text-ink-faint" strokeWidth={1} />
+      </div>
+      <h2 className="font-serif text-2xl font-semibold text-ink mb-3">
+        Welcome, {userName.split(" ")[0]}.
+      </h2>
+      <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-2">
+        Your library is empty — and that's a blank page full of possibility.
+      </p>
+      <p className="text-xs text-ink-faint mb-10">
+        Begin your first manuscript to get started.
+      </p>
+      <Link href="/books/new">
+        <button className="flex items-center gap-2 bg-ink text-parchment px-6 py-3 rounded-xl font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm">
+          <Feather className="w-3.5 h-3.5" />
+          Create Your First Manuscript
+        </button>
+      </Link>
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const [books, setBooks]  = useState<Book[]>([]);
+  const [query, setQuery]  = useState("");
+  const [booksReady, setBooksReady] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    getBooks(user.id).then((books) => {
+      setBooks(books);
+      setBooksReady(true);
+    });
+  }, [user]);
+
+  // Auth still initialising — show minimal spinner
+  if (authLoading || !booksReady) {
+    return (
+      <div className="flex min-h-screen bg-parchment">
+        <AppNav />
+        <main className="flex-1 ml-14 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
+        </main>
+      </div>
+    );
+  }
+
+  const sorted = [...books].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
+  const featured = sorted[0] ?? null;
+
+  const filtered = sorted.filter(
+    (b) =>
+      b.title.toLowerCase().includes(query.toLowerCase()) ||
+      b.genre.toLowerCase().includes(query.toLowerCase()) ||
+      b.authorName.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const rest = query ? filtered : filtered.filter((b) => b.id !== featured?.id);
+
+  const totalWords    = books.reduce((s, b) => s + totalWordCount(b.chapters), 0);
+  const totalChapters = books.reduce((s, b) => s + b.chapters.length, 0);
+  const inProgress    = books.filter((b) => b.status === "ongoing").length;
+
+  async function handleDelete(id: string) {
+    if (!user) return;
+    await deleteBook(user.id, id);
+    setBooks((prev) => prev.filter((b) => b.id !== id));
+  }
+
+  return (
+    <div className="flex min-h-screen bg-parchment">
+      <AppNav />
+
+      <main className="flex-1 ml-14 pb-12">
+
+        {/* ── Page header ─────────────────────────────────────────────────── */}
+        <div className="px-8 pt-10 pb-8 max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
+            <div>
+              <h1 className="font-serif text-4xl font-semibold text-ink tracking-tight leading-none mb-2.5">
+                Your Library
+              </h1>
+              {books.length > 0 ? (
+                <p className="text-[11px] font-sans uppercase tracking-[0.14em] text-ink-faint">
+                  {books.length} manuscript{books.length !== 1 ? "s" : ""}
+                  <span className="mx-2 opacity-40">·</span>
+                  {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
+                  <span className="mx-2 opacity-40">·</span>
+                  {totalWords.toLocaleString()} words
+                  {inProgress > 0 && (
+                    <>
+                      <span className="mx-2 opacity-40">·</span>
+                      <span className="text-sage">{inProgress} in progress</span>
+                    </>
+                  )}
+                </p>
+              ) : (
+                <p className="text-[11px] font-sans uppercase tracking-[0.14em] text-ink-faint">
+                  No manuscripts yet
+                </p>
+              )}
+            </div>
+
+            {books.length > 0 && (
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search..."
+                    className="pl-9 pr-4 py-2 w-44 bg-white rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-muted focus:ring-1 focus:ring-ink/10 shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-all focus:w-52"
+                  />
+                </div>
+                <Link href="/books/new">
+                  <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap">
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                    New Book
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="px-8 max-w-5xl mx-auto">
+
+          {/* ── Empty library ─────────────────────────────────────────────── */}
+          {books.length === 0 && <EmptyLibrary userName={user?.name ?? "Writer"} />}
+
+          {/* ── Featured strip ──────────────────────────────────────────── */}
+          {featured && !query && books.length > 0 && <FeaturedBook book={featured} />}
+
+          {/* ── Book grid ───────────────────────────────────────────────── */}
+          {rest.length > 0 ? (
+            <section>
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-[10px] font-sans uppercase tracking-[0.16em] font-semibold text-ink-faint">
+                  {query ? `Results for "${query}"` : "All Manuscripts"}
+                </span>
+                <div className="flex-1 h-px bg-parchment-deep" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {rest.map((book) => (
+                  <BookCard
+                    key={book.id}
+                    book={book}
+                    onDelete={handleDelete}
+                  />
+                ))}
+
+                {!query && (
+                  <Link href="/books/new">
+                    <div className="group h-full min-h-[240px] rounded-2xl border-2 border-dashed border-parchment-deep hover:border-sage/40 bg-transparent hover:bg-white/60 transition-all duration-300 flex flex-col items-center justify-center gap-3 cursor-pointer">
+                      <div className="w-11 h-11 rounded-full bg-parchment-deep group-hover:bg-sage/10 flex items-center justify-center transition-colors">
+                        <Plus className={cn("w-4.5 h-4.5 text-ink-faint group-hover:text-sage transition-colors")} />
+                      </div>
+                      <div className="text-center px-6">
+                        <p className="text-sm font-serif font-medium text-ink-muted group-hover:text-ink transition-colors">
+                          Begin a new manuscript
+                        </p>
+                        <p className="text-xs text-ink-faint mt-1 leading-relaxed">
+                          Every story starts with a first chapter.
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                )}
+              </div>
+            </section>
+          ) : query ? (
+            <div className="text-center py-20">
+              <p className="font-serif text-xl text-ink-muted mb-2">No results for "{query}"</p>
+              <p className="text-sm text-ink-faint">Try a different title or genre.</p>
+            </div>
+          ) : null}
+
+        </div>
+      </main>
+    </div>
+  );
+}

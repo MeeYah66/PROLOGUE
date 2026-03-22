@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --font-lora: 'Lora', Georgia, serif;
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --background: 40 30% 97%;
+  --foreground: 0 0% 10%;
+  --card: 40 25% 98%;
+  --card-foreground: 0 0% 10%;
+  --primary: 0 0% 10%;
+  --primary-foreground: 40 30% 97%;
+  --secondary: 35 20% 92%;
+  --secondary-foreground: 0 0% 15%;
+  --muted: 35 15% 90%;
+  --muted-foreground: 0 0% 42%;
+  --accent: 35 20% 92%;
+  --accent-foreground: 0 0% 10%;
+  --border: 35 15% 88%;
+  --input: 35 15% 88%;
+  --ring: 0 0% 10%;
+  --radius: 0.5rem;
+}
+
+* {
+  border-color: hsl(var(--border));
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-inter);
+}
+
+/* Elegant scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e0d8cc;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c8bfb0;
+}
+
+/* Writing editor prose */
+.prose-editor {
+  font-family: var(--font-lora);
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: #2d2d2d;
+  letter-spacing: 0.005em;
+}
+
+.prose-editor p {
+  margin-bottom: 1.4em;
+}
+
+.prose-editor p:first-child {
+  margin-top: 0;
+}
+
+/* Focus ring override for editor */
+.editor-focus:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Book preview page style */
+.book-page {
+  font-family: var(--font-lora);
+  font-size: 1rem;
+  line-height: 1.9;
+  color: #1a1a1a;
+}
+
+/* Animate in */
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Smooth chapter transition */
+.chapter-enter {
+  animation: chapterIn 0.25s ease-out both;
+}
+
+@keyframes chapterIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Cover gradient overlay */
+.cover-overlay {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0,0,0,0.15) 40%,
+    rgba(0,0,0,0.6) 100%
+  );
+}
