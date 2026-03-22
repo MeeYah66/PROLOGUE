@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, ArrowRight, Feather } from "lucide-react";
+import { Plus, Search, ArrowRight, PenLine } from "lucide-react";
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount, progressPercent } from "@/lib/utils";
@@ -11,6 +11,160 @@ import { BookCard } from "@/components/dashboard/BookCard";
 import { AppNav } from "@/components/layout/AppNav";
 import { useAuth } from "@/lib/auth/context";
 import { cn } from "@/lib/utils";
+
+// ─── Writing quotes — rotate by day ──────────────────────────────────────────
+const QUOTES = [
+  { text: "Fill your paper with the breathings of your heart.", author: "William Wordsworth" },
+  { text: "There is no greater agony than bearing an untold story inside you.", author: "Maya Angelou" },
+  { text: "You can always edit a bad page. You can't edit a blank page.", author: "Jodi Picoult" },
+  { text: "The first draft is just you telling yourself the story.", author: "Terry Pratchett" },
+  { text: "Write what should not be forgotten.", author: "Isabel Allende" },
+  { text: "Start writing, no matter what. The water does not flow until the faucet is turned on.", author: "Louis L'Amour" },
+  { text: "A writer only begins a book. A reader finishes it.", author: "Samuel Johnson" },
+  { text: "Every secret of a writer's soul, every experience of his life, every quality of his mind, is written large in his works.", author: "Virginia Woolf" },
+  { text: "We write to taste life twice — in the moment and in retrospect.", author: "Anaïs Nin" },
+  { text: "If there's a book you want to read but it hasn't been written yet, then you must write it.", author: "Toni Morrison" },
+  { text: "A writer's job is to notice things other people don't notice.", author: "John Irving" },
+  { text: "You must stay drunk on writing so reality cannot destroy you.", author: "Ray Bradbury" },
+  { text: "The scariest moment is always just before you start.", author: "Stephen King" },
+  { text: "One must always be careful of bookshelves with blank spaces — they invite filling.", author: "Cassandra Clare" },
+];
+
+function getGreeting(hour: number): string {
+  if (hour < 5)  return "Writing into the night";
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  if (hour < 21) return "Good evening";
+  return "Good evening";
+}
+
+function getDailyQuote() {
+  const dayOfYear = Math.floor(
+    (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
+  );
+  return QUOTES[dayOfYear % QUOTES.length];
+}
+
+// ─── Welcome Banner ───────────────────────────────────────────────────────────
+function WelcomeBanner({
+  user,
+  totalWords,
+  bookCount,
+  featuredBookId,
+}: {
+  user: { name: string; dailyWordGoal?: number };
+  totalWords: number;
+  bookCount: number;
+  featuredBookId?: string;
+}) {
+  const [hour, setHour] = useState(new Date().getHours());
+
+  useEffect(() => {
+    const t = setInterval(() => setHour(new Date().getHours()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const firstName = user.name.split(" ")[0];
+  const greeting  = getGreeting(hour);
+  const quote     = getDailyQuote();
+  const dailyGoal = user.dailyWordGoal ?? 500;
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month:   "long",
+    day:     "numeric",
+  });
+
+  return (
+    <div className="relative rounded-2xl overflow-hidden mb-10 border border-parchment-deep">
+      {/* Warm layered background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(135deg, #f5efe6 0%, #f0e8d8 50%, #ede4d4 100%)",
+        }}
+      />
+      {/* Subtle texture dot */}
+      <div
+        className="absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: "radial-gradient(circle, #2d2d2d 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+      {/* Gold accent line — top */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
+
+      <div className="relative px-8 pt-7 pb-6">
+        {/* Row 1 — greeting + date */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-sans uppercase tracking-[0.18em] text-ink-faint mb-1.5">
+              {today}
+            </p>
+            <h2 className="font-serif text-[2rem] font-semibold text-ink leading-[1.15] tracking-tight">
+              {greeting}, {firstName}.
+            </h2>
+          </div>
+
+          {/* Stat chips */}
+          {bookCount > 0 && (
+            <div className="flex flex-col items-end gap-1.5 shrink-0 mt-1">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/70 border border-parchment-deep/60 backdrop-blur-sm">
+                <span className="font-serif text-sm font-semibold text-ink tabular-nums">
+                  {totalWords.toLocaleString()}
+                </span>
+                <span className="text-[10px] text-ink-faint uppercase tracking-wide">words</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/70 border border-parchment-deep/60 backdrop-blur-sm">
+                <span className="font-serif text-sm font-semibold text-ink tabular-nums">
+                  {bookCount}
+                </span>
+                <span className="text-[10px] text-ink-faint uppercase tracking-wide">
+                  {bookCount === 1 ? "manuscript" : "manuscripts"}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="my-5 h-px bg-gradient-to-r from-gold/20 via-parchment-deep to-transparent" />
+
+        {/* Quote */}
+        <div className="flex items-start gap-4">
+          <div className="w-0.5 self-stretch rounded-full bg-gradient-to-b from-gold/60 to-gold/10 shrink-0" />
+          <div className="min-w-0">
+            <p className="font-serif italic text-base text-ink-muted leading-relaxed">
+              &ldquo;{quote.text}&rdquo;
+            </p>
+            <p className="mt-2 text-xs font-sans uppercase tracking-[0.14em] text-ink-faint">
+              — {quote.author}
+            </p>
+          </div>
+
+          {/* Daily goal nudge */}
+          <div className="shrink-0 ml-auto pl-4 hidden sm:block">
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-ink-faint mb-0.5">Today&apos;s goal</p>
+              <p className="font-serif text-lg font-semibold text-ink leading-none">
+                {dailyGoal.toLocaleString()}
+                <span className="text-xs font-sans font-normal text-ink-faint ml-1">words</span>
+              </p>
+              <Link
+                href={featuredBookId ? `/books/${featuredBookId}` : "/books/new"}
+                className="inline-flex items-center gap-1 mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-muted hover:text-ink transition-colors"
+              >
+                <PenLine className="w-2.5 h-2.5" />
+                Start writing
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── Featured "continue writing" strip ──────────────────────────────────────
 function FeaturedBook({ book }: { book: Book }) {
@@ -80,7 +234,7 @@ function FeaturedBook({ book }: { book: Book }) {
               <div className="h-full bg-sage/80 rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
             </div>
             <div className="flex items-center gap-1.5 text-sage group-hover:text-sage-dark transition-colors">
-              <Feather className="w-3 h-3" strokeWidth={1.5} />
+              <PenLine className="w-3 h-3" strokeWidth={1.5} />
               <span className="text-xs font-sans font-semibold tracking-wide">Continue Writing</span>
               <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </div>
@@ -94,22 +248,22 @@ function FeaturedBook({ book }: { book: Book }) {
 // ─── Empty state ─────────────────────────────────────────────────────────────
 function EmptyLibrary({ userName }: { userName: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-16 h-16 rounded-full bg-parchment-warm flex items-center justify-center mb-6">
-        <Feather className="w-7 h-7 text-ink-faint" strokeWidth={1} />
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="w-14 h-14 rounded-full bg-parchment-warm flex items-center justify-center mb-5">
+        <PenLine className="w-6 h-6 text-ink-faint" strokeWidth={1.5} />
       </div>
       <h2 className="font-serif text-2xl font-semibold text-ink mb-3">
-        Welcome, {userName.split(" ")[0]}.
+        Your library awaits, {userName.split(" ")[0]}.
       </h2>
       <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-2">
-        Your library is empty — and that's a blank page full of possibility.
+        A blank page is not an empty thing — it holds every story you haven&apos;t written yet.
       </p>
       <p className="text-xs text-ink-faint mb-10">
         Begin your first manuscript to get started.
       </p>
       <Link href="/books/new">
         <button className="flex items-center gap-2 bg-ink text-parchment px-6 py-3 rounded-xl font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm">
-          <Feather className="w-3.5 h-3.5" />
+          <PenLine className="w-3.5 h-3.5" />
           Create Your First Manuscript
         </button>
       </Link>
@@ -126,13 +280,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    getBooks(user.id).then((books) => {
-      setBooks(books);
+    getBooks(user.id).then((b) => {
+      setBooks(b);
       setBooksReady(true);
     });
   }, [user]);
 
-  // Auth still initialising — show minimal spinner
   if (authLoading || !booksReady) {
     return (
       <div className="flex min-h-screen bg-parchment">
@@ -174,12 +327,20 @@ export default function DashboardPage() {
       <AppNav />
 
       <main className="flex-1 ml-48 pb-12">
+        <div className="px-8 pt-8 pb-0 max-w-5xl mx-auto">
 
-        {/* ── Page header ─────────────────────────────────────────────────── */}
-        <div className="px-8 pt-10 pb-8 max-w-5xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
+          {/* ── Welcome Banner ──────────────────────────────────────────── */}
+          <WelcomeBanner
+            user={user!}
+            totalWords={totalWords}
+            bookCount={books.length}
+            featuredBookId={featured?.id}
+          />
+
+          {/* ── Page header ─────────────────────────────────────────────── */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
             <div>
-              <h1 className="font-serif text-4xl font-semibold text-ink tracking-tight leading-none mb-2.5">
+              <h1 className="font-serif text-3xl font-semibold text-ink tracking-tight leading-none mb-2">
                 Your Library
               </h1>
               {books.length > 0 ? (
@@ -273,7 +434,7 @@ export default function DashboardPage() {
             </section>
           ) : query ? (
             <div className="text-center py-20">
-              <p className="font-serif text-xl text-ink-muted mb-2">No results for "{query}"</p>
+              <p className="font-serif text-xl text-ink-muted mb-2">No results for &ldquo;{query}&rdquo;</p>
               <p className="text-sm text-ink-faint">Try a different title or genre.</p>
             </div>
           ) : null}
