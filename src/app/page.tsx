@@ -12,24 +12,6 @@ import { AppNav } from "@/components/layout/AppNav";
 import { useAuth } from "@/lib/auth/context";
 import { cn } from "@/lib/utils";
 
-// ─── Writing quotes — rotate by day ──────────────────────────────────────────
-const QUOTES = [
-  { text: "Fill your paper with the breathings of your heart.", author: "William Wordsworth" },
-  { text: "There is no greater agony than bearing an untold story inside you.", author: "Maya Angelou" },
-  { text: "You can always edit a bad page. You can't edit a blank page.", author: "Jodi Picoult" },
-  { text: "The first draft is just you telling yourself the story.", author: "Terry Pratchett" },
-  { text: "Write what should not be forgotten.", author: "Isabel Allende" },
-  { text: "Start writing, no matter what. The water does not flow until the faucet is turned on.", author: "Louis L'Amour" },
-  { text: "A writer only begins a book. A reader finishes it.", author: "Samuel Johnson" },
-  { text: "Every secret of a writer's soul, every experience of his life, every quality of his mind, is written large in his works.", author: "Virginia Woolf" },
-  { text: "We write to taste life twice — in the moment and in retrospect.", author: "Anaïs Nin" },
-  { text: "If there's a book you want to read but it hasn't been written yet, then you must write it.", author: "Toni Morrison" },
-  { text: "A writer's job is to notice things other people don't notice.", author: "John Irving" },
-  { text: "You must stay drunk on writing so reality cannot destroy you.", author: "Ray Bradbury" },
-  { text: "The scariest moment is always just before you start.", author: "Stephen King" },
-  { text: "One must always be careful of bookshelves with blank spaces — they invite filling.", author: "Cassandra Clare" },
-];
-
 function getGreeting(hour: number): string {
   if (hour < 5)  return "Writing into the night";
   if (hour < 12) return "Good morning";
@@ -38,25 +20,8 @@ function getGreeting(hour: number): string {
   return "Good evening";
 }
 
-function getDailyQuote() {
-  const dayOfYear = Math.floor(
-    (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
-  );
-  return QUOTES[dayOfYear % QUOTES.length];
-}
-
 // ─── Welcome Banner ───────────────────────────────────────────────────────────
-function WelcomeBanner({
-  user,
-  totalWords,
-  bookCount,
-  featuredBookId,
-}: {
-  user: { name: string; dailyWordGoal?: number };
-  totalWords: number;
-  bookCount: number;
-  featuredBookId?: string;
-}) {
+function WelcomeBanner({ user }: { user: { name: string } }) {
   const [hour, setHour] = useState(new Date().getHours());
 
   useEffect(() => {
@@ -66,8 +31,6 @@ function WelcomeBanner({
 
   const firstName = user.name.split(" ")[0];
   const greeting  = getGreeting(hour);
-  const quote     = getDailyQuote();
-  const dailyGoal = user.dailyWordGoal ?? 500;
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -76,90 +39,59 @@ function WelcomeBanner({
   });
 
   return (
-    <div className="relative rounded-2xl overflow-hidden mb-10 border border-parchment-deep">
-      {/* Warm layered background */}
+    <div className="relative rounded-2xl overflow-hidden mb-8" style={{ backgroundColor: "#19130e" }}>
+
+      {/* SVG noise grain */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.18]" xmlns="http://www.w3.org/2000/svg">
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain)" />
+      </svg>
+
+      {/* Warm amber glow — bottom left */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: "linear-gradient(135deg, #f5efe6 0%, #f0e8d8 50%, #ede4d4 100%)",
+          background: "radial-gradient(ellipse 70% 90% at 0% 110%, rgba(180,110,40,0.32) 0%, transparent 65%)",
         }}
       />
-      {/* Subtle texture dot */}
+      {/* Cooler deep glow — top right */}
       <div
-        className="absolute inset-0 opacity-[0.025]"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: "radial-gradient(circle, #2d2d2d 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
+          background: "radial-gradient(ellipse 50% 60% at 100% 0%, rgba(80,60,40,0.25) 0%, transparent 60%)",
         }}
       />
-      {/* Gold accent line — top */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
 
-      <div className="relative px-8 pt-7 pb-6">
-        {/* Row 1 — greeting + date */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-sans uppercase tracking-[0.18em] text-ink-faint mb-1.5">
-              {today}
-            </p>
-            <h2 className="font-serif text-[2rem] font-semibold text-ink leading-[1.15] tracking-tight">
-              {greeting}, {firstName}.
-            </h2>
-          </div>
+      {/* Gold hairline — top */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+        style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.5) 40%, rgba(201,168,76,0.3) 60%, transparent 100%)" }}
+      />
 
-          {/* Stat chips */}
-          {bookCount > 0 && (
-            <div className="flex flex-col items-end gap-1.5 shrink-0 mt-1">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/70 border border-parchment-deep/60 backdrop-blur-sm">
-                <span className="font-serif text-sm font-semibold text-ink tabular-nums">
-                  {totalWords.toLocaleString()}
-                </span>
-                <span className="text-[10px] text-ink-faint uppercase tracking-wide">words</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/70 border border-parchment-deep/60 backdrop-blur-sm">
-                <span className="font-serif text-sm font-semibold text-ink tabular-nums">
-                  {bookCount}
-                </span>
-                <span className="text-[10px] text-ink-faint uppercase tracking-wide">
-                  {bookCount === 1 ? "manuscript" : "manuscripts"}
-                </span>
-              </div>
-            </div>
-          )}
+      <div className="relative px-8 py-6 flex items-center justify-between">
+        <div>
+          <p
+            className="text-[10px] font-sans uppercase tracking-[0.22em] mb-2"
+            style={{ color: "rgba(201,168,76,0.55)" }}
+          >
+            {today}
+          </p>
+          <h2
+            className="font-serif text-[1.85rem] font-semibold leading-[1.15] tracking-tight"
+            style={{ color: "#f0e6d3" }}
+          >
+            {greeting}, {firstName}.
+          </h2>
         </div>
 
-        {/* Divider */}
-        <div className="my-5 h-px bg-gradient-to-r from-gold/20 via-parchment-deep to-transparent" />
-
-        {/* Quote */}
-        <div className="flex items-start gap-4">
-          <div className="w-0.5 self-stretch rounded-full bg-gradient-to-b from-gold/60 to-gold/10 shrink-0" />
-          <div className="min-w-0">
-            <p className="font-serif italic text-base text-ink-muted leading-relaxed">
-              &ldquo;{quote.text}&rdquo;
-            </p>
-            <p className="mt-2 text-xs font-sans uppercase tracking-[0.14em] text-ink-faint">
-              — {quote.author}
-            </p>
-          </div>
-
-          {/* Daily goal nudge */}
-          <div className="shrink-0 ml-auto pl-4 hidden sm:block">
-            <div className="text-right">
-              <p className="text-[10px] uppercase tracking-[0.15em] text-ink-faint mb-0.5">Today&apos;s goal</p>
-              <p className="font-serif text-lg font-semibold text-ink leading-none">
-                {dailyGoal.toLocaleString()}
-                <span className="text-xs font-sans font-normal text-ink-faint ml-1">words</span>
-              </p>
-              <Link
-                href={featuredBookId ? `/books/${featuredBookId}` : "/books/new"}
-                className="inline-flex items-center gap-1 mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-muted hover:text-ink transition-colors"
-              >
-                <PenLine className="w-2.5 h-2.5" />
-                Start writing
-              </Link>
-            </div>
-          </div>
+        {/* Decorative pen mark — right */}
+        <div className="hidden sm:flex flex-col items-center gap-1 opacity-20 pr-2">
+          <div className="w-px h-8 rounded-full" style={{ background: "linear-gradient(to bottom, transparent, #c9a84c, transparent)" }} />
+          <PenLine className="w-4 h-4 text-amber-300" strokeWidth={1} />
+          <div className="w-px h-8 rounded-full" style={{ background: "linear-gradient(to bottom, transparent, #c9a84c, transparent)" }} />
         </div>
       </div>
     </div>
@@ -330,12 +262,7 @@ export default function DashboardPage() {
         <div className="px-8 pt-8 pb-0 max-w-5xl mx-auto">
 
           {/* ── Welcome Banner ──────────────────────────────────────────── */}
-          <WelcomeBanner
-            user={user!}
-            totalWords={totalWords}
-            bookCount={books.length}
-            featuredBookId={featured?.id}
-          />
+          <WelcomeBanner user={user!} />
 
           {/* ── Page header ─────────────────────────────────────────────── */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
