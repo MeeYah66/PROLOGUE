@@ -30,6 +30,30 @@ export async function uploadCoverImage(bookId: string, file: File): Promise<stri
 }
 
 /**
+ * Upload a user avatar to Supabase Storage.
+ * Returns the public URL of the uploaded image.
+ * Path format: avatars/{userId}/profile.{ext}
+ */
+export async function uploadAvatarImage(file: File): Promise<string> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const ext  = file.name.split(".").pop() ?? "jpg";
+  const path = `avatars/${user.id}/profile.${ext}`;
+
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { upsert: true });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/**
  * Delete the cover image for a book from Supabase Storage.
  */
 export async function deleteCoverImage(bookId: string): Promise<void> {

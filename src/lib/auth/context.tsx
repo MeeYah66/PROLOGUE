@@ -11,23 +11,44 @@ function getRedirectUrl(): string {
 }
 
 function mapUser(sbUser: NonNullable<Awaited<ReturnType<ReturnType<typeof createClient>["auth"]["getUser"]>>["data"]["user"]>): User {
+  const meta = sbUser.user_metadata ?? {};
   return {
-    id: sbUser.id,
-    email: sbUser.email!,
-    name: sbUser.user_metadata?.name ?? sbUser.email!.split("@")[0],
-    createdAt: sbUser.created_at,
+    id:                 sbUser.id,
+    email:              sbUser.email!,
+    name:               meta.name ?? sbUser.email!.split("@")[0],
+    avatarUrl:          meta.avatarUrl ?? undefined,
+    bio:                meta.bio ?? undefined,
+    website:            meta.website ?? undefined,
+    twitterHandle:      meta.twitterHandle ?? undefined,
+    instagramHandle:    meta.instagramHandle ?? undefined,
+    genrePreferences:   meta.genrePreferences ?? [],
+    dailyWordGoal:      meta.dailyWordGoal ?? 500,
+    createdAt:          sbUser.created_at,
   };
 }
 
 // ─── Context ───────────────────────────────────────────────────────────────
 
+interface ProfileUpdates {
+  name?: string;
+  avatarUrl?: string;
+  bio?: string;
+  website?: string;
+  twitterHandle?: string;
+  instagramHandle?: string;
+  genrePreferences?: string[];
+  dailyWordGoal?: number;
+}
+
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp:          (name: string, email: string, password: string) => Promise<void>;
+  signIn:          (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  signOut: () => void;
+  signOut:         () => void;
+  updateProfile:   (updates: ProfileUpdates) => Promise<void>;
+  updatePassword:  (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -41,13 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = createClient();
 
-    // Restore session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ? mapUser(session.user) : null);
       setLoading(false);
     });
 
-    // Listen for auth state changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ? mapUser(session.user) : null);
       setLoading(false);
@@ -61,9 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { name },
-      },
+      options: { data: { name } },
     });
     if (error) throw new Error(error.message);
   }
@@ -78,9 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: getRedirectUrl(),
-      },
+      options: { redirectTo: getRedirectUrl() },
     });
     if (error) throw new Error(error.message);
   }
@@ -92,8 +107,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  async function updateProfile(updates: ProfileUpdates): Promise<void> {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.updateUser({ data: updates });
+    if (error) throw new Error(error.message);
+    if (data.user) setUser(mapUser(data.user));
+  }
+
+  async function updatePassword(newPassword: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw new Error(error.message);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, signOut, updateProfile, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );
