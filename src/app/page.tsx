@@ -7,10 +7,9 @@ import { Plus, Search, ArrowRight, PenLine, Sun, Moon, Bell } from "lucide-react
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount, progressPercent } from "@/lib/utils";
-import { BookCard } from "@/components/dashboard/BookCard";
+import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
 import { AppNav } from "@/components/layout/AppNav";
 import { useAuth } from "@/lib/auth/context";
-import { cn } from "@/lib/utils";
 
 function getGreeting(hour: number): string {
   if (hour < 5)  return "Writing into the night";
@@ -497,24 +496,7 @@ export default function DashboardPage() {
                     onDelete={handleDelete}
                   />
                 ))}
-
-                {!query && (
-                  <Link href="/books/new">
-                    <div className="group h-full min-h-[240px] rounded-2xl border-2 border-dashed border-parchment-deep hover:border-sage/40 bg-transparent hover:bg-white/60 transition-all duration-300 flex flex-col items-center justify-center gap-3 cursor-pointer">
-                      <div className="w-11 h-11 rounded-full bg-parchment-deep group-hover:bg-sage/10 flex items-center justify-center transition-colors">
-                        <Plus className={cn("w-4.5 h-4.5 text-ink-faint group-hover:text-sage transition-colors")} />
-                      </div>
-                      <div className="text-center px-6">
-                        <p className="text-sm font-serif font-medium text-ink-muted group-hover:text-ink transition-colors">
-                          Begin a new manuscript
-                        </p>
-                        <p className="text-xs text-ink-faint mt-1 leading-relaxed">
-                          Every story starts with a first chapter.
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
+                {!query && <AddBookCard />}
               </div>
             </section>
           ) : query ? (
