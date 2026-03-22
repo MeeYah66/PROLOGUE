@@ -41,7 +41,7 @@ export async function uploadAvatarImage(file: File): Promise<string> {
   if (!user) throw new Error("Not authenticated");
 
   const ext  = file.name.split(".").pop() ?? "jpg";
-  const path = `avatars/${user.id}/profile.${ext}`;
+  const path = `${user.id}/avatar.${ext}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)
