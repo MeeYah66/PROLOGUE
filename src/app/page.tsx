@@ -214,7 +214,7 @@ function TopBar({
           value={query}
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search manuscripts..."
-          className="pl-9 pr-4 py-1.5 w-48 bg-white rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-muted focus:ring-1 focus:ring-ink/10 shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-all focus:w-60"
+          className="pl-9 pr-4 py-1.5 w-64 bg-transparent rounded-full text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-faint transition-all focus:w-80"
         />
       </div>
 
