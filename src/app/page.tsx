@@ -207,30 +207,7 @@ function TopBar({
 
   return (
     <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
-      {/* Left — theme + notifications */}
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => setDark((v) => !v)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-faint hover:text-ink hover:bg-parchment-warm transition-all"
-          title={dark ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {dark
-            ? <Sun  className="w-4 h-4" strokeWidth={1.8} />
-            : <Moon className="w-4 h-4" strokeWidth={1.8} />
-          }
-        </button>
-
-        <button
-          className="relative w-8 h-8 flex items-center justify-center rounded-lg text-ink-faint hover:text-ink hover:bg-parchment-warm transition-all"
-          title="Notifications"
-        >
-          <Bell className="w-4 h-4" strokeWidth={1.8} />
-          {/* Unread dot — placeholder */}
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-gold" />
-        </button>
-      </div>
-
-      {/* Right — search */}
+      {/* Left — search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
         <input
@@ -239,6 +216,28 @@ function TopBar({
           placeholder="Search manuscripts..."
           className="pl-9 pr-4 py-1.5 w-48 bg-white rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-muted focus:ring-1 focus:ring-ink/10 shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-all focus:w-60"
         />
+      </div>
+
+      {/* Right — theme + notifications */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setDark((v) => !v)}
+          className="w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {dark
+            ? <Sun  className="w-3.5 h-3.5" strokeWidth={1.8} />
+            : <Moon className="w-3.5 h-3.5" strokeWidth={1.8} />
+          }
+        </button>
+
+        <button
+          className="relative w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+          title="Notifications"
+        >
+          <Bell className="w-3.5 h-3.5" strokeWidth={1.8} />
+          <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold" />
+        </button>
       </div>
     </div>
   );
