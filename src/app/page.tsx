@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, ArrowRight, PenLine } from "lucide-react";
+import { Plus, Search, ArrowRight, PenLine, Sun, Moon, Bell } from "lucide-react";
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount, progressPercent } from "@/lib/utils";
@@ -195,6 +195,55 @@ function WelcomeBanner({ user }: { user: { name: string } }) {
   );
 }
 
+// ─── Top Bar ─────────────────────────────────────────────────────────────────
+function TopBar({
+  query,
+  onQuery,
+}: {
+  query: string;
+  onQuery: (v: string) => void;
+}) {
+  const [dark, setDark] = useState(false);
+
+  return (
+    <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
+      {/* Left — theme + notifications */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => setDark((v) => !v)}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-faint hover:text-ink hover:bg-parchment-warm transition-all"
+          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {dark
+            ? <Sun  className="w-4 h-4" strokeWidth={1.8} />
+            : <Moon className="w-4 h-4" strokeWidth={1.8} />
+          }
+        </button>
+
+        <button
+          className="relative w-8 h-8 flex items-center justify-center rounded-lg text-ink-faint hover:text-ink hover:bg-parchment-warm transition-all"
+          title="Notifications"
+        >
+          <Bell className="w-4 h-4" strokeWidth={1.8} />
+          {/* Unread dot — placeholder */}
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-gold" />
+        </button>
+      </div>
+
+      {/* Right — search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
+        <input
+          value={query}
+          onChange={(e) => onQuery(e.target.value)}
+          placeholder="Search manuscripts..."
+          className="pl-9 pr-4 py-1.5 w-48 bg-white rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-muted focus:ring-1 focus:ring-ink/10 shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-all focus:w-60"
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Featured "continue writing" strip ──────────────────────────────────────
 function FeaturedBook({ book }: { book: Book }) {
   const wordCount = totalWordCount(book.chapters);
@@ -356,13 +405,17 @@ export default function DashboardPage() {
       <AppNav />
 
       <main className="flex-1 ml-48 pb-12">
+
+        {/* ── Top bar ───────────────────────────────────────────────────── */}
+        <TopBar query={query} onQuery={setQuery} />
+
         <div className="px-8 pt-8 pb-0 max-w-5xl mx-auto">
 
           {/* ── Welcome Banner ──────────────────────────────────────────── */}
           <WelcomeBanner user={user!} />
 
           {/* ── Page header ─────────────────────────────────────────────── */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
+          <div className="flex items-end justify-between gap-5 mb-8">
             <div>
               <h1 className="font-serif text-3xl font-semibold text-ink tracking-tight leading-none mb-2">
                 Your Library
@@ -389,23 +442,12 @@ export default function DashboardPage() {
             </div>
 
             {books.length > 0 && (
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search..."
-                    className="pl-9 pr-4 py-2 w-44 bg-white rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-muted focus:ring-1 focus:ring-ink/10 shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-all focus:w-52"
-                  />
-                </div>
-                <Link href="/books/new">
-                  <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap">
-                    <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                    New Book
-                  </button>
-                </Link>
-              </div>
+              <Link href="/books/new" className="shrink-0">
+                <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap">
+                  <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  New Book
+                </button>
+              </Link>
             )}
           </div>
         </div>
