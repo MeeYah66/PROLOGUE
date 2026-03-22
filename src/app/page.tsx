@@ -20,8 +20,57 @@ function getGreeting(hour: number): string {
   return "Good evening";
 }
 
+function localDateStr(iso: string): string {
+  // Convert UTC ISO to local YYYY-MM-DD
+  return new Date(iso).toLocaleDateString("en-CA"); // "en-CA" gives YYYY-MM-DD
+}
+
+function computeStreak(books: Book[]): number {
+  const activityDates = new Set<string>();
+  for (const book of books) {
+    activityDates.add(localDateStr(book.updatedAt));
+    for (const ch of book.chapters) {
+      activityDates.add(localDateStr(ch.updatedAt));
+    }
+  }
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  if (!activityDates.has(todayStr)) return 0;
+  let streak = 0;
+  const cursor = new Date();
+  for (let i = 0; i < 365; i++) {
+    if (activityDates.has(cursor.toLocaleDateString("en-CA"))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function computeWordsToday(books: Book[]): number {
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  let total = 0;
+  for (const book of books) {
+    for (const ch of book.chapters) {
+      if (localDateStr(ch.updatedAt) === todayStr) total += ch.wordCount;
+    }
+  }
+  return total;
+}
+
 // ─── Welcome Banner ───────────────────────────────────────────────────────────
-function WelcomeBanner({ user }: { user: { name: string } }) {
+function WelcomeBanner({
+  user,
+  streak,
+  wordsToday,
+  manuscriptCount,
+}: {
+  user: { name: string };
+  streak: number;
+  wordsToday: number;
+  manuscriptCount: number;
+}) {
   const [hour, setHour] = useState(new Date().getHours());
 
   useEffect(() => {
@@ -71,125 +120,91 @@ function WelcomeBanner({ user }: { user: { name: string } }) {
         style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.5) 40%, rgba(201,168,76,0.3) 60%, transparent 100%)" }}
       />
 
-      {/* Cursive writing animation */}
-      <svg
-        viewBox="0 0 220 80"
-        className="absolute right-6 top-1/2 -translate-y-1/2 hidden sm:block pointer-events-none"
-        style={{ width: 200, height: 72, opacity: 0.55 }}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <style>{`
-          @keyframes write {
-            0%   { stroke-dashoffset: 900; opacity: 1; }
-            70%  { stroke-dashoffset: 0;   opacity: 1; }
-            85%  { stroke-dashoffset: 0;   opacity: 0; }
-            100% { stroke-dashoffset: 900; opacity: 0; }
-          }
-          @keyframes write2 {
-            0%   { stroke-dashoffset: 600; opacity: 1; }
-            65%  { stroke-dashoffset: 0;   opacity: 1; }
-            80%  { stroke-dashoffset: 0;   opacity: 0; }
-            100% { stroke-dashoffset: 600; opacity: 0; }
-          }
-          @keyframes write3 {
-            0%   { stroke-dashoffset: 400; opacity: 1; }
-            60%  { stroke-dashoffset: 0;   opacity: 1; }
-            78%  { stroke-dashoffset: 0;   opacity: 0; }
-            100% { stroke-dashoffset: 400; opacity: 0; }
-          }
-          .stroke1 {
-            stroke-dasharray: 900;
-            stroke-dashoffset: 900;
-            animation: write 4s ease-in-out infinite;
-          }
-          .stroke2 {
-            stroke-dasharray: 600;
-            stroke-dashoffset: 600;
-            animation: write2 4s ease-in-out infinite;
-            animation-delay: 0.3s;
-          }
-          .stroke3 {
-            stroke-dasharray: 400;
-            stroke-dashoffset: 400;
-            animation: write3 4s ease-in-out infinite;
-            animation-delay: 0.55s;
-          }
-        `}</style>
+      <div className="relative px-8 py-6 flex items-center justify-between gap-6">
+        {/* Left — date + greeting (unchanged) */}
+        <div>
+          <p
+            className="text-[10px] font-sans uppercase tracking-[0.22em] mb-2"
+            style={{ color: "rgba(201,168,76,0.55)" }}
+          >
+            {today}
+          </p>
+          <h2
+            className="font-serif text-[1.85rem] font-semibold leading-[1.15] tracking-tight"
+            style={{ color: "#f0e6d3" }}
+          >
+            {greeting}, {firstName}.
+          </h2>
+        </div>
 
-        {/* Line 1 — long cursive word */}
-        <path
-          className="stroke1"
-          d="M 8 38
-             C 12 30, 18 26, 22 30
-             C 26 34, 24 42, 28 40
-             C 32 38, 34 28, 40 30
-             C 46 32, 44 44, 50 40
-             C 54 37, 56 28, 62 30
-             C 68 32, 66 44, 72 40
-             C 76 37, 78 30, 84 30
-             C 90 30, 90 40, 96 38
-             C 100 36, 102 28, 108 30
-             C 114 32, 112 44, 118 40
-             C 122 37, 124 30, 130 32
-             C 138 35, 136 46, 144 42
-             C 150 38, 152 30, 158 32
-             C 166 35, 164 46, 170 42
-             C 176 38, 180 30, 188 34
-             C 194 37, 196 44, 202 42"
-          fill="none"
-          stroke="#c9a84c"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        {/* Right — accountability badges */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Streak — always visible, gold when active */}
+          <div
+            className="flex flex-col items-center px-4 py-2 rounded-xl border"
+            style={{
+              background:  streak > 0 ? "rgba(201,168,76,0.15)" : "rgba(0,0,0,0.25)",
+              borderColor: streak > 0 ? "rgba(201,168,76,0.35)" : "rgba(255,255,255,0.08)",
+            }}
+          >
+            <span
+              className="font-serif text-xl font-semibold leading-none tabular-nums"
+              style={{ color: streak > 0 ? "#c9a84c" : "#f0e6d3" }}
+            >
+              {streak}
+            </span>
+            <span
+              className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1 leading-none whitespace-nowrap"
+              style={{ color: streak > 0 ? "rgba(201,168,76,0.7)" : "rgba(240,230,211,0.4)" }}
+            >
+              day streak
+            </span>
+          </div>
 
-        {/* Line 2 — shorter word below */}
-        <path
-          className="stroke2"
-          d="M 30 55
-             C 36 47, 42 44, 46 48
-             C 50 52, 48 60, 54 57
-             C 58 54, 60 46, 66 48
-             C 72 50, 70 60, 76 57
-             C 80 55, 82 48, 88 50
-             C 96 53, 94 62, 102 58
-             C 108 55, 110 47, 116 50
-             C 124 54, 122 62, 130 58
-             C 136 55, 140 48, 148 52
-             C 156 56, 154 63, 162 59"
-          fill="none"
-          stroke="#c9a84c"
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+          {/* Words today — hidden on mobile */}
+          <div
+            className="hidden sm:flex flex-col items-center px-4 py-2 rounded-xl border"
+            style={{
+              background:  "rgba(0,0,0,0.25)",
+              borderColor: "rgba(255,255,255,0.08)",
+            }}
+          >
+            <span
+              className="font-serif text-xl font-semibold leading-none tabular-nums"
+              style={{ color: "#f0e6d3" }}
+            >
+              {wordsToday.toLocaleString()}
+            </span>
+            <span
+              className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1 leading-none whitespace-nowrap"
+              style={{ color: "rgba(240,230,211,0.4)" }}
+            >
+              words today
+            </span>
+          </div>
 
-        {/* Line 3 — small underline flourish */}
-        <path
-          className="stroke3"
-          d="M 30 68
-             C 60 64, 100 67, 140 65
-             C 160 64, 175 67, 185 63"
-          fill="none"
-          stroke="#c9a84c"
-          strokeWidth="1"
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <div className="relative px-8 py-6">
-        <p
-          className="text-[10px] font-sans uppercase tracking-[0.22em] mb-2"
-          style={{ color: "rgba(201,168,76,0.55)" }}
-        >
-          {today}
-        </p>
-        <h2
-          className="font-serif text-[1.85rem] font-semibold leading-[1.15] tracking-tight"
-          style={{ color: "#f0e6d3" }}
-        >
-          {greeting}, {firstName}.
-        </h2>
+          {/* Manuscripts — hidden on mobile */}
+          <div
+            className="hidden sm:flex flex-col items-center px-4 py-2 rounded-xl border"
+            style={{
+              background:  "rgba(0,0,0,0.25)",
+              borderColor: "rgba(255,255,255,0.08)",
+            }}
+          >
+            <span
+              className="font-serif text-xl font-semibold leading-none tabular-nums"
+              style={{ color: "#f0e6d3" }}
+            >
+              {manuscriptCount}
+            </span>
+            <span
+              className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1 leading-none whitespace-nowrap"
+              style={{ color: "rgba(240,230,211,0.4)" }}
+            >
+              {manuscriptCount === 1 ? "manuscript" : "manuscripts"}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -411,7 +426,12 @@ export default function DashboardPage() {
         <div className="px-8 pt-8 pb-0 max-w-5xl mx-auto">
 
           {/* ── Welcome Banner ──────────────────────────────────────────── */}
-          <WelcomeBanner user={user!} />
+          <WelcomeBanner
+            user={user!}
+            streak={computeStreak(books)}
+            wordsToday={computeWordsToday(books)}
+            manuscriptCount={books.length}
+          />
 
           {/* ── Page header ─────────────────────────────────────────────── */}
           <div className="flex items-end justify-between gap-5 mb-8">
