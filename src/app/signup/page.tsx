@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,7 +34,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signUp(name, email, password);
-      router.push("/");
+      setConfirmed(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
@@ -46,6 +47,29 @@ export default function SignupPage() {
     password.length >= 6 &&
     confirm.length > 0 &&
     !loading;
+
+  if (confirmed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-parchment px-6">
+        <div className="w-full max-w-[360px] text-center">
+          <div className="w-12 h-12 rounded-full bg-parchment-warm flex items-center justify-center mx-auto mb-6">
+            <Feather className="w-5 h-5 text-ink-muted" strokeWidth={1.5} />
+          </div>
+          <h1 className="font-serif text-2xl font-semibold text-ink mb-3">Check your email</h1>
+          <p className="text-sm text-ink-muted leading-relaxed mb-6">
+            We sent a confirmation link to <span className="text-ink font-medium">{email}</span>.
+            Click it to activate your account, then sign in.
+          </p>
+          <button
+            onClick={() => router.push("/signin")}
+            className="w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium hover:bg-ink-soft transition-all"
+          >
+            Go to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-parchment">
