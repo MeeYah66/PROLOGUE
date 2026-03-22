@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Library, Settings, LogOut, UserCircle, Feather } from "lucide-react";
+import { Library, Settings, LogOut, UserCircle, PenLine } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,50 +29,47 @@ function initials(name: string): string {
 }
 
 export function AppNav() {
-  const pathname        = usePathname();
+  const pathname          = usePathname();
   const { user, signOut } = useAuth();
 
-  const displayName = user?.name  ?? "—";
-  const displayEmail= user?.email ?? "";
-  const avatar      = user ? initials(user.name) : "?";
+  const displayName  = user?.name  ?? "—";
+  const displayEmail = user?.email ?? "";
+  const avatar       = user ? initials(user.name) : "?";
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-14 flex flex-col items-center bg-parchment border-r border-parchment-deep z-40 py-4">
+    <nav className="fixed left-0 top-0 h-full w-48 flex flex-col bg-parchment border-r border-parchment-deep z-40 py-5 px-3">
 
-      {/* Logo */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href="/"
-            className="flex items-center justify-center w-9 h-9 mb-5 text-ink hover:text-sage transition-colors"
-          >
-            <Feather className="w-[18px] h-[18px]" strokeWidth={1.5} />
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="font-serif">Prologue</TooltipContent>
-      </Tooltip>
+      {/* Brand */}
+      <Link
+        href="/"
+        className="flex items-center gap-2.5 px-2 mb-7 group"
+      >
+        <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center shrink-0 group-hover:bg-ink-soft transition-colors">
+          <PenLine className="w-3.5 h-3.5 text-parchment" strokeWidth={2} />
+        </div>
+        <span className="font-serif text-base font-semibold text-ink tracking-tight">
+          Prologue
+        </span>
+      </Link>
 
       {/* Nav items */}
-      <div className="flex-1 flex flex-col items-center gap-1">
+      <div className="flex-1 flex flex-col gap-0.5">
         {navItems.map(({ icon: Icon, label, href }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
-            <Tooltip key={href}>
-              <TooltipTrigger asChild>
-                <Link
-                  href={href}
-                  className={cn(
-                    "flex items-center justify-center w-9 h-9 rounded-lg transition-all",
-                    active
-                      ? "bg-parchment-warm text-ink"
-                      : "text-ink-faint hover:text-ink hover:bg-parchment-warm"
-                  )}
-                >
-                  <Icon className="w-[17px] h-[17px]" strokeWidth={1.5} />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">{label}</TooltipContent>
-            </Tooltip>
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
+                active
+                  ? "bg-parchment-warm text-ink font-medium"
+                  : "text-ink-faint hover:text-ink hover:bg-parchment-warm"
+              )}
+            >
+              <Icon className="w-[17px] h-[17px] shrink-0" strokeWidth={1.5} />
+              {label}
+            </Link>
           );
         })}
       </div>
@@ -83,18 +79,24 @@ export function AppNav() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="flex items-center justify-center w-9 h-9 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 hover:opacity-85 transition-opacity"
-              style={{ background: "linear-gradient(135deg, #a8c4b0, #7a9e87)" }}
-              title="Profile"
+              className="flex items-center gap-2.5 w-full px-2 py-2 rounded-lg hover:bg-parchment-warm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40"
             >
-              <span className="text-[11px] font-semibold text-white tracking-wide select-none">
-                {avatar}
-              </span>
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                style={{ background: "linear-gradient(135deg, #a8c4b0, #7a9e87)" }}
+              >
+                <span className="text-[10px] font-semibold text-white tracking-wide select-none">
+                  {avatar}
+                </span>
+              </div>
+              <div className="text-left min-w-0">
+                <p className="text-xs font-medium text-ink truncate leading-none">{displayName}</p>
+                <p className="text-[10px] text-ink-faint truncate mt-0.5 leading-none">{displayEmail}</p>
+              </div>
             </button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent side="right" align="end" sideOffset={12} className="w-56">
-            {/* Profile header */}
             <DropdownMenuLabel className="py-3 px-3">
               <div
                 className="w-8 h-8 rounded-full mb-2 flex items-center justify-center"

@@ -121,7 +121,7 @@ export default function NewBookPage() {
   return (
     <div className="flex min-h-screen bg-parchment">
       <AppNav />
-      <main className="flex-1 ml-14">
+      <main className="flex-1 ml-48">
         {/* Top bar */}
         <div className="border-b border-parchment-deep px-8 py-4 flex items-center justify-between">
           <Link href="/">

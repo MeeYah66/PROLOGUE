@@ -137,7 +137,7 @@ export default function DashboardPage() {
     return (
       <div className="flex min-h-screen bg-parchment">
         <AppNav />
-        <main className="flex-1 ml-14 flex items-center justify-center">
+        <main className="flex-1 ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
         </main>
       </div>
@@ -173,7 +173,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen bg-parchment">
       <AppNav />
 
-      <main className="flex-1 ml-14 pb-12">
+      <main className="flex-1 ml-48 pb-12">
 
         {/* ── Page header ─────────────────────────────────────────────────── */}
         <div className="px-8 pt-10 pb-8 max-w-5xl mx-auto">
