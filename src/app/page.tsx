@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, ArrowRight, PenLine, Sun, Moon, Bell } from "lucide-react";
+import { Plus, Search, ArrowRight, PenLine, Sun, Moon, Bell, Menu, X } from "lucide-react";
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount, progressPercent } from "@/lib/utils";
@@ -213,27 +213,74 @@ function WelcomeBanner({
 function TopBar({
   query,
   onQuery,
+  onOpenNav,
 }: {
   query: string;
   onQuery: (v: string) => void;
+  onOpenNav: () => void;
 }) {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark]               = useState(false);
+  const [searchOpen, setSearchOpen]   = useState(false);
+
+  // Mobile: full-width search overlay
+  if (searchOpen) {
+    return (
+      <div className="sticky top-0 z-30 flex items-center h-12 px-3 gap-2 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep md:hidden">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
+          <input
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Search manuscripts..."
+            className="w-full pl-9 pr-4 py-1.5 bg-transparent rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-faint"
+          />
+        </div>
+        <button
+          onClick={() => { setSearchOpen(false); onQuery(""); }}
+          className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-parchment-deep text-ink-faint hover:text-ink transition-all"
+        >
+          <X className="w-3.5 h-3.5" strokeWidth={1.8} />
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
-      {/* Left — search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
-        <input
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          placeholder="Search manuscripts..."
-          className="pl-9 pr-4 py-1.5 w-64 bg-transparent rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-faint transition-all focus:w-80"
-        />
+    <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-3 md:px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
+
+      {/* Left — hamburger (mobile) + search field (desktop) */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onOpenNav}
+          className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+          title="Menu"
+        >
+          <Menu className="w-3.5 h-3.5" strokeWidth={1.8} />
+        </button>
+
+        <div className="relative hidden md:block">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
+          <input
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Search manuscripts..."
+            className="pl-9 pr-4 py-1.5 w-64 bg-transparent rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-faint transition-all focus:w-80"
+          />
+        </div>
       </div>
 
-      {/* Right — theme + notifications */}
+      {/* Right — search icon (mobile) + theme + notifications */}
       <div className="flex items-center gap-2">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+          title="Search"
+        >
+          <Search className="w-3.5 h-3.5" strokeWidth={1.8} />
+        </button>
+
         <button
           onClick={() => setDark((v) => !v)}
           className="w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
@@ -365,9 +412,10 @@ function EmptyLibrary({ userName }: { userName: string }) {
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [books, setBooks]  = useState<Book[]>([]);
-  const [query, setQuery]  = useState("");
-  const [booksReady, setBooksReady] = useState(false);
+  const [books, setBooks]       = useState<Book[]>([]);
+  const [query, setQuery]       = useState("");
+  const [booksReady, setBooksReady]   = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -380,8 +428,8 @@ export default function DashboardPage() {
   if (authLoading || !booksReady) {
     return (
       <div className="flex min-h-screen bg-parchment">
-        <AppNav />
-        <main className="flex-1 ml-48 flex items-center justify-center">
+        <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
+        <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
         </main>
       </div>
@@ -415,14 +463,14 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-parchment">
-      <AppNav />
+      <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
-      <main className="flex-1 ml-48 pb-12">
+      <main className="flex-1 md:ml-48 pb-12">
 
         {/* ── Top bar ───────────────────────────────────────────────────── */}
-        <TopBar query={query} onQuery={setQuery} />
+        <TopBar query={query} onQuery={setQuery} onOpenNav={() => setMobileNavOpen(true)} />
 
-        <div className="px-8 pt-8 pb-0 max-w-5xl mx-auto">
+        <div className="px-4 md:px-8 pt-6 md:pt-8 pb-0 max-w-5xl mx-auto">
 
           {/* ── Welcome Banner ──────────────────────────────────────────── */}
           <WelcomeBanner
@@ -470,7 +518,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="px-8 max-w-5xl mx-auto">
+        <div className="px-4 md:px-8 max-w-5xl mx-auto">
 
           {/* ── Empty library ─────────────────────────────────────────────── */}
           {books.length === 0 && <EmptyLibrary userName={user?.name ?? "Writer"} />}

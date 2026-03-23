@@ -109,7 +109,7 @@ export default function SettingsPage() {
   return (
     <div className="flex min-h-screen bg-parchment">
       <AppNav />
-      <main className="flex-1 ml-48">
+      <main className="flex-1 md:ml-48">
         {/* Header */}
         <div className="border-b border-parchment-deep px-8 py-6">
           <div className="max-w-2xl mx-auto">
