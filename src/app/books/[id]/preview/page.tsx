@@ -152,8 +152,9 @@ function ChapterPage({ chapter }: { chapter: Chapter }) {
           lineHeight: "1.9",
           color: "#1a1a1a",
         }}
-        dangerouslySetInnerHTML={{ __html: chapter.content }}
-      />
+      >
+        <div className="ProseMirror" dangerouslySetInnerHTML={{ __html: chapter.content }} />
+      </div>
 
       {/* End marker */}
       <div className="flex items-center gap-4 mt-12 pt-6 border-t border-parchment-deep">
