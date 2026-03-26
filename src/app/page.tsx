@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Plus, Search, ArrowRight, PenLine, Sun, Moon, Bell, Menu, X } from "lucide-react";
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
-import { totalWordCount, progressPercent } from "@/lib/utils";
+import { totalWordCount } from "@/lib/utils";
 import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
 import { AppNav } from "@/components/layout/AppNav";
 import { Button } from "@/components/ui/button";
@@ -59,17 +58,19 @@ function computeWordsToday(books: Book[]): number {
   return total;
 }
 
-// ─── Welcome Banner ───────────────────────────────────────────────────────────
-function WelcomeBanner({
+// ─── Hero Banner ──────────────────────────────────────────────────────────────
+function HeroBanner({
   user,
   streak,
   wordsToday,
   manuscriptCount,
+  featuredBook,
 }: {
   user: { name: string };
   streak: number;
   wordsToday: number;
   manuscriptCount: number;
+  featuredBook: Book | null;
 }) {
   const [hour, setHour] = useState(new Date().getHours());
 
@@ -87,11 +88,22 @@ function WelcomeBanner({
     day:     "numeric",
   });
 
+  const lastCh = featuredBook
+    ? (featuredBook.chapters.find((c) => c.id === featuredBook.lastEditedChapterId) ?? featuredBook.chapters.at(-1))
+    : null;
+
+  const contextLine = lastCh
+    ? `You left off at Chapter ${lastCh.number} — ${lastCh.title}`
+    : null;
+
+  const ctaHref  = featuredBook ? `/books/${featuredBook.id}` : "/books/new";
+  const ctaLabel = featuredBook ? "Continue Writing" : "Start Writing";
+
   return (
     <div className="relative rounded-2xl overflow-hidden mb-8" style={{ backgroundColor: "#19130e" }}>
 
-      {/* SVG noise grain */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.18]" xmlns="http://www.w3.org/2000/svg">
+      {/* Grain */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.16]" xmlns="http://www.w3.org/2000/svg">
         <filter id="grain">
           <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
@@ -99,112 +111,97 @@ function WelcomeBanner({
         <rect width="100%" height="100%" filter="url(#grain)" />
       </svg>
 
-      {/* Warm amber glow — bottom left */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse 70% 90% at 0% 110%, rgba(180,110,40,0.32) 0%, transparent 65%)",
-        }}
-      />
-      {/* Cooler deep glow — top right */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse 50% 60% at 100% 0%, rgba(80,60,40,0.25) 0%, transparent 60%)",
-        }}
-      />
+      {/* Warm glow — bottom left */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 110% at -5% 120%, rgba(180,110,40,0.30) 0%, transparent 62%)" }} />
+      {/* Cool whisper — top right */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 45% 55% at 105% -10%, rgba(100,70,40,0.18) 0%, transparent 55%)" }} />
+      {/* Gold hairline */}
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.50) 35%, rgba(201,168,76,0.28) 65%, transparent 100%)" }} />
 
-      {/* Gold hairline — top */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.5) 40%, rgba(201,168,76,0.3) 60%, transparent 100%)" }}
-      />
+      <div className="relative flex flex-col px-9 pt-[30px] pb-7">
 
-      <div className="relative px-8 py-6 flex items-center justify-between gap-6">
-        {/* Left — date + greeting (unchanged) */}
-        <div>
-          <p
-            className="text-[10px] font-sans uppercase tracking-[0.22em] mb-2"
-            style={{ color: "rgba(201,168,76,0.55)" }}
-          >
-            {today}
-          </p>
-          <h2
-            className="font-serif text-[1.85rem] font-semibold leading-[1.15] tracking-tight"
-            style={{ color: "#f0e6d3" }}
-          >
-            {greeting}, {firstName}.
-          </h2>
-        </div>
+        {/* ── Top row: greeting + stat boxes ── */}
+        <div className="flex items-start justify-between gap-8 mb-[18px]">
 
-        {/* Right — accountability badges */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Streak — always visible, gold when active */}
-          <div
-            className="flex flex-col items-center px-4 py-2 rounded-xl border"
-            style={{
-              background:  streak > 0 ? "rgba(201,168,76,0.15)" : "rgba(0,0,0,0.25)",
-              borderColor: streak > 0 ? "rgba(201,168,76,0.35)" : "rgba(255,255,255,0.08)",
-            }}
-          >
-            <span
-              className="font-serif text-xl font-semibold leading-none tabular-nums"
-              style={{ color: streak > 0 ? "#c9a84c" : "#f0e6d3" }}
-            >
-              {streak}
-            </span>
-            <span
-              className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1 leading-none whitespace-nowrap"
-              style={{ color: streak > 0 ? "rgba(201,168,76,0.7)" : "rgba(240,230,211,0.4)" }}
-            >
-              day streak
-            </span>
+          {/* Left — date + greeting */}
+          <div>
+            <p className="text-[10px] font-sans uppercase tracking-[0.22em] mb-3" style={{ color: "rgba(201,168,76,0.50)" }}>
+              {today}
+            </p>
+            <h2 className="font-serif text-[2rem] font-semibold leading-[1.15] tracking-tight" style={{ color: "#f0e6d3" }}>
+              {greeting}, {firstName}.
+            </h2>
           </div>
 
-          {/* Words today — hidden on mobile */}
-          <div
-            className="hidden sm:flex flex-col items-center px-4 py-2 rounded-xl border"
-            style={{
-              background:  "rgba(0,0,0,0.25)",
-              borderColor: "rgba(255,255,255,0.08)",
-            }}
-          >
-            <span
-              className="font-serif text-xl font-semibold leading-none tabular-nums"
-              style={{ color: "#f0e6d3" }}
+          {/* Right — stat boxes */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div
+              className="flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
+              style={{
+                background:  streak > 0 ? "rgba(201,168,76,0.13)" : "rgba(0,0,0,0.22)",
+                borderColor: streak > 0 ? "rgba(201,168,76,0.32)" : "rgba(255,255,255,0.08)",
+              }}
             >
-              {wordsToday.toLocaleString()}
-            </span>
-            <span
-              className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1 leading-none whitespace-nowrap"
-              style={{ color: "rgba(240,230,211,0.4)" }}
-            >
-              words today
-            </span>
-          </div>
+              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: streak > 0 ? "#C9A84C" : "#f0e6d3" }}>
+                {streak}
+              </span>
+              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: streak > 0 ? "rgba(201,168,76,0.65)" : "rgba(240,230,211,0.38)" }}>
+                Day Streak
+              </span>
+            </div>
 
-          {/* Manuscripts — hidden on mobile */}
-          <div
-            className="hidden sm:flex flex-col items-center px-4 py-2 rounded-xl border"
-            style={{
-              background:  "rgba(0,0,0,0.25)",
-              borderColor: "rgba(255,255,255,0.08)",
-            }}
-          >
-            <span
-              className="font-serif text-xl font-semibold leading-none tabular-nums"
-              style={{ color: "#f0e6d3" }}
+            <div
+              className="hidden sm:flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
+              style={{ background: "rgba(0,0,0,0.22)", borderColor: "rgba(255,255,255,0.08)" }}
             >
-              {manuscriptCount}
-            </span>
-            <span
-              className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1 leading-none whitespace-nowrap"
-              style={{ color: "rgba(240,230,211,0.4)" }}
+              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#f0e6d3" }}>
+                {wordsToday.toLocaleString()}
+              </span>
+              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(240,230,211,0.38)" }}>
+                Words Today
+              </span>
+            </div>
+
+            <div
+              className="hidden sm:flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
+              style={{ background: "rgba(0,0,0,0.22)", borderColor: "rgba(255,255,255,0.08)" }}
             >
-              {manuscriptCount === 1 ? "manuscript" : "manuscripts"}
-            </span>
+              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#f0e6d3" }}>
+                {manuscriptCount}
+              </span>
+              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(240,230,211,0.38)" }}>
+                {manuscriptCount === 1 ? "Manuscript" : "Manuscripts"}
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* ── Bottom frame: context + CTA ── */}
+        {featuredBook && (
+          <div
+            className="flex items-center justify-between gap-5 px-[18px] py-[14px] rounded-xl"
+            style={{ background: "rgba(210,185,140,0.09)", border: "1px solid rgba(210,185,140,0.18)" }}
+          >
+            <div className="min-w-0">
+              {contextLine && (
+                <p className="font-serif text-[1.05rem] leading-relaxed" style={{ color: "rgba(240,230,211,0.58)" }}>
+                  {contextLine}
+                </p>
+              )}
+              <p className="font-serif italic text-[0.95rem] leading-relaxed" style={{ color: "rgba(240,230,211,0.32)" }}>
+                Your story is still waiting for you.
+              </p>
+            </div>
+            <Button asChild size="sm" variant="gold" className="shrink-0 rounded-[9px] px-5 text-[13px] font-semibold gap-[7px]">
+              <Link href={ctaHref}>
+                <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
+                {ctaLabel}
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </Button>
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -305,89 +302,6 @@ function TopBar({
   );
 }
 
-// ─── Featured "continue writing" strip ──────────────────────────────────────
-function FeaturedBook({ book }: { book: Book }) {
-  const wordCount = totalWordCount(book.chapters);
-  const progress  = progressPercent(wordCount, book.targetWordCount);
-  const lastCh    = book.chapters.find((c) => c.id === book.lastEditedChapterId)
-                 ?? book.chapters.at(-1);
-
-  return (
-    <section className="group relative mb-8 overflow-hidden rounded-xl border border-parchment-deep/80 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0_6px_24px_rgba(0,0,0,0.09)]">
-      {book.cover.imageUrl && (
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.03] scale-110"
-          style={{
-            backgroundImage: `url(${book.cover.imageUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(56px)",
-          }}
-        />
-      )}
-
-      <div className="relative flex flex-nowrap items-center gap-5 px-5 py-4">
-        <Link
-          href={`/books/${book.id}`}
-          className="relative shrink-0 overflow-hidden rounded-md shadow-[0_4px_14px_rgba(0,0,0,0.14)] transition-transform duration-300 group-hover:scale-[1.02]"
-          style={{ width: 64, height: 96, backgroundColor: book.cover.backgroundColor }}
-          aria-label={`Open ${book.title}`}
-        >
-          {book.cover.imageUrl ? (
-            <Image src={book.cover.imageUrl} alt={book.title} fill className="object-cover" />
-          ) : (
-            <div className="absolute inset-0 flex flex-col justify-end p-2">
-              <p className="font-serif text-[9px] font-semibold leading-tight" style={{ color: book.cover.titleColor }}>
-                {book.title}
-              </p>
-            </div>
-          )}
-        </Link>
-
-        <div className="min-w-0 flex-1">
-          <p className="mb-2 text-[10px] font-sans uppercase tracking-[0.14em] text-ink-faint">
-            Continue where you left off · {book.genre}
-          </p>
-          <Link href={`/books/${book.id}`} className="block">
-            <h2 className="line-clamp-1 font-serif text-xl font-semibold leading-snug tracking-tight text-ink transition-colors duration-300 group-hover:text-gold">
-              {book.title}
-            </h2>
-          </Link>
-
-          <div className="mt-2.5 flex items-center gap-2 text-xs text-ink-faint">
-            {lastCh && (
-              <span className="min-w-0 truncate text-ink-muted">
-                <span className="font-medium">Ch. {lastCh.number} — {lastCh.title}</span>
-                <span className="ml-2 opacity-60">{wordCount.toLocaleString()} words · {progress}%</span>
-              </span>
-            )}
-          </div>
-
-          <div className="mt-2.5 h-1 w-full max-w-[14rem] overflow-hidden rounded-full bg-parchment-deep">
-            <div
-              className="h-full rounded-full bg-sage/85 transition-all duration-700"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        <Button
-          asChild
-          size="sm"
-          variant="gold"
-          className="shrink-0 rounded-lg px-4 py-2 text-[11px] font-semibold tracking-[0.01em] gap-1.5"
-        >
-          <Link href={`/books/${book.id}`} aria-label={`Continue writing ${book.title}`}>
-            <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
-            Continue Writing
-            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </Link>
-        </Button>
-      </div>
-    </section>
-  );
-}
-
 // ─── Empty state ─────────────────────────────────────────────────────────────
 function EmptyLibrary({ userName }: { userName: string }) {
   return (
@@ -477,12 +391,13 @@ export default function DashboardPage() {
 
         <div className="px-4 md:px-8 pt-6 md:pt-8 pb-0 max-w-5xl mx-auto">
 
-          {/* ── Welcome Banner ──────────────────────────────────────────── */}
-          <WelcomeBanner
+          {/* ── Hero Banner ─────────────────────────────────────────────── */}
+          <HeroBanner
             user={user!}
             streak={computeStreak(books)}
             wordsToday={computeWordsToday(books)}
             manuscriptCount={books.length}
+            featuredBook={books.length > 0 ? featured : null}
           />
 
           {/* ── Page header ─────────────────────────────────────────────── */}
@@ -527,9 +442,6 @@ export default function DashboardPage() {
 
           {/* ── Empty library ─────────────────────────────────────────────── */}
           {books.length === 0 && <EmptyLibrary userName={user?.name ?? "Writer"} />}
-
-          {/* ── Featured strip ──────────────────────────────────────────── */}
-          {featured && !query && books.length > 0 && <FeaturedBook book={featured} />}
 
           {/* ── Book grid ───────────────────────────────────────────────── */}
           {rest.length > 0 ? (
