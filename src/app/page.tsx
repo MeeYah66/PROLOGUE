@@ -326,11 +326,11 @@ function FeaturedBook({ book }: { book: Book }) {
         />
       )}
 
-      <div className="relative flex flex-nowrap items-center gap-4 px-4 py-3">
+      <div className="relative flex flex-nowrap items-center gap-5 px-5 py-4">
         <Link
           href={`/books/${book.id}`}
           className="relative shrink-0 overflow-hidden rounded-md shadow-[0_4px_14px_rgba(0,0,0,0.14)] transition-transform duration-300 group-hover:scale-[1.02]"
-          style={{ width: 60, height: 90, backgroundColor: book.cover.backgroundColor }}
+          style={{ width: 64, height: 96, backgroundColor: book.cover.backgroundColor }}
           aria-label={`Open ${book.title}`}
         >
           {book.cover.imageUrl ? (
@@ -345,16 +345,16 @@ function FeaturedBook({ book }: { book: Book }) {
         </Link>
 
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-[10px] font-sans uppercase tracking-[0.14em] text-ink-faint">
+          <p className="mb-2 text-[10px] font-sans uppercase tracking-[0.14em] text-ink-faint">
             Continue where you left off · {book.genre}
           </p>
           <Link href={`/books/${book.id}`} className="block">
-            <h2 className="line-clamp-1 font-serif text-lg font-semibold leading-tight tracking-tight text-ink transition-colors duration-300 group-hover:text-gold">
+            <h2 className="line-clamp-1 font-serif text-xl font-semibold leading-snug tracking-tight text-ink transition-colors duration-300 group-hover:text-gold">
               {book.title}
             </h2>
           </Link>
 
-          <div className="mt-1.5 flex items-center gap-2 text-xs text-ink-faint">
+          <div className="mt-2.5 flex items-center gap-2 text-xs text-ink-faint">
             {lastCh && (
               <span className="min-w-0 truncate text-ink-muted">
                 <span className="font-medium">Ch. {lastCh.number} — {lastCh.title}</span>
@@ -363,7 +363,7 @@ function FeaturedBook({ book }: { book: Book }) {
             )}
           </div>
 
-          <div className="mt-1.5 h-1 w-full max-w-[14rem] overflow-hidden rounded-full bg-parchment-deep">
+          <div className="mt-2.5 h-1 w-full max-w-[14rem] overflow-hidden rounded-full bg-parchment-deep">
             <div
               className="h-full rounded-full bg-sage/85 transition-all duration-700"
               style={{ width: `${progress}%` }}
