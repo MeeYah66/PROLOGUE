@@ -349,7 +349,7 @@ function FeaturedBook({ book }: { book: Book }) {
             <p className="text-[10px] font-sans uppercase tracking-[0.16em] text-ink-faint mb-2.5">
               Resume where you left off · {book.genre}
             </p>
-            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-ink leading-tight tracking-tight mb-2.5 group-hover:text-sage transition-colors duration-300 line-clamp-1">
+            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-ink leading-tight tracking-tight mb-2.5 group-hover:text-gold transition-colors duration-300 line-clamp-1">
               {book.title}
             </h2>
             {book.blurb && (
