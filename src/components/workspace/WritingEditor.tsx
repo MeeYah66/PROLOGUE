@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import UnderlineExt from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
@@ -83,6 +84,55 @@ function ToolbarBtn({
   );
 }
 
+// ── Style preserver ───────────────────────────────────────────────────────────
+// Adds `style` + `class` attributes to all block node types and extends
+// TextStyle so inline CSS from pasted HTML (ChatGPT, Google Docs, etc.) is
+// retained in the schema and not stripped on paste.
+const StylePreserver = Extension.create({
+  name: "stylePreserver",
+  addGlobalAttributes() {
+    return [
+      {
+        types: [
+          "paragraph",
+          "heading",
+          "bulletList",
+          "orderedList",
+          "listItem",
+          "blockquote",
+          "codeBlock",
+        ],
+        attributes: {
+          style: {
+            default: null,
+            parseHTML: (el) => el.getAttribute("style") || null,
+            renderHTML: (attrs) => attrs.style ? { style: attrs.style } : {},
+          },
+          class: {
+            default: null,
+            parseHTML: (el) => el.getAttribute("class") || null,
+            renderHTML: (attrs) => attrs.class ? { class: attrs.class } : {},
+          },
+        },
+      },
+    ];
+  },
+});
+
+// Extend TextStyle mark so inline `style` on <span> tags survives paste too
+const InlineStylePreserver = TextStyle.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("style") || null,
+        renderHTML: (attrs) => attrs.style ? { style: attrs.style } : {},
+      },
+    };
+  },
+});
+
 // ── Block type options ────────────────────────────────────────────────────────
 const BLOCK_TYPES = [
   { value: "paragraph", label: "Paragraph" },
@@ -118,10 +168,11 @@ export function WritingEditor({
         heading: { levels: [1, 2, 3] },
       }),
       UnderlineExt,
-      TextStyle,
+      InlineStylePreserver,   // TextStyle extended to preserve inline CSS
       FontFamily,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Typography,
+      StylePreserver,          // Preserves style/class on all block nodes
       Placeholder.configure({
         placeholder: "Begin your chapter here. The cursor is yours…",
       }),
