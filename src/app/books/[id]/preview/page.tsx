@@ -145,26 +145,15 @@ function ChapterPage({ chapter }: { chapter: Chapter }) {
 
       {/* Content */}
       <div
-        className="book-page max-w-none"
+        className="tiptap-editor book-page max-w-none"
         style={{
           fontFamily: "var(--font-lora)",
           fontSize: "1rem",
           lineHeight: "1.9",
           color: "#1a1a1a",
         }}
-      >
-        {chapter.content.split("\n\n").map((para, i) => (
-          para.trim() ? (
-            <p
-              key={i}
-              className="mb-6"
-              style={{ textIndent: i > 0 ? "1.5em" : "0" }}
-            >
-              {para.trim()}
-            </p>
-          ) : null
-        ))}
-      </div>
+        dangerouslySetInnerHTML={{ __html: chapter.content }}
+      />
 
       {/* End marker */}
       <div className="flex items-center gap-4 mt-12 pt-6 border-t border-parchment-deep">
