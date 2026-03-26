@@ -9,6 +9,7 @@ import type { Book } from "@/lib/types";
 import { totalWordCount, progressPercent } from "@/lib/utils";
 import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
 import { AppNav } from "@/components/layout/AppNav";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 
 function getGreeting(hour: number): string {
@@ -312,74 +313,78 @@ function FeaturedBook({ book }: { book: Book }) {
                  ?? book.chapters.at(-1);
 
   return (
-    <Link href={`/books/${book.id}`}>
-      <div className="group relative flex gap-7 items-start bg-white rounded-2xl p-6 mb-10 cursor-pointer overflow-hidden transition-all duration-300 shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.09)] hover:-translate-y-0.5">
-
-        {book.cover.imageUrl && (
-          <div
-            className="absolute inset-0 opacity-[0.04] pointer-events-none scale-110"
-            style={{
-              backgroundImage: `url(${book.cover.imageUrl})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: "blur(48px)",
-            }}
-          />
-        )}
-
-        {/* Portrait cover */}
+    <section className="group relative mb-8 overflow-hidden rounded-xl border border-parchment-deep/80 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0_6px_24px_rgba(0,0,0,0.09)]">
+      {book.cover.imageUrl && (
         <div
-          className="relative shrink-0 rounded-xl overflow-hidden shadow-[0_6px_28px_rgba(0,0,0,0.18)] transition-transform duration-300 group-hover:scale-[1.015]"
-          style={{ width: 108, height: 162, backgroundColor: book.cover.backgroundColor }}
+          className="absolute inset-0 pointer-events-none opacity-[0.03] scale-110"
+          style={{
+            backgroundImage: `url(${book.cover.imageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(56px)",
+          }}
+        />
+      )}
+
+      <div className="relative flex flex-nowrap items-center gap-4 px-4 py-3">
+        <Link
+          href={`/books/${book.id}`}
+          className="relative shrink-0 overflow-hidden rounded-md shadow-[0_4px_14px_rgba(0,0,0,0.14)] transition-transform duration-300 group-hover:scale-[1.02]"
+          style={{ width: 60, height: 90, backgroundColor: book.cover.backgroundColor }}
+          aria-label={`Open ${book.title}`}
         >
           {book.cover.imageUrl ? (
             <Image src={book.cover.imageUrl} alt={book.title} fill className="object-cover" />
           ) : (
-            <div className="absolute inset-0 flex flex-col justify-end p-3">
-              <p className="font-serif text-[11px] font-semibold leading-tight" style={{ color: book.cover.titleColor }}>
+            <div className="absolute inset-0 flex flex-col justify-end p-2">
+              <p className="font-serif text-[9px] font-semibold leading-tight" style={{ color: book.cover.titleColor }}>
                 {book.title}
               </p>
             </div>
           )}
-        </div>
+        </Link>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between" style={{ minHeight: 162 }}>
-          <div>
-            <p className="text-[10px] font-sans uppercase tracking-[0.16em] text-ink-faint mb-2.5">
-              Resume where you left off · {book.genre}
-            </p>
-            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-ink leading-tight tracking-tight mb-2.5 group-hover:text-gold transition-colors duration-300 line-clamp-1">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-[10px] font-sans uppercase tracking-[0.14em] text-ink-faint">
+            Continue where you left off · {book.genre}
+          </p>
+          <Link href={`/books/${book.id}`} className="block">
+            <h2 className="line-clamp-1 font-serif text-lg font-semibold leading-tight tracking-tight text-ink transition-colors duration-300 group-hover:text-gold">
               {book.title}
             </h2>
-            {book.blurb && (
-              <p className="font-serif italic text-sm text-ink-muted leading-relaxed line-clamp-2 max-w-lg">
-                {book.blurb}
-              </p>
+          </Link>
+
+          <div className="mt-1.5 flex items-center gap-2 text-xs text-ink-faint">
+            {lastCh && (
+              <span className="min-w-0 truncate text-ink-muted">
+                <span className="font-medium">Ch. {lastCh.number} — {lastCh.title}</span>
+                <span className="ml-2 opacity-60">{wordCount.toLocaleString()} words · {progress}%</span>
+              </span>
             )}
           </div>
 
-          <div className="space-y-2.5">
-            {lastCh && (
-              <p className="text-xs text-ink-faint">
-                <span className="text-ink-muted font-medium">Ch. {lastCh.number} — {lastCh.title}</span>
-                <span className="ml-2 opacity-60">
-                  {wordCount.toLocaleString()} words · {progress}%
-                </span>
-              </p>
-            )}
-            <div className="h-[2px] w-48 bg-parchment-deep rounded-full overflow-hidden">
-              <div className="h-full bg-sage/80 rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
-            </div>
-            <div className="flex items-center gap-1.5 text-sage group-hover:text-sage-dark transition-colors">
-              <PenLine className="w-3 h-3" strokeWidth={1.5} />
-              <span className="text-xs font-sans font-semibold tracking-wide">Continue Writing</span>
-              <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </div>
+          <div className="mt-1.5 h-1 w-full max-w-[14rem] overflow-hidden rounded-full bg-parchment-deep">
+            <div
+              className="h-full rounded-full bg-sage/85 transition-all duration-700"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
+
+        <Button
+          asChild
+          size="sm"
+          variant="gold"
+          className="shrink-0 rounded-lg px-4 py-2 text-[11px] font-semibold tracking-[0.01em] gap-1.5"
+        >
+          <Link href={`/books/${book.id}`} aria-label={`Continue writing ${book.title}`}>
+            <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
+            Continue Writing
+            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
+        </Button>
       </div>
-    </Link>
+    </section>
   );
 }
 
