@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prologue Logo Export</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      background: #f5f0e8;
+      font-family: Georgia, serif;
+    }
+    canvas { border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); }
+    .btns { display: flex; gap: 12px; }
+    button {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    .primary { background: #1a1a1a; color: #f5f0e8; }
+    .secondary { background: #c9a84c; color: #1a1a1a; }
+    p { font-size: 13px; color: #9a9a9a; margin: 0; }
+  </style>
+</head>
+<body>
+  <canvas id="c" width="512" height="512"></canvas>
+
+  <div class="btns">
+    <button class="primary"   onclick="dl('jpeg')">Download JPEG</button>
+    <button class="secondary" onclick="dl('png')">Download PNG</button>
+  </div>
+  <p>512 × 512 px — right-click the canvas to copy image too</p>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx    = canvas.getContext('2d');
+    const W = 512, H = 512;
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function draw() {
+      // ── Background ──────────────────────────────────────────────────────
+      roundRect(0, 0, W, H, 96);
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fill();
+
+      // ── Subtle gold glow behind icon ────────────────────────────────────
+      const grd = ctx.createRadialGradient(256, 195, 20, 256, 195, 110);
+      grd.addColorStop(0,   'rgba(201,168,76,0.14)');
+      grd.addColorStop(1,   'rgba(201,168,76,0)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, W, H);
+
+      // ── Pen icon (PenLine — Lucide, viewBox 0 0 24 24) ──────────────────
+      // Scale 6.667× and centre at (256, 195)
+      const SCALE = 6.667;
+      const TX = 176, TY = 115;
+
+      ctx.save();
+      ctx.translate(TX, TY);
+      ctx.scale(SCALE, SCALE);
+      ctx.strokeStyle = '#c9a84c';
+      ctx.lineWidth   = 1.4;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+
+      // Path 1: M12 20h9  (the baseline / underline)
+      const p1 = new Path2D('M12 20h9');
+      ctx.stroke(p1);
+
+      // Path 2: the pen body
+      const p2 = new Path2D('M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z');
+      ctx.stroke(p2);
+
+      ctx.restore();
+
+      // ── Thin gold divider ───────────────────────────────────────────────
+      ctx.beginPath();
+      ctx.moveTo(216, 318);
+      ctx.lineTo(296, 318);
+      ctx.strokeStyle = 'rgba(201,168,76,0.55)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+
+      // ── Wordmark ────────────────────────────────────────────────────────
+      ctx.font         = '700 50px Georgia, serif';
+      ctx.fillStyle    = '#f5f0e8';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.letterSpacing = '-1px';
+      ctx.fillText('Prologue', 256, 374);
+    }
+
+    draw();
+
+    function dl(fmt) {
+      // JPEG needs a white canvas underneath (no transparency)
+      let src = canvas;
+      if (fmt === 'jpeg') {
+        const tmp  = document.createElement('canvas');
+        tmp.width  = W; tmp.height = H;
+        const tc   = tmp.getContext('2d');
+        tc.fillStyle = '#1a1a1a';
+        tc.fillRect(0, 0, W, H);
+        tc.drawImage(canvas, 0, 0);
+        src = tmp;
+      }
+      const a    = document.createElement('a');
+      a.download = fmt === 'jpeg' ? 'prologue-logo.jpg' : 'prologue-logo.png';
+      a.href     = src.toDataURL(fmt === 'jpeg' ? 'image/jpeg' : 'image/png', 0.96);
+      a.click();
+    }
+  </script>
+</body>
+</html>
