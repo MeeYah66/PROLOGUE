@@ -249,13 +249,11 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
         )}
 
         {/* Progress + CTA on same row */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-6">
+          <div className="w-[140px] shrink-0">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] text-ink-muted">
-                {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} words
-              </span>
-              <span className="text-[11px] font-semibold text-ink">{pct}%</span>
+              <span className="text-[11px] text-ink-muted">{pct}% complete</span>
+              <span className="text-[11px] font-medium text-ink">{words.toLocaleString()}w</span>
             </div>
             <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden">
               <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
