@@ -212,7 +212,7 @@ function MiniCover({ book }: { book: Book }) {
 function CurrentlyWriting({ book }: { book: Book | null }) {
   if (!book) {
     return (
-      <div className="rounded-xl border border-parchment-deep bg-white p-8 flex flex-col items-center justify-center text-center">
+      <div className="rounded-xl border border-parchment-deep bg-transparent p-8 flex flex-col items-center justify-center text-center">
         <div className="w-9 h-9 rounded-full bg-parchment-warm flex items-center justify-center mb-3">
           <PenLine className="w-4 h-4 text-ink-faint" strokeWidth={1.5} />
         </div>
@@ -236,7 +236,7 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
   const snippet = lastCh ? extractSnippet(lastCh.content) : "";
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-5 flex gap-4">
+    <div className="rounded-xl border border-parchment-deep bg-transparent p-5 flex gap-4">
       <MiniCover book={book} />
 
       <div className="flex flex-col flex-1 min-w-0 gap-3">
@@ -330,7 +330,7 @@ function QuickCapture() {
   }
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-4">
+    <div className="rounded-xl border border-parchment-deep bg-transparent p-4">
       <div className="flex items-center gap-2 mb-3">
         <Zap className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
         <h3 className="font-serif text-sm font-semibold text-ink">Quick Capture</h3>
@@ -431,7 +431,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── No goal set yet ─────────────────────────────────────────────────────────
   if (!hasGoal && !editing) {
     return (
-      <div className="rounded-xl border border-parchment-deep bg-white p-4">
+      <div className="rounded-xl border border-parchment-deep bg-transparent p-4">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -453,7 +453,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── Goal input (first time or editing) ──────────────────────────────────────
   if (editing) {
     return (
-      <div className="rounded-xl border border-parchment-deep bg-white p-4">
+      <div className="rounded-xl border border-parchment-deep bg-transparent p-4">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -491,7 +491,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
 
   // ── Goal set — show progress ─────────────────────────────────────────────────
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-4">
+    <div className="rounded-xl border border-parchment-deep bg-transparent p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
@@ -530,7 +530,7 @@ function WeeklyActivity({ books }: { books: Book[] }) {
   const totalThisWeek = activity.reduce((s, d) => s + d.words, 0);
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-5">
+    <div className="rounded-xl border border-parchment-deep bg-transparent p-5">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="font-serif text-sm font-semibold text-ink">This Week</h3>
         <span className="text-[11px] text-ink-muted">{totalThisWeek.toLocaleString()} words</span>
@@ -598,7 +598,7 @@ function WriterSnapshot({ books }: { books: Book[] }) {
   ];
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-5 flex-1">
+    <div className="rounded-xl border border-parchment-deep bg-transparent p-5 flex-1">
       <h3 className="font-serif text-sm font-semibold text-ink mb-4">Writing Profile</h3>
       <div className="space-y-3.5">
         {rows.map(({ label, value }) => (
@@ -636,7 +636,7 @@ function RecentManuscripts({ books }: { books: Book[] }) {
   const recent = books.slice(0, 4);
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white overflow-hidden">
+    <div className="rounded-xl border border-parchment-deep bg-transparent overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-parchment-deep">
         <h3 className="font-serif text-sm font-semibold text-ink">Recent Manuscripts</h3>
         <Link
