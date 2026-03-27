@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Library, Settings, LogOut, UserRound, PenLine, X } from "lucide-react";
+import { LayoutDashboard, BookMarked, Settings, LogOut, UserRound, PenLine, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -15,9 +15,10 @@ import {
 import { useAuth } from "@/lib/auth/context";
 
 const navItems = [
-  { icon: Library,   label: "Library",  href: "/" },
-  { icon: UserRound, label: "Profile",  href: "/profile" },
-  { icon: Settings,  label: "Settings", href: "/settings" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/"         },
+  { icon: BookMarked,      label: "Library",   href: "/library"  },
+  { icon: UserRound,       label: "Profile",   href: "/profile"  },
+  { icon: Settings,        label: "Settings",  href: "/settings" },
 ];
 
 function initials(name: string): string {

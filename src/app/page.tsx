@@ -2,26 +2,36 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Search, ArrowRight, PenLine, Sun, Moon, Bell, Menu, X } from "lucide-react";
-import { getBooks, deleteBook } from "@/lib/store";
+import {
+  Plus,
+  Bell,
+  Menu,
+  PenLine,
+  ArrowRight,
+  Flame,
+  BookMarked,
+  ScrollText,
+  Trophy,
+} from "lucide-react";
+import { getBooks } from "@/lib/store";
 import type { Book } from "@/lib/types";
-import { totalWordCount } from "@/lib/utils";
-import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
+import { totalWordCount, estimateReadingTime, progressPercent } from "@/lib/utils";
 import { AppNav } from "@/components/layout/AppNav";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
+import { cn } from "@/lib/utils";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getGreeting(hour: number): string {
-  if (hour < 5)  return "Writing into the night";
+  if (hour < 5)  return "Still up writing";
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
-  if (hour < 21) return "Good evening";
   return "Good evening";
 }
 
 function localDateStr(iso: string): string {
-  // Convert UTC ISO to local YYYY-MM-DD
-  return new Date(iso).toLocaleDateString("en-CA"); // "en-CA" gives YYYY-MM-DD
+  return new Date(iso).toLocaleDateString("en-CA");
 }
 
 function computeStreak(books: Book[]): number {
@@ -47,272 +57,39 @@ function computeStreak(books: Book[]): number {
   return streak;
 }
 
-function computeWordsToday(books: Book[]): number {
-  const todayStr = new Date().toLocaleDateString("en-CA");
-  let total = 0;
-  for (const book of books) {
-    for (const ch of book.chapters) {
-      if (localDateStr(ch.updatedAt) === todayStr) total += ch.wordCount;
+function computeWeeklyActivity(books: Book[]): { label: string; words: number; isToday: boolean }[] {
+  const now = new Date();
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (6 - i));
+    const dateStr = d.toLocaleDateString("en-CA");
+    const label   = d.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 2);
+    let words     = 0;
+    for (const book of books) {
+      for (const ch of book.chapters) {
+        if (localDateStr(ch.updatedAt) === dateStr) words += ch.wordCount;
+      }
     }
-  }
-  return total;
-}
-
-// ─── Hero Banner ──────────────────────────────────────────────────────────────
-function HeroBanner({
-  user,
-  streak,
-  wordsToday,
-  manuscriptCount,
-  featuredBook,
-}: {
-  user: { name: string };
-  streak: number;
-  wordsToday: number;
-  manuscriptCount: number;
-  featuredBook: Book | null;
-}) {
-  const [hour, setHour] = useState(new Date().getHours());
-
-  useEffect(() => {
-    const t = setInterval(() => setHour(new Date().getHours()), 60_000);
-    return () => clearInterval(t);
-  }, []);
-
-  const firstName = user.name.split(" ")[0];
-  const greeting  = getGreeting(hour);
-
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month:   "long",
-    day:     "numeric",
+    return { label, words, isToday: i === 6 };
   });
-
-  const lastCh = featuredBook
-    ? (featuredBook.chapters.find((c) => c.id === featuredBook.lastEditedChapterId) ?? featuredBook.chapters.at(-1))
-    : null;
-
-  const contextLine = lastCh
-    ? `You left off at Chapter ${lastCh.number} — ${lastCh.title}`
-    : null;
-
-  const ctaHref  = featuredBook ? `/books/${featuredBook.id}` : "/books/new";
-  const ctaLabel = featuredBook ? "Continue Writing" : "Start Writing";
-
-  return (
-    <div
-      className="relative rounded-2xl overflow-hidden mb-8"
-      style={{
-        backgroundColor: "#F5F0E8",
-        boxShadow: "0 1px 3px rgba(26,20,14,0.05), 0 4px 18px rgba(26,20,14,0.04)",
-      }}
-    >
-
-      {/* Grain — very subtle */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.055]" xmlns="http://www.w3.org/2000/svg">
-        <filter id="grain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#grain)" />
-      </svg>
-
-      {/* Gold blush — top right */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 55% 70% at 105% -5%, rgba(201,168,76,0.10) 0%, transparent 60%)" }} />
-      {/* Warm blush — bottom left */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 65% 60% at -5% 110%, rgba(180,120,40,0.07) 0%, transparent 55%)" }} />
-      {/* Gold hairline */}
-      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.55) 35%, rgba(201,168,76,0.30) 65%, transparent 100%)" }} />
-
-      <div className="relative flex flex-col px-9 pt-[30px] pb-7">
-
-        {/* ── Top row: greeting + stat boxes ── */}
-        <div className="flex items-start justify-between gap-8 mb-[18px]">
-
-          {/* Left — date + greeting */}
-          <div>
-            {/* #7A5C14 on #F5F0E8 → 5.6:1 ✓ AA */}
-            <p className="text-[10px] font-sans uppercase tracking-[0.22em] mb-3" style={{ color: "#7A5C14" }}>
-              {today}
-            </p>
-            {/* #1a1408 on #F5F0E8 → 15.4:1 ✓ AAA */}
-            <h2 className="font-serif text-[2rem] font-semibold leading-[1.15] tracking-tight" style={{ color: "#1a1408" }}>
-              {greeting}, {firstName}.
-            </h2>
-          </div>
-
-          {/* Right — stat boxes */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            {/* Streak box — left accent when active signals the earned state */}
-            <div
-              className="flex flex-col items-center px-[18px] py-[10px] rounded-xl min-w-[72px]"
-              style={{
-                background:    streak > 0 ? "rgba(201,168,76,0.11)" : "rgba(26,20,14,0.04)",
-                border:        streak > 0 ? "1px solid rgba(201,168,76,0.28)" : "1px solid rgba(26,20,14,0.09)",
-                borderLeft:    streak > 0 ? "2.5px solid rgba(180,130,30,0.55)" : "1px solid rgba(26,20,14,0.09)",
-              }}
-            >
-              {/* #6B4F0E on gold-tint box → 6.35:1 ✓ AAA */}
-              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: streak > 0 ? "#6B4F0E" : "#1a1408" }}>
-                {streak}
-              </span>
-              {/* #7A5610 on gold-tint box → 5.52:1 ✓ AA  |  rgba(26,20,14,0.58) on plain box → 4.78:1 ✓ AA */}
-              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: streak > 0 ? "#7A5610" : "rgba(26,20,14,0.58)" }}>
-                Day Streak
-              </span>
-            </div>
-
-            <div
-              className="hidden sm:flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
-              style={{ background: "rgba(26,20,14,0.04)", borderColor: "rgba(26,20,14,0.09)" }}
-            >
-              {/* #1a1408 → 14:1 ✓ AAA */}
-              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#1a1408" }}>
-                {wordsToday.toLocaleString()}
-              </span>
-              {/* rgba(26,20,14,0.58) → 4.78:1 ✓ AA */}
-              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(26,20,14,0.58)" }}>
-                Words Today
-              </span>
-            </div>
-
-            <div
-              className="hidden sm:flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
-              style={{ background: "rgba(26,20,14,0.04)", borderColor: "rgba(26,20,14,0.09)" }}
-            >
-              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#1a1408" }}>
-                {manuscriptCount}
-              </span>
-              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(26,20,14,0.58)" }}>
-                {manuscriptCount === 1 ? "Manuscript" : "Manuscripts"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Bottom frame: context + CTA ── */}
-        {featuredBook && (
-          <div
-            className="flex items-center justify-between gap-5 px-[18px] py-[14px] rounded-xl"
-            style={{
-              background:  "rgba(26,20,14,0.03)",
-              border:      "1px solid rgba(26,20,14,0.08)",
-              borderLeft:  "2.5px solid rgba(180,140,40,0.42)",
-            }}
-          >
-            <div className="min-w-0">
-              {contextLine && (
-                /* rgba(26,20,14,0.62) → 5.44:1 ✓ AA */
-                <p className="font-serif text-[1.05rem] leading-relaxed" style={{ color: "rgba(26,20,14,0.62)" }}>
-                  {contextLine}
-                </p>
-              )}
-              {/* rgba(26,20,14,0.60) on frame bg → 5.0:1 ✓ AA */}
-              <p className="font-serif italic text-[0.9rem] leading-relaxed" style={{ color: "rgba(26,20,14,0.60)" }}>
-                Your story is still waiting for you.
-              </p>
-            </div>
-            <Button asChild size="sm" variant="gold" className="shrink-0 rounded-[9px] px-5 text-[13px] font-semibold gap-[7px]">
-              <Link href={ctaHref}>
-                <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
-                {ctaLabel}
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </Button>
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
 }
 
-// ─── Top Bar ─────────────────────────────────────────────────────────────────
-function TopBar({
-  query,
-  onQuery,
-  onOpenNav,
-}: {
-  query: string;
-  onQuery: (v: string) => void;
-  onOpenNav: () => void;
-}) {
-  const [dark, setDark]               = useState(false);
-  const [searchOpen, setSearchOpen]   = useState(false);
+// ─── Top Bar ──────────────────────────────────────────────────────────────────
 
-  // Mobile: full-width search overlay
-  if (searchOpen) {
-    return (
-      <div className="sticky top-0 z-30 flex items-center h-12 px-3 gap-2 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep md:hidden">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
-          <input
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            placeholder="Search manuscripts..."
-            className="w-full pl-9 pr-4 py-1.5 bg-transparent rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-faint"
-          />
-        </div>
-        <button
-          onClick={() => { setSearchOpen(false); onQuery(""); }}
-          className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-parchment-deep text-ink-faint hover:text-ink transition-all"
-        >
-          <X className="w-3.5 h-3.5" strokeWidth={1.8} />
-        </button>
-      </div>
-    );
-  }
-
+function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   return (
     <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-3 md:px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
-
-      {/* Left — hamburger (mobile) + search field (desktop) */}
-      <div className="flex items-center gap-2">
+      <button
+        onClick={onOpenNav}
+        aria-label="Open navigation"
+        className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+      >
+        <Menu className="w-3.5 h-3.5" strokeWidth={1.8} />
+      </button>
+      <div className="flex items-center gap-2 ml-auto">
         <button
-          onClick={onOpenNav}
-          className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
-          title="Menu"
-        >
-          <Menu className="w-3.5 h-3.5" strokeWidth={1.8} />
-        </button>
-
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
-          <input
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            placeholder="Search manuscripts..."
-            className="pl-9 pr-4 py-1.5 w-64 bg-transparent rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-faint transition-all focus:w-80"
-          />
-        </div>
-      </div>
-
-      {/* Right — search icon (mobile) + theme + notifications */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
-          title="Search"
-        >
-          <Search className="w-3.5 h-3.5" strokeWidth={1.8} />
-        </button>
-
-        <button
-          onClick={() => setDark((v) => !v)}
-          className="w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
-          title={dark ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {dark
-            ? <Sun  className="w-3.5 h-3.5" strokeWidth={1.8} />
-            : <Moon className="w-3.5 h-3.5" strokeWidth={1.8} />
-          }
-        </button>
-
-        <button
+          aria-label="Notifications"
           className="relative w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
-          title="Notifications"
         >
           <Bell className="w-3.5 h-3.5" strokeWidth={1.8} />
           <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold" />
@@ -322,39 +99,332 @@ function TopBar({
   );
 }
 
-// ─── Empty state ─────────────────────────────────────────────────────────────
-function EmptyLibrary({ userName }: { userName: string }) {
+// ─── Stats Strip ──────────────────────────────────────────────────────────────
+
+function StatStrip({
+  totalWords,
+  completedBooks,
+  streak,
+  totalChapters,
+}: {
+  totalWords: number;
+  completedBooks: number;
+  streak: number;
+  totalChapters: number;
+}) {
+  const stats = [
+    { icon: PenLine,    value: totalWords.toLocaleString(),   label: "Words Written"   },
+    { icon: Trophy,     value: String(completedBooks),        label: "Books Complete"  },
+    { icon: Flame,      value: streak > 0 ? `${streak}d` : "—", label: "Writing Streak" },
+    { icon: ScrollText, value: String(totalChapters),         label: "Chapters"        },
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-14 h-14 rounded-full bg-parchment-warm flex items-center justify-center mb-5">
-        <PenLine className="w-6 h-6 text-ink-faint" strokeWidth={1.5} />
-      </div>
-      <h2 className="font-serif text-2xl font-semibold text-ink mb-3">
-        Your library awaits, {userName.split(" ")[0]}.
-      </h2>
-      <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-2">
-        A blank page is not an empty thing — it holds every story you haven&apos;t written yet.
-      </p>
-      <p className="text-xs text-ink-faint mb-10">
-        Begin your first manuscript to get started.
-      </p>
-      <Link href="/books/new">
-        <button className="flex items-center gap-2 bg-ink text-parchment px-6 py-3 rounded-xl font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm">
-          <PenLine className="w-3.5 h-3.5" />
-          Create Your First Manuscript
-        </button>
-      </Link>
+    <div className="inline-flex items-center bg-parchment-warm rounded-xl px-1 py-1 flex-wrap gap-y-1">
+      {stats.map(({ icon: Icon, value, label }, i) => (
+        <div key={label} className="flex items-center">
+          <div className="flex items-center gap-2 px-4 py-2">
+            <Icon className="w-3.5 h-3.5 text-ink-faint shrink-0" strokeWidth={1.5} />
+            {/* value — #1a1408 on #f5f0e8 → 14:1 ✓ AAA */}
+            <span className="font-serif text-sm font-semibold text-ink">{value}</span>
+            {/* label — rgba(26,20,14,0.58) on #f5f0e8 → 4.8:1 ✓ AA */}
+            <span className="text-[11px] text-ink-muted">{label}</span>
+          </div>
+          {i < stats.length - 1 && (
+            <div className="w-px h-4 bg-parchment-deep shrink-0" />
+          )}
+        </div>
+      ))}
     </div>
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+// ─── Mini Book Cover ──────────────────────────────────────────────────────────
+
+function MiniCover({ book }: { book: Book }) {
+  return (
+    <div
+      className="w-[76px] shrink-0 self-stretch rounded-lg relative overflow-hidden"
+      style={{ backgroundColor: book.cover.backgroundColor, minHeight: "108px" }}
+    >
+      {book.cover.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={book.cover.imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.50))" }}
+      />
+      <div className="absolute bottom-2 left-2 right-2">
+        <p
+          className="text-[7px] font-serif font-bold leading-tight line-clamp-2"
+          style={{ color: book.cover.titleColor ?? "#ffffff" }}
+        >
+          {book.title}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Currently Writing ────────────────────────────────────────────────────────
+
+function CurrentlyWriting({ book }: { book: Book | null }) {
+  if (!book) {
+    return (
+      <div className="rounded-xl border border-parchment-deep bg-white p-10 flex flex-col items-center justify-center text-center">
+        <div className="w-10 h-10 rounded-full bg-parchment-warm flex items-center justify-center mb-4">
+          <PenLine className="w-4 h-4 text-ink-faint" strokeWidth={1.5} />
+        </div>
+        <p className="font-serif text-lg font-semibold text-ink mb-2">Your story is waiting</p>
+        <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-6">
+          Begin your first manuscript to start tracking your progress here.
+        </p>
+        <Link href="/books/new">
+          <Button size="sm" className="gap-1.5 bg-ink text-parchment hover:bg-ink-soft">
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+            Start Writing
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const lastCh  = book.chapters.find((c) => c.id === book.lastEditedChapterId) ?? book.chapters.at(-1);
+  const words   = totalWordCount(book.chapters);
+  const pct     = progressPercent(words, book.targetWordCount);
+
+  return (
+    <div className="rounded-xl border border-parchment-deep bg-white p-5 flex gap-5">
+      <MiniCover book={book} />
+
+      <div className="flex flex-col flex-1 min-w-0 py-0.5">
+        {/* #7A5C14 on white → 5.7:1 ✓ AA */}
+        <p className="text-[9px] font-sans uppercase tracking-[0.20em] font-semibold mb-2" style={{ color: "#7A5C14" }}>
+          Currently Writing
+        </p>
+        <h3 className="font-serif text-[1.35rem] font-semibold text-ink leading-tight mb-0.5 truncate">
+          {book.title}
+        </h3>
+        <p className="text-xs text-ink-muted mb-4">{book.genre}</p>
+
+        {lastCh && (
+          <div className="flex items-baseline gap-1.5 mb-4">
+            <span className="text-[11px] font-medium text-ink">Ch. {lastCh.number}</span>
+            <span className="text-ink-faint text-[10px]">—</span>
+            <span className="text-[11px] text-ink-muted truncate">{lastCh.title}</span>
+          </div>
+        )}
+
+        <div className="mt-auto">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] text-ink-muted">
+              {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} words
+            </span>
+            <span className="text-[11px] font-semibold text-ink">{pct}%</span>
+          </div>
+          <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-4">
+            <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
+          <Link href={`/books/${book.id}`}>
+            <Button
+              size="sm"
+              variant="gold"
+              className="w-full gap-1.5 rounded-lg text-[13px] font-semibold"
+            >
+              <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
+              Continue Writing
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Weekly Activity ──────────────────────────────────────────────────────────
+
+function WeeklyActivity({ books }: { books: Book[] }) {
+  const activity    = computeWeeklyActivity(books);
+  const maxWords    = Math.max(...activity.map((d) => d.words), 1);
+  const totalThisWeek = activity.reduce((s, d) => s + d.words, 0);
+
+  return (
+    <div className="rounded-xl border border-parchment-deep bg-white p-5">
+      <div className="flex items-baseline justify-between mb-5">
+        <h3 className="font-serif text-sm font-semibold text-ink">This Week</h3>
+        <span className="text-[11px] text-ink-muted">{totalThisWeek.toLocaleString()} words</span>
+      </div>
+
+      {/* Bars */}
+      <div className="flex items-end justify-between gap-1 h-12 mb-2.5">
+        {activity.map(({ label, words, isToday }) => {
+          const heightPct = Math.max((words / maxWords) * 100, words > 0 ? 8 : 4);
+          return (
+            <div key={label} className="flex-1 flex flex-col items-center gap-1" title={`${words.toLocaleString()} words`}>
+              <div
+                className="w-full rounded-t-sm transition-all duration-300"
+                style={{
+                  height: `${heightPct}%`,
+                  backgroundColor: isToday
+                    ? "#1a1408"
+                    : words > 0
+                    ? "#c9a84c"
+                    : "#ede8de",
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Day labels */}
+      <div className="flex justify-between">
+        {activity.map(({ label, isToday }) => (
+          <div key={label} className="flex-1 text-center">
+            {/* isToday: #1a1408 on white → 14:1 ✓   inactive: rgba(26,20,14,0.38) → 3.6:1 (decorative label) */}
+            <span className={cn(
+              "text-[10px]",
+              isToday ? "font-semibold text-ink" : "text-ink-faint"
+            )}>
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Writer Snapshot ──────────────────────────────────────────────────────────
+
+function WriterSnapshot({ books }: { books: Book[] }) {
+  const totalWords    = books.reduce((s, b) => s + totalWordCount(b.chapters), 0);
+  const totalChapters = books.reduce((s, b) => s + b.chapters.length, 0);
+  const readingTime   = estimateReadingTime(totalWords);
+  const avgChapter    = totalChapters > 0 ? Math.round(totalWords / totalChapters) : 0;
+
+  const genres  = books.reduce<Record<string, number>>((acc, b) => {
+    acc[b.genre] = (acc[b.genre] ?? 0) + 1;
+    return acc;
+  }, {});
+  const topGenre = Object.entries(genres).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+
+  const rows = [
+    { label: "Primary genre",    value: topGenre },
+    { label: "Total reading time", value: readingTime },
+    { label: "Avg chapter",      value: avgChapter > 0 ? `${avgChapter.toLocaleString()} words` : "—" },
+    { label: "In progress",      value: String(books.filter((b) => b.status === "ongoing").length) },
+  ];
+
+  return (
+    <div className="rounded-xl border border-parchment-deep bg-white p-5 flex-1">
+      <h3 className="font-serif text-sm font-semibold text-ink mb-4">Writing Profile</h3>
+      <div className="space-y-3.5">
+        {rows.map(({ label, value }) => (
+          <div key={label} className="flex items-center justify-between gap-4">
+            {/* rgba(26,20,14,0.58) on white → 5.2:1 ✓ AA */}
+            <span className="text-xs text-ink-muted">{label}</span>
+            <span className="text-xs font-medium text-ink text-right">{value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 pt-4 border-t border-parchment-deep">
+        {/* #7A5C14 on white → 5.7:1 ✓ AA */}
+        <p className="text-[9px] uppercase tracking-[0.18em] font-semibold mb-1.5" style={{ color: "#7A5C14" }}>
+          AI Book Summary
+        </p>
+        <p className="text-[11px] text-ink-muted italic leading-relaxed">
+          Personalized insights into your narrative patterns — coming soon.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Recent Manuscripts List ──────────────────────────────────────────────────
+
+const STATUS_DOT: Record<string, string> = {
+  draft:     "bg-ink-faint",
+  ongoing:   "bg-gold",
+  completed: "bg-sage",
+};
+
+function RecentManuscripts({ books }: { books: Book[] }) {
+  if (books.length === 0) return null;
+  const recent = books.slice(0, 4);
+
+  return (
+    <div className="rounded-xl border border-parchment-deep bg-white overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-parchment-deep">
+        <h3 className="font-serif text-sm font-semibold text-ink">Recent Manuscripts</h3>
+        <Link
+          href="/library"
+          className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink transition-colors"
+        >
+          View all in Library
+          <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+
+      <div>
+        {recent.map((book, i) => {
+          const words = totalWordCount(book.chapters);
+          const pct   = progressPercent(words, book.targetWordCount);
+          const dot   = STATUS_DOT[book.status] ?? STATUS_DOT.draft;
+
+          return (
+            <Link
+              key={book.id}
+              href={`/books/${book.id}`}
+              className={cn(
+                "flex items-center gap-4 px-5 py-3.5 hover:bg-parchment-warm/50 transition-colors",
+                i < recent.length - 1 && "border-b border-parchment-deep"
+              )}
+            >
+              <div className={cn("w-2 h-2 rounded-full shrink-0", dot)} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-ink truncate">{book.title}</p>
+                <p className="text-[11px] text-ink-muted">
+                  {book.genre}
+                  <span className="mx-1.5 opacity-40">·</span>
+                  {words.toLocaleString()} words
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-20 h-[3px] rounded-full bg-parchment-deep overflow-hidden hidden sm:block">
+                  <div className="h-full rounded-full bg-ink-faint" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-[11px] text-ink-muted w-10 text-right">{pct}%</span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [books, setBooks]       = useState<Book[]>([]);
-  const [query, setQuery]       = useState("");
-  const [booksReady, setBooksReady]   = useState(false);
+  const [books, setBooks]           = useState<Book[]>([]);
+  const [booksReady, setBooksReady] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [hour, setHour]             = useState(new Date().getHours());
+
+  useEffect(() => {
+    const t = setInterval(() => setHour(new Date().getHours()), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -378,118 +448,74 @@ export default function DashboardPage() {
   const sorted = [...books].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
-
   const featured = sorted[0] ?? null;
 
-  const filtered = sorted.filter(
-    (b) =>
-      b.title.toLowerCase().includes(query.toLowerCase()) ||
-      b.genre.toLowerCase().includes(query.toLowerCase()) ||
-      b.authorName.toLowerCase().includes(query.toLowerCase())
-  );
-
-  const rest = query ? filtered : filtered.filter((b) => b.id !== featured?.id);
-
   const totalWords    = books.reduce((s, b) => s + totalWordCount(b.chapters), 0);
+  const completedBooks = books.filter((b) => b.status === "completed").length;
+  const streak        = computeStreak(books);
   const totalChapters = books.reduce((s, b) => s + b.chapters.length, 0);
-  const inProgress    = books.filter((b) => b.status === "ongoing").length;
 
-  async function handleDelete(id: string) {
-    if (!user) return;
-    await deleteBook(user.id, id);
-    setBooks((prev) => prev.filter((b) => b.id !== id));
-  }
+  const firstName = user?.name.split(" ")[0] ?? "Writer";
+  const greeting  = getGreeting(hour);
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month:   "long",
+    day:     "numeric",
+  });
 
   return (
     <div className="flex min-h-screen bg-parchment">
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
-      <main className="flex-1 md:ml-48 pb-12">
+      <main className="flex-1 md:ml-48 pb-14">
+        <TopBar onOpenNav={() => setMobileNavOpen(true)} />
 
-        {/* ── Top bar ───────────────────────────────────────────────────── */}
-        <TopBar query={query} onQuery={setQuery} onOpenNav={() => setMobileNavOpen(true)} />
+        <div className="px-4 md:px-8 pt-8 max-w-5xl mx-auto">
 
-        <div className="px-4 md:px-8 pt-6 md:pt-8 pb-0 max-w-5xl mx-auto">
-
-          {/* ── Hero Banner ─────────────────────────────────────────────── */}
-          <HeroBanner
-            user={user!}
-            streak={computeStreak(books)}
-            wordsToday={computeWordsToday(books)}
-            manuscriptCount={books.length}
-            featuredBook={books.length > 0 ? featured : null}
-          />
-
-          {/* ── Page header ─────────────────────────────────────────────── */}
-          <div className="flex items-end justify-between gap-5 mb-8">
+          {/* ── Header ─────────────────────────────────────────────────────── */}
+          <div className="flex items-start justify-between gap-4 mb-7">
             <div>
-              <h1 className="font-serif text-3xl font-semibold text-ink tracking-tight leading-none mb-2">
-                Your Library
+              {/* #7A5C14 on parchment → 5.6:1 ✓ AA */}
+              <p className="text-[11px] font-sans uppercase tracking-[0.20em] mb-2" style={{ color: "#7A5C14" }}>
+                {today}
+              </p>
+              {/* #1a1408 on parchment → 15.4:1 ✓ AAA */}
+              <h1 className="font-serif text-[2.25rem] font-semibold text-ink leading-none tracking-tight">
+                {greeting}, {firstName}.
               </h1>
-              {books.length > 0 ? (
-                <p className="text-[11px] font-sans uppercase tracking-[0.14em] text-ink-faint">
-                  {books.length} manuscript{books.length !== 1 ? "s" : ""}
-                  <span className="mx-2 opacity-40">·</span>
-                  {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
-                  <span className="mx-2 opacity-40">·</span>
-                  {totalWords.toLocaleString()} words
-                  {inProgress > 0 && (
-                    <>
-                      <span className="mx-2 opacity-40">·</span>
-                      <span className="text-sage">{inProgress} in progress</span>
-                    </>
-                  )}
-                </p>
-              ) : (
-                <p className="text-[11px] font-sans uppercase tracking-[0.14em] text-ink-faint">
-                  No manuscripts yet
-                </p>
-              )}
             </div>
-
-            {books.length > 0 && (
-              <Link href="/books/new" className="shrink-0">
-                <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap">
-                  <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                  New Book
-                </button>
-              </Link>
-            )}
+            <Link href="/books/new" className="shrink-0 mt-2">
+              <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap">
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                New Manuscript
+              </button>
+            </Link>
           </div>
-        </div>
 
-        <div className="px-4 md:px-8 max-w-5xl mx-auto">
+          {/* ── Stats Strip ────────────────────────────────────────────────── */}
+          <div className="mb-8">
+            <StatStrip
+              totalWords={totalWords}
+              completedBooks={completedBooks}
+              streak={streak}
+              totalChapters={totalChapters}
+            />
+          </div>
 
-          {/* ── Empty library ─────────────────────────────────────────────── */}
-          {books.length === 0 && <EmptyLibrary userName={user?.name ?? "Writer"} />}
+          {/* ── Main Grid ──────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_268px] gap-5 mb-5">
+            {/* Left — Currently Writing */}
+            <CurrentlyWriting book={featured} />
 
-          {/* ── Book grid ───────────────────────────────────────────────── */}
-          {rest.length > 0 ? (
-            <section>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="text-[10px] font-sans uppercase tracking-[0.16em] font-semibold text-ink-faint">
-                  {query ? `Results for "${query}"` : "All Manuscripts"}
-                </span>
-                <div className="flex-1 h-px bg-parchment-deep" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {rest.map((book) => (
-                  <BookCard
-                    key={book.id}
-                    book={book}
-                    onDelete={handleDelete}
-                  />
-                ))}
-                {!query && <AddBookCard />}
-              </div>
-            </section>
-          ) : query ? (
-            <div className="text-center py-20">
-              <p className="font-serif text-xl text-ink-muted mb-2">No results for &ldquo;{query}&rdquo;</p>
-              <p className="text-sm text-ink-faint">Try a different title or genre.</p>
+            {/* Right — Activity + Snapshot stacked */}
+            <div className="flex flex-col gap-5">
+              <WeeklyActivity books={books} />
+              <WriterSnapshot books={books} />
             </div>
-          ) : null}
+          </div>
+
+          {/* ── Recent Manuscripts ─────────────────────────────────────────── */}
+          <RecentManuscripts books={sorted} />
 
         </div>
       </main>
