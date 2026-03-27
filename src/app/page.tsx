@@ -172,7 +172,7 @@ function extractSnippet(html: string, maxChars = 200): string {
 function MiniCover({ book }: { book: Book }) {
   return (
     <div
-      className="w-[52px] h-[74px] shrink-0 rounded-lg relative overflow-hidden"
+      className="w-[56px] h-[90px] shrink-0 rounded-lg relative overflow-hidden"
       style={{ backgroundColor: book.cover.backgroundColor }}
     >
       {book.cover.imageUrl && (
@@ -221,10 +221,10 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
   const snippet = lastCh ? extractSnippet(lastCh.content) : "";
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-4 flex gap-3.5">
+    <div className="rounded-xl border border-parchment-deep bg-white p-5 flex gap-4">
       <MiniCover book={book} />
 
-      <div className="flex flex-col flex-1 min-w-0 gap-1.5">
+      <div className="flex flex-col flex-1 min-w-0 gap-3">
 
         {/* Label + chapter — same row */}
         <div className="flex items-center justify-between gap-2">
@@ -237,35 +237,38 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
         </div>
 
         {/* Title */}
-        <h3 className="font-serif text-base font-semibold text-ink leading-snug truncate">
+        <h3 className="font-serif text-[1.1rem] font-semibold text-ink leading-snug truncate">
           {book.title}
         </h3>
 
         {/* Snippet — Joan Didion re-entry */}
         {snippet && (
-          <p className="font-serif text-[11px] italic leading-relaxed line-clamp-2 text-ink-muted border-l-2 border-parchment-deep pl-2">
+          <p className="font-serif text-[12px] italic leading-relaxed line-clamp-2 text-ink-muted border-l-2 border-parchment-deep pl-2.5">
             {snippet}
           </p>
         )}
 
-        {/* Progress + CTA — same row, no mt-auto */}
-        <div className="flex items-center gap-3 pt-1">
-          <div className="flex-1 min-w-0">
-            <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-1">
-              <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
-            </div>
-            <span className="text-[10px] text-ink-muted">
-              {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} · {pct}%
+        {/* Progress bar */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] text-ink-muted">
+              {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} words
             </span>
+            <span className="text-[11px] font-semibold text-ink">{pct}%</span>
           </div>
-          <Link href={`/books/${book.id}`} className="shrink-0">
-            <Button size="sm" variant="gold" className="gap-1 px-3 h-7 text-[12px] font-semibold rounded-lg">
-              <PenLine className="w-3 h-3" strokeWidth={1.8} />
-              Continue
-              <ArrowRight className="w-3 h-3" />
-            </Button>
-          </Link>
+          <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden">
+            <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
         </div>
+
+        {/* CTA */}
+        <Link href={`/books/${book.id}`}>
+          <Button size="sm" variant="gold" className="w-full gap-1.5 h-8 text-[13px] font-semibold rounded-lg">
+            <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
+            Continue Writing
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </Link>
 
       </div>
     </div>
@@ -384,14 +387,18 @@ function QuickCapture() {
 // ─── Daily Goal ───────────────────────────────────────────────────────────────
 
 function DailyGoal({ wordsToday }: { wordsToday: number }) {
-  const [goal, setGoal]       = useState(500);
+  const [goal, setGoal]       = useState(0);
+  const [hasGoal, setHasGoal] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft]     = useState("500");
+  const [draft, setDraft]     = useState("");
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem("prologue_daily_goal");
-      if (saved) { const n = parseInt(saved, 10); if (n > 0) { setGoal(n); setDraft(String(n)); } }
+      if (saved) {
+        const n = parseInt(saved, 10);
+        if (n > 0) { setGoal(n); setDraft(String(n)); setHasGoal(true); }
+      }
     } catch { /* ignore */ }
   }, []);
 
@@ -399,30 +406,90 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
     const n = parseInt(draft, 10);
     if (n > 0) {
       setGoal(n);
+      setHasGoal(true);
       try { localStorage.setItem("prologue_daily_goal", String(n)); } catch { /* ignore */ }
     }
     setEditing(false);
   }
 
-  const pct = Math.min(Math.round((wordsToday / goal) * 100), 100);
-  const met = wordsToday >= goal;
+  const pct = hasGoal ? Math.min(Math.round((wordsToday / goal) * 100), 100) : 0;
+  const met = hasGoal && wordsToday >= goal;
 
+  // ── No goal set yet ─────────────────────────────────────────────────────────
+  if (!hasGoal && !editing) {
+    return (
+      <div className="rounded-xl border border-parchment-deep bg-white p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
+          <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
+        </div>
+        <p className="text-[12px] text-ink-muted leading-relaxed mb-3">
+          Set a daily word target to build a consistent writing habit.
+        </p>
+        <button
+          onClick={() => { setDraft("500"); setEditing(true); }}
+          className="w-full flex items-center justify-center gap-1.5 text-[12px] font-medium text-ink border border-dashed border-parchment-deep rounded-lg py-2 hover:bg-parchment-warm hover:border-ink-faint transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+          Set your daily goal
+        </button>
+      </div>
+    );
+  }
+
+  // ── Goal input (first time or editing) ──────────────────────────────────────
+  if (editing) {
+    return (
+      <div className="rounded-xl border border-parchment-deep bg-white p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
+          <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
+        </div>
+        <p className="text-[11px] text-ink-muted mb-3">How many words do you want to write each day?</p>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") applyGoal(); if (e.key === "Escape") setEditing(false); }}
+            placeholder="e.g. 500"
+            min={50}
+            max={10000}
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+            className="flex-1 text-sm border border-parchment-deep rounded-lg px-3 py-2 focus:outline-none focus:border-ink-faint text-ink placeholder:text-ink-faint"
+          />
+          <button
+            onClick={applyGoal}
+            disabled={!draft || parseInt(draft) <= 0}
+            className="text-sm font-semibold text-parchment bg-ink px-4 py-2 rounded-lg hover:bg-ink-soft transition-colors disabled:opacity-40"
+          >
+            Save
+          </button>
+        </div>
+        {hasGoal && (
+          <button onClick={() => setEditing(false)} className="text-[10px] text-ink-faint hover:text-ink mt-2 transition-colors">
+            Cancel
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // ── Goal set — show progress ─────────────────────────────────────────────────
   return (
     <div className="rounded-xl border border-parchment-deep bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
-          <h3 className="font-serif text-sm font-semibold text-ink">Today&apos;s Goal</h3>
+          <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
         </div>
-        {met && (
-          <span className="text-[9px] uppercase tracking-wide font-semibold text-sage-dark">✓ Met</span>
-        )}
+        {met && <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: "#4f7a5e" }}>✓ Met</span>}
       </div>
 
       <div className="flex items-baseline gap-1.5 mb-2">
-        {/* #1a1408 on white → 14:1 ✓ AAA */}
         <span className="font-serif text-xl font-semibold text-ink">{wordsToday.toLocaleString()}</span>
-        <span className="text-[11px] text-ink-muted">/ {goal.toLocaleString()} words</span>
+        <span className="text-[11px] text-ink-muted">/ {goal.toLocaleString()} words today</span>
       </div>
 
       <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-2">
@@ -432,34 +499,12 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
         />
       </div>
 
-      {editing ? (
-        <div className="flex gap-2 mt-2">
-          <input
-            type="number"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") applyGoal(); if (e.key === "Escape") setEditing(false); }}
-            min={50}
-            max={10000}
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-            className="flex-1 text-sm border border-parchment-deep rounded-lg px-2 py-1 focus:outline-none focus:border-ink-faint text-ink"
-          />
-          <button
-            onClick={applyGoal}
-            className="text-xs font-semibold text-ink px-3 py-1 bg-parchment-warm rounded-lg hover:bg-parchment-deep transition-colors"
-          >
-            Set
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setEditing(true)}
-          className="text-[10px] text-ink-faint hover:text-ink transition-colors"
-        >
-          {pct}% complete · adjust goal
-        </button>
-      )}
+      <button
+        onClick={() => { setDraft(String(goal)); setEditing(true); }}
+        className="text-[10px] text-ink-faint hover:text-ink transition-colors"
+      >
+        {pct}% complete · tap to adjust goal
+      </button>
     </div>
   );
 }
@@ -720,11 +765,12 @@ export default function DashboardPage() {
           </div>
 
           {/* ── Main Grid ──────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_268px] gap-5 mb-5 items-start">
-            {/* Left — Currently Writing + Quick Capture */}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_268px] gap-5 items-start">
+            {/* Left — Currently Writing + Quick Capture + Recent Manuscripts */}
             <div className="flex flex-col gap-5">
               <CurrentlyWriting book={featured} />
               <QuickCapture />
+              <RecentManuscripts books={sorted} />
             </div>
 
             {/* Right — Daily Goal + Activity + Snapshot */}
@@ -734,9 +780,6 @@ export default function DashboardPage() {
               <WriterSnapshot books={books} />
             </div>
           </div>
-
-          {/* ── Recent Manuscripts ─────────────────────────────────────────── */}
-          <RecentManuscripts books={sorted} />
 
         </div>
       </main>
