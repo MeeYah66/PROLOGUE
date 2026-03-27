@@ -48,38 +48,38 @@
   --radius: 0.5rem;
 }
 
-/* ── Midnight Study — warm dark palette ─────────────────────────────────────── */
+/* ── Quiet Dark — clean, calm, writer-focused ───────────────────────────────── */
 [data-theme="dark"] {
-  --color-ink:            240 230 211;   /* warm cream — 12.9:1 on bg ✓ AAA */
-  --color-ink-soft:       232 216 192;
-  --color-ink-muted:      168 144 112;   /* 5.3:1 on bg ✓ AA */
-  --color-ink-faint:      122 104 88;    /* decorative use only */
-  --color-parchment:      26 21 16;      /* deep warm charcoal */
-  --color-parchment-warm: 35 29 21;      /* card bg */
-  --color-parchment-deep: 58 46 32;      /* borders / dividers */
+  --color-ink:            220 215 205;   /* soft off-white — 11.8:1 on bg ✓ AAA */
+  --color-ink-soft:       200 194 184;
+  --color-ink-muted:      140 135 128;   /* 5.2:1 on bg ✓ AA */
+  --color-ink-faint:      90 87 82;      /* decorative use only */
+  --color-parchment:      18 18 18;      /* true dark — #121212 */
+  --color-parchment-warm: 24 24 24;      /* card surface — #181818 */
+  --color-parchment-deep: 36 36 36;      /* borders — #242424 */
 
   /* semantic */
-  --color-card-bg:        35 29 21;      /* replaces bg-white */
+  --color-card-bg:        24 24 24;      /* replaces bg-white */
   --color-amber-label:    201 168 76;    /* gold on dark */
-  --color-bar-today:      240 230 211;   /* warm cream for today bar */
-  --color-bar-empty:      58 46 32;      /* dark border for empty bars */
+  --color-bar-today:      220 215 205;   /* off-white for today bar */
+  --color-bar-empty:      36 36 36;      /* dark border for empty bars */
 
   /* shadcn tokens */
-  --background: 25 15% 8%;
-  --foreground: 35 25% 88%;
-  --card: 25 18% 11%;
-  --card-foreground: 35 25% 88%;
-  --primary: 35 25% 88%;
-  --primary-foreground: 25 15% 8%;
-  --secondary: 25 18% 14%;
-  --secondary-foreground: 35 20% 78%;
-  --muted: 25 15% 14%;
-  --muted-foreground: 30 18% 58%;
-  --accent: 25 18% 14%;
-  --accent-foreground: 35 25% 88%;
-  --border: 28 20% 22%;
-  --input: 28 20% 22%;
-  --ring: 35 25% 75%;
+  --background: 0 0% 7%;
+  --foreground: 40 10% 85%;
+  --card: 0 0% 9%;
+  --card-foreground: 40 10% 85%;
+  --primary: 40 10% 85%;
+  --primary-foreground: 0 0% 7%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 40 8% 72%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 52%;
+  --accent: 0 0% 12%;
+  --accent-foreground: 40 10% 85%;
+  --border: 0 0% 15%;
+  --input: 0 0% 15%;
+  --ring: 40 10% 75%;
 }
 
 * {
