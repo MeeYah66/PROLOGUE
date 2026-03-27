@@ -10,6 +10,7 @@ import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
 import { AppNav } from "@/components/layout/AppNav";
 import { useAuth } from "@/lib/auth/context";
 import { useTheme } from "@/lib/theme";
+import { AmbientButton } from "@/components/ambient/AmbientButton";
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,7 @@ function TopBar({
         >
           <Search className="w-3.5 h-3.5" strokeWidth={1.8} />
         </button>
+        <AmbientButton />
         <button
           onClick={toggle}
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}

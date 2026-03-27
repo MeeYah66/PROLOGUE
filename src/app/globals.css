@@ -291,6 +291,18 @@ body {
   color: rgb(var(--color-ink-soft));
 }
 
+/* ── Ambient sound equaliser bars ────────────────────────────────────────── */
+.sound-bar {
+  height: 8px;
+  transform-origin: bottom center;
+  animation: sound-bar 0.75s ease-in-out infinite;
+}
+
+@keyframes sound-bar {
+  0%, 100% { transform: scaleY(0.2); }
+  50%       { transform: scaleY(1);   }
+}
+
 /* Animate in */
 .animate-fade-in {
   animation: fadeIn 0.35s ease-out both;

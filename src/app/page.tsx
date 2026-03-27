@@ -28,6 +28,7 @@ import { AppNav } from "@/components/layout/AppNav";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 import { useTheme } from "@/lib/theme";
+import { AmbientButton } from "@/components/ambient/AmbientButton";
 import { cn } from "@/lib/utils";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -107,6 +108,7 @@ function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
         <Menu className="w-3.5 h-3.5" strokeWidth={1.8} />
       </button>
       <div className="flex items-center gap-2 ml-auto">
+        <AmbientButton />
         <button
           onClick={toggle}
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
