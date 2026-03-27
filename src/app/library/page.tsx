@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Search, Menu, Bell, X, PenLine } from "lucide-react";
+import { Plus, Search, Menu, Bell, Moon, Sun, X, PenLine } from "lucide-react";
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount } from "@/lib/utils";
 import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
 import { AppNav } from "@/components/layout/AppNav";
 import { useAuth } from "@/lib/auth/context";
+import { useTheme } from "@/lib/theme";
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ function TopBar({
   onOpenNav: () => void;
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const { theme, toggle } = useTheme();
 
   if (searchOpen) {
     return (
@@ -74,6 +76,15 @@ function TopBar({
           className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
         >
           <Search className="w-3.5 h-3.5" strokeWidth={1.8} />
+        </button>
+        <button
+          onClick={toggle}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          className="w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+        >
+          {theme === "dark"
+            ? <Sun className="w-3.5 h-3.5" strokeWidth={1.8} />
+            : <Moon className="w-3.5 h-3.5" strokeWidth={1.8} />}
         </button>
         <button
           aria-label="Notifications"

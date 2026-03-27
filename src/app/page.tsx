@@ -6,6 +6,8 @@ import {
   Plus,
   Bell,
   Menu,
+  Moon,
+  Sun,
   PenLine,
   ArrowRight,
   Flame,
@@ -25,6 +27,7 @@ import { totalWordCount, estimateReadingTime, progressPercent } from "@/lib/util
 import { AppNav } from "@/components/layout/AppNav";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
+import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -93,6 +96,7 @@ function computeWeeklyActivity(books: Book[]): { label: string; words: number; i
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
 function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
+  const { theme, toggle } = useTheme();
   return (
     <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-3 md:px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
       <button
@@ -103,6 +107,15 @@ function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
         <Menu className="w-3.5 h-3.5" strokeWidth={1.8} />
       </button>
       <div className="flex items-center gap-2 ml-auto">
+        <button
+          onClick={toggle}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          className="w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+        >
+          {theme === "dark"
+            ? <Sun className="w-3.5 h-3.5" strokeWidth={1.8} />
+            : <Moon className="w-3.5 h-3.5" strokeWidth={1.8} />}
+        </button>
         <button
           aria-label="Notifications"
           className="relative w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
@@ -228,7 +241,7 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
 
         {/* Label + chapter — same row */}
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[9px] font-sans uppercase tracking-[0.20em] font-semibold shrink-0" style={{ color: "#7A5C14" }}>
+          <p className="text-[9px] font-sans uppercase tracking-[0.20em] font-semibold shrink-0 text-amber-label">
             Currently Writing
           </p>
           {lastCh && (
@@ -493,7 +506,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
       <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-2">
         <div
           className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, backgroundColor: met ? "#7a9e87" : "#1a1408" }}
+          style={{ width: `${pct}%`, backgroundColor: met ? "rgb(var(--color-sage))" : "rgb(var(--color-bar-today))" }}
         />
       </div>
 
@@ -532,10 +545,10 @@ function WeeklyActivity({ books }: { books: Book[] }) {
                 style={{
                   height: `${heightPct}%`,
                   backgroundColor: isToday
-                    ? "#1a1408"
+                    ? "rgb(var(--color-bar-today))"
                     : words > 0
-                    ? "#c9a84c"
-                    : "#ede8de",
+                    ? "rgb(var(--color-gold))"
+                    : "rgb(var(--color-bar-empty))",
                 }}
               />
             </div>
@@ -597,7 +610,7 @@ function WriterSnapshot({ books }: { books: Book[] }) {
 
       <div className="mt-5 pt-4 border-t border-parchment-deep">
         {/* #7A5C14 on white → 5.7:1 ✓ AA */}
-        <p className="text-[9px] uppercase tracking-[0.18em] font-semibold mb-1.5" style={{ color: "#7A5C14" }}>
+        <p className="text-[9px] uppercase tracking-[0.18em] font-semibold mb-1.5 text-amber-label">
           AI Book Summary
         </p>
         <p className="text-[11px] text-ink-muted italic leading-relaxed">
@@ -736,7 +749,7 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between gap-4 mb-7">
             <div>
               {/* #7A5C14 on parchment → 5.6:1 ✓ AA */}
-              <p className="text-[11px] font-sans uppercase tracking-[0.20em] mb-2" style={{ color: "#7A5C14" }}>
+              <p className="text-[11px] font-sans uppercase tracking-[0.20em] mb-2 text-amber-label">
                 {today}
               </p>
               {/* #1a1408 on parchment → 15.4:1 ✓ AAA */}
