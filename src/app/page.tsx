@@ -100,10 +100,17 @@ function HeroBanner({
   const ctaLabel = featuredBook ? "Continue Writing" : "Start Writing";
 
   return (
-    <div className="relative rounded-2xl overflow-hidden mb-8" style={{ backgroundColor: "#19130e" }}>
+    <div
+      className="relative rounded-2xl overflow-hidden mb-8"
+      style={{
+        backgroundColor: "#F5F0E8",
+        border: "1px solid rgba(26,20,14,0.09)",
+        boxShadow: "0 1px 4px rgba(26,20,14,0.06), 0 4px 20px rgba(26,20,14,0.04)",
+      }}
+    >
 
-      {/* Grain */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.16]" xmlns="http://www.w3.org/2000/svg">
+      {/* Grain — very subtle */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.055]" xmlns="http://www.w3.org/2000/svg">
         <filter id="grain">
           <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
@@ -111,12 +118,12 @@ function HeroBanner({
         <rect width="100%" height="100%" filter="url(#grain)" />
       </svg>
 
-      {/* Warm glow — bottom left */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 110% at -5% 120%, rgba(180,110,40,0.30) 0%, transparent 62%)" }} />
-      {/* Cool whisper — top right */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 45% 55% at 105% -10%, rgba(100,70,40,0.18) 0%, transparent 55%)" }} />
+      {/* Gold blush — top right */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 55% 70% at 105% -5%, rgba(201,168,76,0.10) 0%, transparent 60%)" }} />
+      {/* Warm blush — bottom left */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 65% 60% at -5% 110%, rgba(180,120,40,0.07) 0%, transparent 55%)" }} />
       {/* Gold hairline */}
-      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.50) 35%, rgba(201,168,76,0.28) 65%, transparent 100%)" }} />
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.55) 35%, rgba(201,168,76,0.30) 65%, transparent 100%)" }} />
 
       <div className="relative flex flex-col px-9 pt-[30px] pb-7">
 
@@ -125,10 +132,10 @@ function HeroBanner({
 
           {/* Left — date + greeting */}
           <div>
-            <p className="text-[10px] font-sans uppercase tracking-[0.22em] mb-3" style={{ color: "rgba(201,168,76,0.50)" }}>
+            <p className="text-[10px] font-sans uppercase tracking-[0.22em] mb-3" style={{ color: "rgba(180,140,55,0.72)" }}>
               {today}
             </p>
-            <h2 className="font-serif text-[2rem] font-semibold leading-[1.15] tracking-tight" style={{ color: "#f0e6d3" }}>
+            <h2 className="font-serif text-[2rem] font-semibold leading-[1.15] tracking-tight" style={{ color: "#1a1408" }}>
               {greeting}, {firstName}.
             </h2>
           </div>
@@ -138,38 +145,38 @@ function HeroBanner({
             <div
               className="flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
               style={{
-                background:  streak > 0 ? "rgba(201,168,76,0.13)" : "rgba(0,0,0,0.22)",
-                borderColor: streak > 0 ? "rgba(201,168,76,0.32)" : "rgba(255,255,255,0.08)",
+                background:  streak > 0 ? "rgba(201,168,76,0.10)" : "rgba(26,20,14,0.04)",
+                borderColor: streak > 0 ? "rgba(201,168,76,0.32)" : "rgba(26,20,14,0.09)",
               }}
             >
-              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: streak > 0 ? "#C9A84C" : "#f0e6d3" }}>
+              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: streak > 0 ? "#B8922A" : "#1a1408" }}>
                 {streak}
               </span>
-              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: streak > 0 ? "rgba(201,168,76,0.65)" : "rgba(240,230,211,0.38)" }}>
+              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: streak > 0 ? "rgba(160,120,30,0.70)" : "rgba(26,20,14,0.38)" }}>
                 Day Streak
               </span>
             </div>
 
             <div
               className="hidden sm:flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
-              style={{ background: "rgba(0,0,0,0.22)", borderColor: "rgba(255,255,255,0.08)" }}
+              style={{ background: "rgba(26,20,14,0.04)", borderColor: "rgba(26,20,14,0.09)" }}
             >
-              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#f0e6d3" }}>
+              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#1a1408" }}>
                 {wordsToday.toLocaleString()}
               </span>
-              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(240,230,211,0.38)" }}>
+              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(26,20,14,0.38)" }}>
                 Words Today
               </span>
             </div>
 
             <div
               className="hidden sm:flex flex-col items-center px-[18px] py-[10px] rounded-xl border min-w-[72px]"
-              style={{ background: "rgba(0,0,0,0.22)", borderColor: "rgba(255,255,255,0.08)" }}
+              style={{ background: "rgba(26,20,14,0.04)", borderColor: "rgba(26,20,14,0.09)" }}
             >
-              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#f0e6d3" }}>
+              <span className="font-serif text-[1.35rem] font-semibold leading-none" style={{ color: "#1a1408" }}>
                 {manuscriptCount}
               </span>
-              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(240,230,211,0.38)" }}>
+              <span className="text-[9px] font-sans uppercase tracking-[0.14em] mt-1.5 leading-none whitespace-nowrap" style={{ color: "rgba(26,20,14,0.38)" }}>
                 {manuscriptCount === 1 ? "Manuscript" : "Manuscripts"}
               </span>
             </div>
@@ -180,15 +187,15 @@ function HeroBanner({
         {featuredBook && (
           <div
             className="flex items-center justify-between gap-5 px-[18px] py-[14px] rounded-xl"
-            style={{ background: "rgba(210,185,140,0.09)", border: "1px solid rgba(210,185,140,0.18)" }}
+            style={{ background: "rgba(26,20,14,0.035)", border: "1px solid rgba(26,20,14,0.08)" }}
           >
             <div className="min-w-0">
               {contextLine && (
-                <p className="font-serif text-[1.05rem] leading-relaxed" style={{ color: "rgba(240,230,211,0.58)" }}>
+                <p className="font-serif text-[1.05rem] leading-relaxed" style={{ color: "rgba(26,20,14,0.62)" }}>
                   {contextLine}
                 </p>
               )}
-              <p className="font-serif italic text-[0.95rem] leading-relaxed" style={{ color: "rgba(240,230,211,0.32)" }}>
+              <p className="font-serif italic text-[0.95rem] leading-relaxed" style={{ color: "rgba(26,20,14,0.32)" }}>
                 Your story is still waiting for you.
               </p>
             </div>
