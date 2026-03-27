@@ -248,27 +248,27 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
           </p>
         )}
 
-        {/* Progress bar */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] text-ink-muted">
-              {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} words
-            </span>
-            <span className="text-[11px] font-semibold text-ink">{pct}%</span>
+        {/* Progress + CTA on same row */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[11px] text-ink-muted">
+                {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} words
+              </span>
+              <span className="text-[11px] font-semibold text-ink">{pct}%</span>
+            </div>
+            <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden">
+              <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
+            </div>
           </div>
-          <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden">
-            <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
-          </div>
+          <Link href={`/books/${book.id}`} className="shrink-0">
+            <Button size="sm" variant="gold" className="gap-1.5 h-8 px-4 text-[13px] font-semibold rounded-lg">
+              <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
+              Continue
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
         </div>
-
-        {/* CTA */}
-        <Link href={`/books/${book.id}`}>
-          <Button size="sm" variant="gold" className="w-full gap-1.5 h-8 text-[13px] font-semibold rounded-lg">
-            <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
-            Continue Writing
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Button>
-        </Link>
 
       </div>
     </div>
