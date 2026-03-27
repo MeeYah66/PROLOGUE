@@ -78,8 +78,8 @@ function NavContent({ onClose }: { onClose?: () => void }) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
                 active
-                  ? "bg-parchment-warm text-ink font-medium"
-                  : "text-ink-faint hover:text-ink hover:bg-parchment-warm"
+                  ? "bg-white shadow-sm text-ink font-medium"
+                  : "text-ink-faint hover:text-ink hover:bg-parchment-deep/40"
               )}
             >
               <Icon className="w-[17px] h-[17px] shrink-0" strokeWidth={1.5} />
