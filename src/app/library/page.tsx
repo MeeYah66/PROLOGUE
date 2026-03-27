@@ -28,7 +28,7 @@ function TopBar({
 
   if (searchOpen) {
     return (
-      <div className="sticky top-0 z-30 flex items-center h-12 px-3 gap-2 bg-white/95 backdrop-blur-sm border-b border-parchment-deep md:hidden">
+      <div className="sticky top-0 z-30 flex items-center h-12 px-3 gap-2 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep md:hidden">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
           <input
@@ -51,7 +51,7 @@ function TopBar({
   }
 
   return (
-    <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-3 md:px-6 bg-white/95 backdrop-blur-sm border-b border-parchment-deep">
+    <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-3 md:px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
       <div className="flex items-center gap-2">
         <button
           onClick={onOpenNav}
@@ -119,7 +119,7 @@ export default function LibraryPage() {
 
   if (authLoading || !booksReady) {
     return (
-      <div className="flex min-h-screen bg-white">
+      <div className="flex min-h-screen bg-parchment">
         <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
         <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
@@ -149,7 +149,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-parchment">
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-14">

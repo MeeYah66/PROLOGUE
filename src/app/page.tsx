@@ -99,7 +99,7 @@ function computeWeeklyActivity(books: Book[]): { label: string; words: number; i
 function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   const { theme, toggle } = useTheme();
   return (
-    <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-3 md:px-6 bg-white/95 backdrop-blur-sm border-b border-parchment-deep">
+    <div className="sticky top-0 z-30 flex items-center justify-between h-12 px-3 md:px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
       <button
         onClick={onOpenNav}
         aria-label="Open navigation"
@@ -710,7 +710,7 @@ export default function DashboardPage() {
 
   if (authLoading || !booksReady) {
     return (
-      <div className="flex min-h-screen bg-white">
+      <div className="flex min-h-screen bg-parchment">
         <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
         <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
@@ -739,7 +739,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-parchment">
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-14">
