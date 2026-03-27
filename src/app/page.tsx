@@ -12,7 +12,13 @@ import {
   BookMarked,
   ScrollText,
   Trophy,
+  Zap,
+  Target,
+  X,
 } from "lucide-react";
+
+type CaptureTag = "idea" | "dialogue" | "scene" | "research";
+type CaptureNote = { id: string; text: string; tag: CaptureTag; at: string };
 import { getBooks } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount, estimateReadingTime, progressPercent } from "@/lib/utils";
@@ -55,6 +61,16 @@ function computeStreak(books: Book[]): number {
     }
   }
   return streak;
+}
+
+function computeWordsToday(books: Book[]): number {
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  return books.reduce((total, book) =>
+    total + book.chapters
+      .filter((ch) => localDateStr(ch.updatedAt) === todayStr)
+      .reduce((s, ch) => s + ch.wordCount, 0),
+    0
+  );
 }
 
 function computeWeeklyActivity(books: Book[]): { label: string; words: number; isToday: boolean }[] {
@@ -156,8 +172,8 @@ function extractSnippet(html: string, maxChars = 200): string {
 function MiniCover({ book }: { book: Book }) {
   return (
     <div
-      className="w-[56px] shrink-0 self-stretch rounded-lg relative overflow-hidden"
-      style={{ backgroundColor: book.cover.backgroundColor, minHeight: "90px" }}
+      className="w-[52px] h-[74px] shrink-0 rounded-lg relative overflow-hidden"
+      style={{ backgroundColor: book.cover.backgroundColor }}
     >
       {book.cover.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -205,38 +221,35 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
   const snippet = lastCh ? extractSnippet(lastCh.content) : "";
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-4 flex gap-4">
+    <div className="rounded-xl border border-parchment-deep bg-white p-4 flex gap-3.5">
       <MiniCover book={book} />
 
-      <div className="flex flex-col flex-1 min-w-0 gap-2.5">
+      <div className="flex flex-col flex-1 min-w-0 gap-1.5">
 
-        {/* Row 1 — label + chapter location */}
+        {/* Label + chapter — same row */}
         <div className="flex items-center justify-between gap-2">
-          {/* #7A5C14 on white → 5.7:1 ✓ AA */}
           <p className="text-[9px] font-sans uppercase tracking-[0.20em] font-semibold shrink-0" style={{ color: "#7A5C14" }}>
             Currently Writing
           </p>
           {lastCh && (
-            <span className="text-[10px] text-ink-muted truncate">
-              Ch. {lastCh.number} — {lastCh.title}
-            </span>
+            <span className="text-[10px] text-ink-muted truncate">Ch. {lastCh.number} — {lastCh.title}</span>
           )}
         </div>
 
-        {/* Row 2 — title */}
-        <h3 className="font-serif text-lg font-semibold text-ink leading-tight truncate">
+        {/* Title */}
+        <h3 className="font-serif text-base font-semibold text-ink leading-snug truncate">
           {book.title}
         </h3>
 
-        {/* Row 3 — last written snippet (Joan Didion re-entry) */}
+        {/* Snippet — Joan Didion re-entry */}
         {snippet && (
-          <p className="font-serif text-[12px] italic leading-relaxed line-clamp-2 text-ink-muted border-l-2 border-parchment-deep pl-2.5">
+          <p className="font-serif text-[11px] italic leading-relaxed line-clamp-2 text-ink-muted border-l-2 border-parchment-deep pl-2">
             {snippet}
           </p>
         )}
 
-        {/* Row 4 — progress bar + word count + CTA all in one line */}
-        <div className="flex items-center gap-3 mt-auto pt-0.5">
+        {/* Progress + CTA — same row, no mt-auto */}
+        <div className="flex items-center gap-3 pt-1">
           <div className="flex-1 min-w-0">
             <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-1">
               <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
@@ -255,6 +268,198 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
         </div>
 
       </div>
+    </div>
+  );
+}
+
+// ─── Quick Capture ────────────────────────────────────────────────────────────
+
+const TAGS: CaptureTag[] = ["idea", "dialogue", "scene", "research"];
+const TAG_COLORS: Record<CaptureTag, string> = {
+  idea:     "bg-gold/10 text-[#7A5C14]",
+  dialogue: "bg-sage/10 text-sage-dark",
+  scene:    "bg-parchment-deep text-ink-muted",
+  research: "bg-ink/5 text-ink-muted",
+};
+
+function QuickCapture() {
+  const [text, setText]         = useState("");
+  const [tag, setTag]           = useState<CaptureTag>("idea");
+  const [notes, setNotes]       = useState<CaptureNote[]>([]);
+  const [mounted, setMounted]   = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const saved = localStorage.getItem("prologue_captures");
+      if (saved) setNotes(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
+
+  function save(next: CaptureNote[]) {
+    setNotes(next);
+    try { localStorage.setItem("prologue_captures", JSON.stringify(next)); } catch { /* ignore */ }
+  }
+
+  function handleAdd() {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const note: CaptureNote = { id: Date.now().toString(), text: trimmed, tag, at: new Date().toISOString() };
+    save([note, ...notes]);
+    setText("");
+  }
+
+  function handleRemove(id: string) {
+    save(notes.filter((n) => n.id !== id));
+  }
+
+  return (
+    <div className="rounded-xl border border-parchment-deep bg-white p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <Zap className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
+        <h3 className="font-serif text-sm font-semibold text-ink">Quick Capture</h3>
+      </div>
+
+      {/* Input */}
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleAdd(); }}
+        placeholder="Capture a thought, line, or idea…"
+        rows={2}
+        className="w-full text-[13px] font-serif text-ink placeholder:text-ink-faint resize-none rounded-lg border border-parchment-deep bg-parchment-warm/40 px-3 py-2 focus:outline-none focus:border-ink-faint transition-colors leading-relaxed"
+      />
+
+      {/* Tags + save */}
+      <div className="flex items-center justify-between mt-2">
+        <div className="flex gap-1">
+          {TAGS.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTag(t)}
+              className={cn(
+                "text-[9px] uppercase tracking-wide px-2 py-0.5 rounded-md transition-colors font-medium",
+                tag === t ? "bg-ink text-parchment" : "text-ink-muted hover:bg-parchment-warm"
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={handleAdd}
+          disabled={!text.trim()}
+          className="text-[11px] font-medium text-ink-muted hover:text-ink disabled:opacity-30 transition-colors"
+        >
+          Save ⌘↵
+        </button>
+      </div>
+
+      {/* Recent captures */}
+      {mounted && notes.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-parchment-deep space-y-2">
+          {notes.slice(0, 3).map((n) => (
+            <div key={n.id} className="flex items-start gap-2 group">
+              <span className={cn("text-[8px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded shrink-0 mt-0.5", TAG_COLORS[n.tag])}>
+                {n.tag}
+              </span>
+              <p className="text-[11px] text-ink-muted leading-relaxed flex-1 line-clamp-1 font-serif italic">
+                {n.text}
+              </p>
+              <button
+                onClick={() => handleRemove(n.id)}
+                aria-label="Remove"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-ink-faint hover:text-ink shrink-0"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Daily Goal ───────────────────────────────────────────────────────────────
+
+function DailyGoal({ wordsToday }: { wordsToday: number }) {
+  const [goal, setGoal]       = useState(500);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft]     = useState("500");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("prologue_daily_goal");
+      if (saved) { const n = parseInt(saved, 10); if (n > 0) { setGoal(n); setDraft(String(n)); } }
+    } catch { /* ignore */ }
+  }, []);
+
+  function applyGoal() {
+    const n = parseInt(draft, 10);
+    if (n > 0) {
+      setGoal(n);
+      try { localStorage.setItem("prologue_daily_goal", String(n)); } catch { /* ignore */ }
+    }
+    setEditing(false);
+  }
+
+  const pct = Math.min(Math.round((wordsToday / goal) * 100), 100);
+  const met = wordsToday >= goal;
+
+  return (
+    <div className="rounded-xl border border-parchment-deep bg-white p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
+          <h3 className="font-serif text-sm font-semibold text-ink">Today&apos;s Goal</h3>
+        </div>
+        {met && (
+          <span className="text-[9px] uppercase tracking-wide font-semibold text-sage-dark">✓ Met</span>
+        )}
+      </div>
+
+      <div className="flex items-baseline gap-1.5 mb-2">
+        {/* #1a1408 on white → 14:1 ✓ AAA */}
+        <span className="font-serif text-xl font-semibold text-ink">{wordsToday.toLocaleString()}</span>
+        <span className="text-[11px] text-ink-muted">/ {goal.toLocaleString()} words</span>
+      </div>
+
+      <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-2">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, backgroundColor: met ? "#7a9e87" : "#1a1408" }}
+        />
+      </div>
+
+      {editing ? (
+        <div className="flex gap-2 mt-2">
+          <input
+            type="number"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") applyGoal(); if (e.key === "Escape") setEditing(false); }}
+            min={50}
+            max={10000}
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+            className="flex-1 text-sm border border-parchment-deep rounded-lg px-2 py-1 focus:outline-none focus:border-ink-faint text-ink"
+          />
+          <button
+            onClick={applyGoal}
+            className="text-xs font-semibold text-ink px-3 py-1 bg-parchment-warm rounded-lg hover:bg-parchment-deep transition-colors"
+          >
+            Set
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setEditing(true)}
+          className="text-[10px] text-ink-faint hover:text-ink transition-colors"
+        >
+          {pct}% complete · adjust goal
+        </button>
+      )}
     </div>
   );
 }
@@ -461,10 +666,11 @@ export default function DashboardPage() {
   );
   const featured = sorted[0] ?? null;
 
-  const totalWords    = books.reduce((s, b) => s + totalWordCount(b.chapters), 0);
+  const totalWords     = books.reduce((s, b) => s + totalWordCount(b.chapters), 0);
   const completedBooks = books.filter((b) => b.status === "completed").length;
-  const streak        = computeStreak(books);
-  const totalChapters = books.reduce((s, b) => s + b.chapters.length, 0);
+  const streak         = computeStreak(books);
+  const totalChapters  = books.reduce((s, b) => s + b.chapters.length, 0);
+  const wordsToday     = computeWordsToday(books);
 
   const firstName = user?.name.split(" ")[0] ?? "Writer";
   const greeting  = getGreeting(hour);
@@ -514,12 +720,16 @@ export default function DashboardPage() {
           </div>
 
           {/* ── Main Grid ──────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_268px] gap-5 mb-5">
-            {/* Left — Currently Writing */}
-            <CurrentlyWriting book={featured} />
-
-            {/* Right — Activity + Snapshot stacked */}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_268px] gap-5 mb-5 items-start">
+            {/* Left — Currently Writing + Quick Capture */}
             <div className="flex flex-col gap-5">
+              <CurrentlyWriting book={featured} />
+              <QuickCapture />
+            </div>
+
+            {/* Right — Daily Goal + Activity + Snapshot */}
+            <div className="flex flex-col gap-5">
+              <DailyGoal wordsToday={wordsToday} />
               <WeeklyActivity books={books} />
               <WriterSnapshot books={books} />
             </div>
