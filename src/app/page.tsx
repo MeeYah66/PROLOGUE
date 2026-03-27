@@ -139,13 +139,25 @@ function StatStrip({
   );
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Strip HTML and return the trailing ~200 chars — the writer's last words. */
+function extractSnippet(html: string, maxChars = 200): string {
+  const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  if (!text || text.length < 20) return "";
+  if (text.length <= maxChars) return text;
+  const raw      = text.slice(-maxChars);
+  const spaceIdx = raw.indexOf(" ");
+  return "\u2026" + (spaceIdx > -1 ? raw.slice(spaceIdx + 1) : raw);
+}
+
 // ─── Mini Book Cover ──────────────────────────────────────────────────────────
 
 function MiniCover({ book }: { book: Book }) {
   return (
     <div
-      className="w-[76px] shrink-0 self-stretch rounded-lg relative overflow-hidden"
-      style={{ backgroundColor: book.cover.backgroundColor, minHeight: "108px" }}
+      className="w-[56px] shrink-0 self-stretch rounded-lg relative overflow-hidden"
+      style={{ backgroundColor: book.cover.backgroundColor, minHeight: "90px" }}
     >
       {book.cover.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -158,16 +170,8 @@ function MiniCover({ book }: { book: Book }) {
       )}
       <div
         className="absolute inset-0"
-        style={{ background: "linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.50))" }}
+        style={{ background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55))" }}
       />
-      <div className="absolute bottom-2 left-2 right-2">
-        <p
-          className="text-[7px] font-serif font-bold leading-tight line-clamp-2"
-          style={{ color: book.cover.titleColor ?? "#ffffff" }}
-        >
-          {book.title}
-        </p>
-      </div>
     </div>
   );
 }
@@ -177,12 +181,12 @@ function MiniCover({ book }: { book: Book }) {
 function CurrentlyWriting({ book }: { book: Book | null }) {
   if (!book) {
     return (
-      <div className="rounded-xl border border-parchment-deep bg-white p-10 flex flex-col items-center justify-center text-center">
-        <div className="w-10 h-10 rounded-full bg-parchment-warm flex items-center justify-center mb-4">
+      <div className="rounded-xl border border-parchment-deep bg-white p-8 flex flex-col items-center justify-center text-center">
+        <div className="w-9 h-9 rounded-full bg-parchment-warm flex items-center justify-center mb-3">
           <PenLine className="w-4 h-4 text-ink-faint" strokeWidth={1.5} />
         </div>
-        <p className="font-serif text-lg font-semibold text-ink mb-2">Your story is waiting</p>
-        <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-6">
+        <p className="font-serif text-base font-semibold text-ink mb-1.5">Your story is waiting</p>
+        <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-5">
           Begin your first manuscript to start tracking your progress here.
         </p>
         <Link href="/books/new">
@@ -198,51 +202,58 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
   const lastCh  = book.chapters.find((c) => c.id === book.lastEditedChapterId) ?? book.chapters.at(-1);
   const words   = totalWordCount(book.chapters);
   const pct     = progressPercent(words, book.targetWordCount);
+  const snippet = lastCh ? extractSnippet(lastCh.content) : "";
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-5 flex gap-5">
+    <div className="rounded-xl border border-parchment-deep bg-white p-4 flex gap-4">
       <MiniCover book={book} />
 
-      <div className="flex flex-col flex-1 min-w-0 py-0.5">
-        {/* #7A5C14 on white → 5.7:1 ✓ AA */}
-        <p className="text-[9px] font-sans uppercase tracking-[0.20em] font-semibold mb-2" style={{ color: "#7A5C14" }}>
-          Currently Writing
-        </p>
-        <h3 className="font-serif text-[1.35rem] font-semibold text-ink leading-tight mb-0.5 truncate">
+      <div className="flex flex-col flex-1 min-w-0 gap-2.5">
+
+        {/* Row 1 — label + chapter location */}
+        <div className="flex items-center justify-between gap-2">
+          {/* #7A5C14 on white → 5.7:1 ✓ AA */}
+          <p className="text-[9px] font-sans uppercase tracking-[0.20em] font-semibold shrink-0" style={{ color: "#7A5C14" }}>
+            Currently Writing
+          </p>
+          {lastCh && (
+            <span className="text-[10px] text-ink-muted truncate">
+              Ch. {lastCh.number} — {lastCh.title}
+            </span>
+          )}
+        </div>
+
+        {/* Row 2 — title */}
+        <h3 className="font-serif text-lg font-semibold text-ink leading-tight truncate">
           {book.title}
         </h3>
-        <p className="text-xs text-ink-muted mb-4">{book.genre}</p>
 
-        {lastCh && (
-          <div className="flex items-baseline gap-1.5 mb-4">
-            <span className="text-[11px] font-medium text-ink">Ch. {lastCh.number}</span>
-            <span className="text-ink-faint text-[10px]">—</span>
-            <span className="text-[11px] text-ink-muted truncate">{lastCh.title}</span>
-          </div>
+        {/* Row 3 — last written snippet (Joan Didion re-entry) */}
+        {snippet && (
+          <p className="font-serif text-[12px] italic leading-relaxed line-clamp-2 text-ink-muted border-l-2 border-parchment-deep pl-2.5">
+            {snippet}
+          </p>
         )}
 
-        <div className="mt-auto">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] text-ink-muted">
-              {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} words
+        {/* Row 4 — progress bar + word count + CTA all in one line */}
+        <div className="flex items-center gap-3 mt-auto pt-0.5">
+          <div className="flex-1 min-w-0">
+            <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-1">
+              <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="text-[10px] text-ink-muted">
+              {words.toLocaleString()} / {book.targetWordCount.toLocaleString()} · {pct}%
             </span>
-            <span className="text-[11px] font-semibold text-ink">{pct}%</span>
           </div>
-          <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-4">
-            <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
-          </div>
-          <Link href={`/books/${book.id}`}>
-            <Button
-              size="sm"
-              variant="gold"
-              className="w-full gap-1.5 rounded-lg text-[13px] font-semibold"
-            >
-              <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
-              Continue Writing
-              <ArrowRight className="w-3.5 h-3.5" />
+          <Link href={`/books/${book.id}`} className="shrink-0">
+            <Button size="sm" variant="gold" className="gap-1 px-3 h-7 text-[12px] font-semibold rounded-lg">
+              <PenLine className="w-3 h-3" strokeWidth={1.8} />
+              Continue
+              <ArrowRight className="w-3 h-3" />
             </Button>
           </Link>
         </div>
+
       </div>
     </div>
   );
