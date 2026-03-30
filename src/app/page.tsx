@@ -94,6 +94,29 @@ function computeWeeklyActivity(books: Book[]): { label: string; words: number; i
   });
 }
 
+// ─── Section Frame ────────────────────────────────────────────────────────────
+
+function SectionFrame({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("rounded-2xl bg-parchment-warm/50 pt-4 overflow-hidden border border-parchment-deep", className)}>
+      <p className="px-4 text-[10px] uppercase tracking-[0.18em] font-semibold text-amber-label mb-3">
+        {title}
+      </p>
+      <div className="[&>div]:rounded-none [&>div]:border-0 [&>div]:shadow-none">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
 function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
@@ -625,10 +648,10 @@ function WriterSnapshot({ books }: { books: Book[] }) {
 
 // ─── Recent Manuscripts List ──────────────────────────────────────────────────
 
-const STATUS_DOT: Record<string, string> = {
-  draft:     "bg-ink-faint",
-  ongoing:   "bg-gold",
-  completed: "bg-sage",
+const STATUS_ICON_BG: Record<string, string> = {
+  draft:     "bg-parchment-deep text-ink-faint",
+  ongoing:   "bg-gold/15 text-gold-dark",
+  completed: "bg-sage/15 text-sage-dark",
 };
 
 function RecentManuscripts({ books }: { books: Book[] }) {
@@ -636,52 +659,49 @@ function RecentManuscripts({ books }: { books: Book[] }) {
   const recent = books.slice(0, 4);
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-parchment-deep">
+    <div className="bg-white p-4 space-y-2">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="font-serif text-sm font-semibold text-ink">Recent Manuscripts</h3>
         <Link
           href="/library"
           className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink transition-colors"
         >
-          View all in Library
+          View all
           <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
 
-      <div>
-        {recent.map((book, i) => {
-          const words = totalWordCount(book.chapters);
-          const pct   = progressPercent(words, book.targetWordCount);
-          const dot   = STATUS_DOT[book.status] ?? STATUS_DOT.draft;
+      {recent.map((book) => {
+        const words   = totalWordCount(book.chapters);
+        const pct     = progressPercent(words, book.targetWordCount);
+        const iconBg  = STATUS_ICON_BG[book.status] ?? STATUS_ICON_BG.draft;
 
-          return (
-            <Link
-              key={book.id}
-              href={`/books/${book.id}`}
-              className={cn(
-                "flex items-center gap-4 px-5 py-3.5 hover:bg-parchment-warm/50 transition-colors",
-                i < recent.length - 1 && "border-b border-parchment-deep"
-              )}
-            >
-              <div className={cn("w-2 h-2 rounded-full shrink-0", dot)} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-ink truncate">{book.title}</p>
-                <p className="text-[11px] text-ink-muted">
-                  {book.genre}
-                  <span className="mx-1.5 opacity-40">·</span>
-                  {words.toLocaleString()} words
-                </p>
+        return (
+          <Link
+            key={book.id}
+            href={`/books/${book.id}`}
+            className="flex items-center gap-3 p-3 rounded-xl bg-parchment/60 hover:bg-parchment-warm transition-colors group"
+          >
+            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
+              <BookMarked className="w-4 h-4" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-ink truncate leading-snug">{book.title}</p>
+              <p className="text-[11px] text-ink-muted leading-snug">
+                {book.genre}
+                <span className="mx-1.5 opacity-40">·</span>
+                {words.toLocaleString()} words
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] text-ink-muted hidden sm:block">{pct}%</span>
+              <div className="w-6 h-6 rounded-full border border-parchment-deep flex items-center justify-center text-ink-faint group-hover:border-ink-faint group-hover:text-ink transition-colors">
+                <ArrowRight className="w-3 h-3" />
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-20 h-[3px] rounded-full bg-parchment-deep overflow-hidden hidden sm:block">
-                  <div className="h-full rounded-full bg-ink-faint" style={{ width: `${pct}%` }} />
-                </div>
-                <span className="text-[11px] text-ink-muted w-10 text-right">{pct}%</span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -781,9 +801,15 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_268px] gap-5 items-start">
             {/* Left — Currently Writing + Quick Capture + Recent Manuscripts */}
             <div className="flex flex-col gap-5">
-              <CurrentlyWriting book={featured} />
-              <QuickCapture />
-              <RecentManuscripts books={sorted} />
+              <SectionFrame title="Currently Writing">
+                <CurrentlyWriting book={featured} />
+              </SectionFrame>
+              <SectionFrame title="Quick Capture">
+                <QuickCapture />
+              </SectionFrame>
+              <SectionFrame title="Recent Manuscripts">
+                <RecentManuscripts books={sorted} />
+              </SectionFrame>
             </div>
 
             {/* Right — Daily Goal + Activity + Snapshot */}
