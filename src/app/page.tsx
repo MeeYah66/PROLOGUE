@@ -454,7 +454,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── No goal set yet ─────────────────────────────────────────────────────────
   if (!hasGoal && !editing) {
     return (
-      <div>
+      <div className="rounded-xl border border-parchment-deep/60 bg-white p-4">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -476,7 +476,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── Goal input (first time or editing) ──────────────────────────────────────
   if (editing) {
     return (
-      <div>
+      <div className="rounded-xl border border-parchment-deep/60 bg-white p-4">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -553,7 +553,7 @@ function WeeklyActivity({ books }: { books: Book[] }) {
   const totalThisWeek = activity.reduce((s, d) => s + d.words, 0);
 
   return (
-    <div>
+    <div className="rounded-xl border border-parchment-deep/60 bg-white p-4">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="font-serif text-sm font-semibold text-ink">This Week</h3>
         <span className="text-[11px] text-ink-muted">{totalThisWeek.toLocaleString()} words</span>
@@ -621,7 +621,7 @@ function WriterSnapshot({ books }: { books: Book[] }) {
   ];
 
   return (
-    <div className="flex-1">
+    <div className="rounded-xl border border-parchment-deep/60 bg-white p-4 flex-1">
       <h3 className="font-serif text-sm font-semibold text-ink mb-4">Writing Profile</h3>
       <div className="space-y-3.5">
         {rows.map(({ label, value }) => (
@@ -769,7 +769,7 @@ export default function DashboardPage() {
 
           {/* ── Header ─────────────────────────────────────────────────────── */}
           <div className="flex items-start justify-between gap-4 mb-7">
-            <div>
+            <div className="rounded-xl border border-parchment-deep/60 bg-white p-4">
               {/* #7A5C14 on parchment → 5.6:1 ✓ AA */}
               <p className="text-[11px] font-sans uppercase tracking-[0.20em] mb-2 text-amber-label">
                 {today}
@@ -813,10 +813,10 @@ export default function DashboardPage() {
             </div>
 
             {/* Right — Daily Goal + Activity + Snapshot in a shared frame */}
-            <div className="rounded-2xl border border-parchment-deep/60 bg-white shadow-[0px_2px_8px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col divide-y divide-parchment-deep/40">
-              <div className="p-4"><DailyGoal wordsToday={wordsToday} /></div>
-              <div className="p-4"><WeeklyActivity books={books} /></div>
-              <div className="p-4"><WriterSnapshot books={books} /></div>
+            <div className="rounded-2xl border border-parchment-deep/60 bg-white p-3 flex flex-col gap-3">
+              <DailyGoal wordsToday={wordsToday} />
+              <WeeklyActivity books={books} />
+              <WriterSnapshot books={books} />
             </div>
           </div>
 
