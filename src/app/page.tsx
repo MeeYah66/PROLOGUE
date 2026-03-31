@@ -174,7 +174,7 @@ function StatStrip({
   ];
 
   return (
-    <div className="inline-flex items-center bg-parchment-warm rounded-xl px-1 py-1 flex-wrap gap-y-1">
+    <div className="inline-flex items-center flex-wrap gap-y-1">
       {stats.map(({ icon: Icon, value, label }, i) => (
         <div key={label} className="flex items-center">
           <div className="flex items-center gap-2 px-4 py-2">
@@ -454,7 +454,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── No goal set yet ─────────────────────────────────────────────────────────
   if (!hasGoal && !editing) {
     return (
-      <div className="rounded-xl border border-parchment-deep/50 bg-white p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
+      <div className="rounded-xl border border-parchment-deep/20 bg-parchment/40 p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.03)]">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -476,7 +476,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── Goal input (first time or editing) ──────────────────────────────────────
   if (editing) {
     return (
-      <div className="rounded-xl border border-parchment-deep/50 bg-white p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
+      <div className="rounded-xl border border-parchment-deep/20 bg-parchment/40 p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.03)]">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -553,7 +553,7 @@ function WeeklyActivity({ books }: { books: Book[] }) {
   const totalThisWeek = activity.reduce((s, d) => s + d.words, 0);
 
   return (
-    <div className="rounded-xl border border-parchment-deep/50 bg-white p-5 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
+    <div className="rounded-xl border border-parchment-deep/20 bg-parchment/40 p-5 shadow-[0px_2px_8px_rgba(0,0,0,0.03)]">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="font-serif text-sm font-semibold text-ink">This Week</h3>
         <span className="text-[11px] text-ink-muted">{totalThisWeek.toLocaleString()} words</span>
@@ -621,7 +621,7 @@ function WriterSnapshot({ books }: { books: Book[] }) {
   ];
 
   return (
-    <div className="rounded-xl border border-parchment-deep/50 bg-white p-5 flex-1 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
+    <div className="rounded-xl border border-parchment-deep/20 bg-parchment/40 p-5 flex-1 shadow-[0px_2px_8px_rgba(0,0,0,0.03)]">
       <h3 className="font-serif text-sm font-semibold text-ink mb-4">Writing Profile</h3>
       <div className="space-y-3.5">
         {rows.map(({ label, value }) => (
