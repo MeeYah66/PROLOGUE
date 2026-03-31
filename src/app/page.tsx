@@ -106,7 +106,7 @@ function SectionFrame({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-2xl bg-parchment-warm/50 pt-4 overflow-hidden border border-parchment-deep", className)}>
+    <div className={cn("rounded-2xl bg-parchment-warm/50 pt-4 overflow-hidden border border-parchment-deep shadow-[0px_2px_8px_rgba(0,0,0,0.04)]", className)}>
       <p className="px-4 text-[10px] uppercase tracking-[0.18em] font-semibold text-amber-label mb-3">
         {title}
       </p>
@@ -454,7 +454,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── No goal set yet ─────────────────────────────────────────────────────────
   if (!hasGoal && !editing) {
     return (
-      <div className="rounded-xl border border-parchment-deep bg-white p-4">
+      <div className="rounded-xl border border-parchment-deep/50 bg-white p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -476,7 +476,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
   // ── Goal input (first time or editing) ──────────────────────────────────────
   if (editing) {
     return (
-      <div className="rounded-xl border border-parchment-deep bg-white p-4">
+      <div className="rounded-xl border border-parchment-deep/50 bg-white p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
         <div className="flex items-center gap-2 mb-3">
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
@@ -553,7 +553,7 @@ function WeeklyActivity({ books }: { books: Book[] }) {
   const totalThisWeek = activity.reduce((s, d) => s + d.words, 0);
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-5">
+    <div className="rounded-xl border border-parchment-deep/50 bg-white p-5 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="font-serif text-sm font-semibold text-ink">This Week</h3>
         <span className="text-[11px] text-ink-muted">{totalThisWeek.toLocaleString()} words</span>
@@ -621,7 +621,7 @@ function WriterSnapshot({ books }: { books: Book[] }) {
   ];
 
   return (
-    <div className="rounded-xl border border-parchment-deep bg-white p-5 flex-1">
+    <div className="rounded-xl border border-parchment-deep/50 bg-white p-5 flex-1 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
       <h3 className="font-serif text-sm font-semibold text-ink mb-4">Writing Profile</h3>
       <div className="space-y-3.5">
         {rows.map(({ label, value }) => (
@@ -730,7 +730,7 @@ export default function DashboardPage() {
 
   if (authLoading || !booksReady) {
     return (
-      <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f4ede0 0%, #faf8f5 30%, #faf8f5 65%, #f4f6f8 100%)" }}>
+      <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 25%, #faf8f5 65%, #f6f7f9 100%)" }}>
         <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
         <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
@@ -759,7 +759,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f4ede0 0%, #faf8f5 30%, #faf8f5 65%, #f4f6f8 100%)" }}>
+    <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 25%, #faf8f5 65%, #f6f7f9 100%)" }}>
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-14">
@@ -813,7 +813,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Right — Daily Goal + Activity + Snapshot */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-6">
               <DailyGoal wordsToday={wordsToday} />
               <WeeklyActivity books={books} />
               <WriterSnapshot books={books} />
