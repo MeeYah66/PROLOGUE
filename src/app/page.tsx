@@ -730,7 +730,7 @@ export default function DashboardPage() {
 
   if (authLoading || !booksReady) {
     return (
-      <div className="flex min-h-screen bg-parchment">
+      <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f4ede0 0%, #faf8f5 30%, #faf8f5 65%, #f4f6f8 100%)" }}>
         <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
         <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
@@ -759,7 +759,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-parchment">
+    <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f4ede0 0%, #faf8f5 30%, #faf8f5 65%, #f4f6f8 100%)" }}>
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-14">
