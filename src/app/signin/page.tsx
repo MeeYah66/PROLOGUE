@@ -19,6 +19,10 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
+// Shared input style — warm tint bg, softened border, gold focus glow
+const INPUT =
+  "w-full h-12 px-4 rounded-xl border border-parchment-deep/70 bg-parchment/50 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-gold/40 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
+
 export default function SignInPage() {
   const { signIn, signInWithGoogle } = useAuth();
   const router                        = useRouter();
@@ -87,7 +91,7 @@ export default function SignInPage() {
               onClick={handleGoogle}
               disabled={googleLoading}
               className={cn(
-                "w-full flex items-center justify-center gap-3 h-11 rounded-xl border border-parchment-deep bg-white text-ink text-sm font-medium transition-all",
+                "w-full flex items-center justify-center gap-3 h-12 rounded-xl border border-parchment-deep/70 bg-parchment/50 text-ink text-sm font-medium transition-all duration-200",
                 "hover:bg-parchment-warm hover:border-ink/20 active:scale-[0.99]",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
@@ -106,13 +110,13 @@ export default function SignInPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-parchment-deep" />
+            <div className="flex-1 h-px bg-parchment-deep/60" />
             <span className="text-[11px] text-ink-faint font-sans tracking-wider uppercase">sign in</span>
-            <div className="flex-1 h-px bg-parchment-deep" />
+            <div className="flex-1 h-px bg-parchment-deep/60" />
           </div>
 
           {/* Sign in form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="email"
               placeholder="Your email address"
@@ -120,7 +124,7 @@ export default function SignInPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
-              className="w-full h-11 px-4 rounded-xl border border-parchment-deep bg-white text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-ink/30 focus:ring-2 focus:ring-ink/8 transition-all"
+              className={INPUT}
             />
             <div className="relative">
               <input
@@ -129,12 +133,12 @@ export default function SignInPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full h-11 px-4 pr-10 rounded-xl border border-parchment-deep bg-white text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-ink/30 focus:ring-2 focus:ring-ink/8 transition-all"
+                className={cn(INPUT, "pr-10")}
               />
               <button
                 type="button"
                 onClick={() => setShowPass((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink transition-colors duration-200"
                 tabIndex={-1}
               >
                 {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -149,7 +153,7 @@ export default function SignInPage() {
               type="submit"
               disabled={loading || !email.trim() || !password}
               className={cn(
-                "w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium flex items-center justify-center gap-2 transition-all",
+                "w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200",
                 "hover:bg-ink-soft active:scale-[0.99]",
                 "disabled:opacity-40 disabled:cursor-not-allowed"
               )}
@@ -174,7 +178,7 @@ export default function SignInPage() {
           {/* Sign up link */}
           <p className="mt-6 text-center text-xs text-ink-faint">
             New to Prologue?{" "}
-            <Link href="/signup" className="text-ink-muted underline-offset-2 hover:underline hover:text-ink transition-colors">
+            <Link href="/signup" className="text-ink-muted underline-offset-2 hover:underline hover:text-ink transition-colors duration-200">
               Create an account
             </Link>
           </p>
@@ -190,27 +194,36 @@ export default function SignInPage() {
             alt="Quiet library atmosphere"
             className="w-full h-full object-cover"
           />
+          {/* Ambient tint */}
           <div
             className="absolute inset-0"
             style={{
-              background:
-                "linear-gradient(to top right, rgba(45,52,51,0.72) 0%, rgba(45,52,51,0.22) 50%, transparent 100%)",
+              background: "linear-gradient(to top right, rgba(45,52,51,0.72) 0%, rgba(45,52,51,0.22) 50%, transparent 100%)",
+            }}
+          />
+          {/* Bottom gradient — anchors the quote text against any image variation */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(to top, rgba(8,10,10,0.68) 0%, rgba(8,10,10,0.28) 38%, transparent 62%)",
             }}
           />
         </div>
 
+        {/* Quote — bottom */}
         <div className="relative z-10 h-full flex flex-col justify-end p-16 pointer-events-none">
           <div className="max-w-xl space-y-5">
-            <div className="w-12 h-px bg-white/40" />
-            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white">
+            <div className="w-12 h-px bg-white/30" />
+            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white/88">
               "The page remembers every word you left on it."
             </blockquote>
-            <p className="font-sans text-sm uppercase tracking-[0.2em] text-white/60">
+            <p className="font-sans text-sm uppercase tracking-[0.2em] text-white/50">
               Prologue Studio
             </p>
           </div>
         </div>
 
+        {/* Glass chip — top right */}
         <div
           className="absolute top-10 right-10 z-10 px-5 py-2.5 rounded-full flex items-center gap-2.5 border border-white/10"
           style={{
@@ -234,8 +247,7 @@ export default function SignInPage() {
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "radial-gradient(ellipse 100% 80% at 50% 60%, rgba(60,42,24,0.7) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 100% 80% at 50% 60%, rgba(60,42,24,0.7) 0%, transparent 70%)",
           }}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">

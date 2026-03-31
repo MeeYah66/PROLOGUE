@@ -7,6 +7,10 @@ import { ArrowRight, Feather, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/context";
 
+// Shared input style — warm tint bg, softened border, gold focus glow
+const INPUT =
+  "w-full h-12 px-4 rounded-xl border border-parchment-deep/70 bg-parchment/50 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-gold/40 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
+
 export default function SignupPage() {
   const { signUp } = useAuth();
   const router     = useRouter();
@@ -62,7 +66,7 @@ export default function SignupPage() {
           </p>
           <button
             onClick={() => router.push("/signin")}
-            className="w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium hover:bg-ink-soft transition-all"
+            className="w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium hover:bg-ink-soft transition-all duration-200"
           >
             Go to Sign In
           </button>
@@ -97,7 +101,7 @@ export default function SignupPage() {
           </div>
 
           {/* Signup form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
               placeholder="Your name or pen name"
@@ -105,7 +109,7 @@ export default function SignupPage() {
               onChange={(e) => setName(e.target.value)}
               required
               autoFocus
-              className="w-full h-11 px-4 rounded-xl border border-parchment-deep bg-white text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-ink/30 focus:ring-2 focus:ring-ink/8 transition-all"
+              className={INPUT}
             />
             <input
               type="email"
@@ -113,7 +117,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full h-11 px-4 rounded-xl border border-parchment-deep bg-white text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-ink/30 focus:ring-2 focus:ring-ink/8 transition-all"
+              className={INPUT}
             />
             <div className="relative">
               <input
@@ -123,12 +127,12 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full h-11 px-4 pr-10 rounded-xl border border-parchment-deep bg-white text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-ink/30 focus:ring-2 focus:ring-ink/8 transition-all"
+                className={cn(INPUT, "pr-10")}
               />
               <button
                 type="button"
                 onClick={() => setShowPass((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink transition-colors duration-200"
                 tabIndex={-1}
               >
                 {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -140,7 +144,7 @@ export default function SignupPage() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
-              className="w-full h-11 px-4 rounded-xl border border-parchment-deep bg-white text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-ink/30 focus:ring-2 focus:ring-ink/8 transition-all"
+              className={INPUT}
             />
 
             {error && (
@@ -151,7 +155,7 @@ export default function SignupPage() {
               type="submit"
               disabled={!canSubmit}
               className={cn(
-                "w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium flex items-center justify-center gap-2 transition-all",
+                "w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200",
                 "hover:bg-ink-soft active:scale-[0.99]",
                 "disabled:opacity-40 disabled:cursor-not-allowed"
               )}
@@ -176,7 +180,7 @@ export default function SignupPage() {
           {/* Sign in link */}
           <p className="mt-6 text-center text-xs text-ink-faint">
             Already have an account?{" "}
-            <Link href="/signin" className="text-ink-muted underline-offset-2 hover:underline hover:text-ink transition-colors">
+            <Link href="/signin" className="text-ink-muted underline-offset-2 hover:underline hover:text-ink transition-colors duration-200">
               Sign in
             </Link>
           </p>
@@ -184,9 +188,9 @@ export default function SignupPage() {
           {/* Legal */}
           <p className="mt-8 text-center text-[10px] text-ink-faint/60 leading-relaxed max-w-[280px] mx-auto">
             By creating an account, you agree to Prologue's{" "}
-            <span className="underline underline-offset-2 cursor-pointer hover:text-ink-faint transition-colors">Terms</span>
+            <span className="underline underline-offset-2 cursor-pointer hover:text-ink-faint transition-colors duration-200">Terms</span>
             {" "}and{" "}
-            <span className="underline underline-offset-2 cursor-pointer hover:text-ink-faint transition-colors">Privacy Policy</span>.
+            <span className="underline underline-offset-2 cursor-pointer hover:text-ink-faint transition-colors duration-200">Privacy Policy</span>.
           </p>
         </div>
       </div>
@@ -202,47 +206,33 @@ export default function SignupPage() {
             alt="Quiet library atmosphere"
             className="w-full h-full object-cover"
           />
-          {/* Dark gradient — bottom-left heavy, fades to transparent top-right */}
+          {/* Ambient tint */}
           <div
             className="absolute inset-0"
             style={{
-              background:
-                "linear-gradient(to top right, rgba(45,52,51,0.72) 0%, rgba(45,52,51,0.22) 50%, transparent 100%)",
+              background: "linear-gradient(to top right, rgba(45,52,51,0.72) 0%, rgba(45,52,51,0.22) 50%, transparent 100%)",
             }}
           />
-          {/* Subtle tint overlay */}
+          {/* Bottom gradient — anchors the quote text against any image variation */}
           <div
             className="absolute inset-0"
-            style={{ backgroundColor: "rgba(77,99,95,0.08)", mixBlendMode: "multiply" }}
+            style={{
+              background: "linear-gradient(to top, rgba(8,10,10,0.68) 0%, rgba(8,10,10,0.28) 38%, transparent 62%)",
+            }}
           />
         </div>
 
         {/* Quote — bottom */}
         <div className="relative z-10 h-full flex flex-col justify-end p-16 pointer-events-none">
           <div className="max-w-xl space-y-5">
-            <div className="w-12 h-px bg-white/40" />
-            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white">
+            <div className="w-12 h-px bg-white/30" />
+            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white/88">
               "Every story begins with a single page, waiting for the weight of your thoughts."
             </blockquote>
-            <p className="font-sans text-sm uppercase tracking-[0.2em] text-white/60">
+            <p className="font-sans text-sm uppercase tracking-[0.2em] text-white/50">
               The Silent Manuscript
             </p>
           </div>
-        </div>
-
-        {/* Glass chip — top right */}
-        <div
-          className="absolute top-10 right-10 z-10 px-5 py-2.5 rounded-full flex items-center gap-2.5 border border-white/10"
-          style={{
-            background: "rgba(255,255,255,0.82)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}
-        >
-          <span className="w-2 h-2 rounded-full bg-[#4d635f]" />
-          <span className="font-sans text-[0.62rem] uppercase tracking-widest text-[#5a6060] font-medium">
-            Focus Mode Active
-          </span>
         </div>
 
       </div>
@@ -255,8 +245,7 @@ export default function SignupPage() {
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "radial-gradient(ellipse 100% 80% at 50% 60%, rgba(60,42,24,0.7) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 100% 80% at 50% 60%, rgba(60,42,24,0.7) 0%, transparent 70%)",
           }}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
