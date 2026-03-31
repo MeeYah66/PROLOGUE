@@ -226,7 +226,7 @@ export default function SignupPage() {
         <div className="relative z-10 h-full flex flex-col justify-end p-16 pointer-events-none">
           <div className="max-w-xl space-y-5">
             <div className="w-12 h-px bg-white/30" />
-            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white/88">
+            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white/70">
               "Every story begins with a single page, waiting for the weight of your thoughts."
             </blockquote>
             <p className="font-sans text-sm uppercase tracking-[0.2em] text-white/50">
