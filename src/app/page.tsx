@@ -769,12 +769,10 @@ export default function DashboardPage() {
 
           {/* ── Header ─────────────────────────────────────────────────────── */}
           <div className="flex items-start justify-between gap-4 mb-7">
-            <div className="rounded-xl border border-parchment-deep/60 bg-white p-4">
-              {/* #7A5C14 on parchment → 5.6:1 ✓ AA */}
+            <div>
               <p className="text-[11px] font-sans uppercase tracking-[0.20em] mb-2 text-amber-label">
                 {today}
               </p>
-              {/* #1a1408 on parchment → 15.4:1 ✓ AAA */}
               <h1 className="font-serif text-[2.25rem] font-semibold text-ink leading-none tracking-tight">
                 {greeting}, {firstName}.
               </h1>
