@@ -17,9 +17,27 @@ export interface ParsedManuscript {
   totalWords: number;
 }
 
+type PdfJsTextItem = { str?: string };
+type PdfJsTextContent = { items: PdfJsTextItem[] };
+type PdfJsPage = { getTextContent: () => Promise<PdfJsTextContent> };
+type PdfJsDocument = {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<PdfJsPage>;
+};
+type PdfJsLoadingTask = {
+  promise: Promise<PdfJsDocument>;
+  destroy: () => Promise<void>;
+};
+type PdfJsModule = {
+  version?: string;
+  GlobalWorkerOptions?: { workerSrc?: string };
+  getDocument: (options: Record<string, unknown>) => PdfJsLoadingTask;
+};
+
 const CHAPTER_HEADING_PATTERN =
   /^(chapter|chap\.?|part|book|prologue|epilogue)\s+([a-z0-9ivxlcdm\-: ]+)?$/i;
 const MARKDOWN_HEADING_PATTERN = /^#{1,6}\s+/;
+const SERVER_PDF_SIZE_HINT_BYTES = 4 * 1024 * 1024;
 
 function makeId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -30,6 +48,15 @@ function makeId(): string {
 
 function normalizeNewlines(value: string): string {
   return value.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+function normalizeExtractedPdfText(value: string): string {
+  return normalizeNewlines(value)
+    .replace(/\u0000/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
 }
 
 function cleanText(value: string): string {
@@ -361,29 +388,113 @@ async function parseTxt(file: File): Promise<ParsedManuscript> {
 }
 
 async function parsePdf(file: File): Promise<ParsedManuscript> {
-  const formData = new FormData();
-  formData.append("file", file);
+  async function parsePdfInBrowser(): Promise<string> {
+    const pdfjs = (await import("pdfjs-dist/legacy/build/pdf.mjs")) as unknown as PdfJsModule;
 
-  const response = await fetch("/api/import/parse-pdf", {
-    method: "POST",
-    body: formData,
-  });
+    if (pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
+      const version = pdfjs.version ?? "4.10.38";
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
+    }
 
-  const payload = (await response.json().catch(() => null)) as
-    | { text?: string; error?: string }
-    | null;
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjs.getDocument({
+      data: new Uint8Array(arrayBuffer),
+      useWorkerFetch: true,
+      isEvalSupported: false,
+      stopAtErrors: false,
+      disableFontFace: false,
+      disableWorker: false,
+    });
 
-  if (!response.ok) {
-    throw new Error(
-      payload?.error ??
-        "We could not read that PDF. Try exporting it as .docx or .txt."
-    );
+    try {
+      const pdf = await loadingTask.promise;
+      const pages: string[] = [];
+
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .map((item) => (typeof item.str === "string" ? item.str : ""))
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        if (pageText) pages.push(pageText);
+      }
+
+      return normalizeExtractedPdfText(pages.join("\n\n"));
+    } finally {
+      await loadingTask.destroy().catch(() => undefined);
+    }
   }
 
-  const extractedText = (payload?.text ?? "").trim();
+  async function parsePdfViaApi(): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/import/parse-pdf", {
+      method: "POST",
+      body: formData,
+    });
+
+    const raw = await response.text();
+    const payload = (() => {
+      try {
+        return raw ? (JSON.parse(raw) as { text?: string; error?: string }) : null;
+      } catch {
+        return null;
+      }
+    })();
+
+    if (!response.ok) {
+      const detail =
+        payload?.error ||
+        (raw && raw.length < 220 ? raw : "") ||
+        `PDF parse request failed (${response.status}).`;
+      throw new Error(detail);
+    }
+
+    return normalizeExtractedPdfText(payload?.text ?? "");
+  }
+
+  let extractedText = "";
+  const parserErrors: string[] = [];
+  const prefersBrowserParsing = file.size > SERVER_PDF_SIZE_HINT_BYTES;
+
+  if (prefersBrowserParsing) {
+    try {
+      extractedText = await parsePdfInBrowser();
+    } catch (error) {
+      parserErrors.push(
+        `Browser parser: ${error instanceof Error ? error.message : "failed"}`
+      );
+    }
+  }
+
+  if (!extractedText) {
+    try {
+      extractedText = await parsePdfViaApi();
+    } catch (error) {
+      parserErrors.push(
+        `Server parser: ${error instanceof Error ? error.message : "failed"}`
+      );
+    }
+  }
+
+  if (!extractedText && !prefersBrowserParsing) {
+    try {
+      extractedText = await parsePdfInBrowser();
+    } catch (error) {
+      parserErrors.push(
+        `Browser parser: ${error instanceof Error ? error.message : "failed"}`
+      );
+    }
+  }
+
   if (!extractedText) {
     throw new Error(
-      "We could not extract readable text from this PDF. Try .docx for best results."
+      parserErrors[0] ||
+        "We could not read that PDF. If it is image-based, export with OCR enabled or use .docx/.txt."
     );
   }
 
