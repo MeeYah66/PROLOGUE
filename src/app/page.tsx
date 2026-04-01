@@ -235,18 +235,20 @@ function MiniCover({ book }: { book: Book }) {
 function CurrentlyWriting({ book }: { book: Book | null }) {
   if (!book) {
     return (
-      <div className="rounded-xl border border-parchment-deep bg-white p-8 flex flex-col items-center justify-center text-center">
-        <div className="w-9 h-9 rounded-full bg-parchment-warm flex items-center justify-center mb-3">
-          <PenLine className="w-4 h-4 text-ink-faint" strokeWidth={1.5} />
-        </div>
-        <p className="font-serif text-base font-semibold text-ink mb-1.5">Your story is waiting</p>
-        <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-5">
-          Begin your first manuscript to start tracking your progress here.
+      <div className="rounded-xl border border-parchment-deep bg-white px-8 py-10 flex flex-col items-start text-left">
+        <p className="text-[10px] font-sans uppercase tracking-[0.2em] font-semibold text-amber-label mb-4">
+          Currently Writing
+        </p>
+        <p className="font-serif text-xl font-semibold text-ink leading-snug mb-2">
+          The cursor blinks,<br />waiting for you.
+        </p>
+        <p className="text-sm text-ink-muted leading-relaxed mb-6 max-w-xs">
+          You don&apos;t need a perfect first line. You just need a first line.
         </p>
         <Link href="/books/new">
           <Button size="sm" className="gap-1.5 bg-ink text-parchment hover:bg-ink-soft">
-            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-            Start Writing
+            <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
+            Begin your manuscript
           </Button>
         </Link>
       </div>

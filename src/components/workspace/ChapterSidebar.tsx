@@ -117,11 +117,16 @@ export function ChapterSidebar({
       <ScrollArea className="flex-1">
         <div className="py-2">
           {book.chapters.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <p className="text-xs text-ink-faint mb-3">No chapters yet</p>
+            <div className="px-4 py-10 text-center">
+              <p className="font-serif text-sm text-ink leading-snug mb-1">
+                Chapter One<br />is waiting.
+              </p>
+              <p className="text-[11px] text-ink-faint leading-relaxed mb-4 mt-2">
+                Every novel starts here.
+              </p>
               <Button variant="outline" size="sm" onClick={onAddChapter} className="text-xs">
                 <Plus className="w-3.5 h-3.5" />
-                Add First Chapter
+                Write Chapter One
               </Button>
             </div>
           ) : (

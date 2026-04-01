@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Search, Menu, Bell, Moon, Sun, X, PenLine } from "lucide-react";
+import { Plus, Search, Menu, Bell, Moon, Sun, X, PenLine, BookOpen, Feather } from "lucide-react";
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount } from "@/lib/utils";
@@ -66,7 +66,7 @@ function TopBar({
             value={query}
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Search manuscripts..."
-            className="pl-9 pr-4 py-1.5 w-64 bg-transparent rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep focus:outline-none focus:border-ink-faint transition-all focus:w-80"
+            className="pl-9 pr-4 py-1.5 w-64 bg-parchment/50 rounded-lg text-sm font-sans text-ink placeholder:text-ink-faint/60 border border-parchment-deep/70 focus:outline-none focus:border-gold/40 focus:ring-2 focus:ring-gold/10 transition-all focus:w-80 duration-200"
           />
         </div>
       </div>
@@ -96,6 +96,85 @@ function TopBar({
           <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold" />
         </button>
       </div>
+    </div>
+  );
+}
+
+// ─── Empty Library ────────────────────────────────────────────────────────────
+
+function EmptyLibrary() {
+  const steps = [
+    { n: "01", text: "Give your story a name" },
+    { n: "02", text: "Write your first chapter" },
+    { n: "03", text: "Come back tomorrow and keep going" },
+  ];
+
+  return (
+    <div className="max-w-2xl mx-auto pt-16 pb-24 px-4 text-center">
+
+      {/* Icon */}
+      <div className="w-16 h-16 rounded-2xl bg-parchment-warm border border-parchment-deep/60 flex items-center justify-center mx-auto mb-8 shadow-[0px_2px_8px_rgba(0,0,0,0.04)]">
+        <Feather className="w-7 h-7 text-ink-muted" strokeWidth={1.2} />
+      </div>
+
+      {/* Headline */}
+      <h2 className="font-serif text-[2rem] font-semibold text-ink leading-tight tracking-tight mb-4">
+        The library is quiet<br />for now.
+      </h2>
+
+      {/* Atmospheric subtext */}
+      <p className="text-sm text-ink-muted leading-relaxed max-w-sm mx-auto mb-3">
+        Every published novel started as a blank document and a stubborn writer who refused to quit.
+      </p>
+      <p className="text-sm text-ink-muted leading-relaxed max-w-sm mx-auto mb-12">
+        Yours begins today.
+      </p>
+
+      {/* Steps */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
+        {steps.map((s, i) => (
+          <div key={s.n} className="flex items-center gap-3">
+            <div className="rounded-2xl bg-parchment-warm/50 border border-parchment-deep/60 px-5 py-3.5 text-left min-w-[160px]">
+              <p className="text-[10px] font-sans uppercase tracking-[0.2em] text-amber-label mb-1">{s.n}</p>
+              <p className="text-sm font-serif text-ink leading-snug">{s.text}</p>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="hidden sm:block w-6 h-px bg-parchment-deep/60" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* CTA */}
+      <Link href="/books/new">
+        <button className="inline-flex items-center gap-2 bg-ink text-parchment px-7 py-3 rounded-xl font-sans font-medium text-sm hover:bg-ink-soft transition-all duration-200 shadow-sm">
+          <PenLine className="w-3.5 h-3.5" strokeWidth={2} />
+          Start your first manuscript
+        </button>
+      </Link>
+
+      {/* Quiet note */}
+      <p className="mt-6 text-[11px] text-ink-faint/60 font-serif italic">
+        No pressure. No word count. Just you and a blank page.
+      </p>
+    </div>
+  );
+}
+
+// ─── No Search Results ────────────────────────────────────────────────────────
+
+function NoSearchResults({ query }: { query: string }) {
+  return (
+    <div className="max-w-md mx-auto py-20 text-center">
+      <div className="w-12 h-12 rounded-2xl bg-parchment-warm/50 border border-parchment-deep/60 flex items-center justify-center mx-auto mb-6">
+        <BookOpen className="w-5 h-5 text-ink-faint" strokeWidth={1.5} />
+      </div>
+      <p className="font-serif text-xl font-semibold text-ink mb-2">
+        No manuscript named &ldquo;{query}&rdquo; — yet.
+      </p>
+      <p className="text-sm text-ink-muted leading-relaxed">
+        Maybe that&apos;s the title of your next one.
+      </p>
     </div>
   );
 }
@@ -149,7 +228,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-parchment">
+    <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 25%, #faf8f5 65%, #f6f7f9 100%)" }}>
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-14">
@@ -160,11 +239,11 @@ export default function LibraryPage() {
           {/* ── Header ─────────────────────────────────────────────────────── */}
           <div className="flex items-end justify-between gap-5 mb-8">
             <div>
-              <h1 className="font-serif text-3xl font-semibold text-ink tracking-tight leading-none mb-2">
+              <h1 className="font-serif text-[2.25rem] font-semibold text-ink tracking-tight leading-none mb-2">
                 Your Library
               </h1>
-              {books.length > 0 ? (
-                <p className="text-[11px] font-sans uppercase tracking-[0.14em] text-ink-faint">
+              {books.length > 0 && (
+                <p className="text-[11px] font-sans uppercase tracking-[0.18em] text-ink-faint">
                   {books.length} manuscript{books.length !== 1 ? "s" : ""}
                   <span className="mx-2 opacity-40">·</span>
                   {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
@@ -177,45 +256,22 @@ export default function LibraryPage() {
                     </>
                   )}
                 </p>
-              ) : (
-                <p className="text-[11px] font-sans uppercase tracking-[0.14em] text-ink-faint">
-                  No manuscripts yet
-                </p>
               )}
             </div>
 
             {books.length > 0 && (
               <Link href="/books/new" className="shrink-0">
-                <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap">
+                <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors duration-200 shadow-sm whitespace-nowrap">
                   <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                  New Book
+                  New Manuscript
                 </button>
               </Link>
             )}
           </div>
 
-          {/* ── Book Grid / Empty State ─────────────────────────────────────── */}
+          {/* ── Book Grid / Empty States ────────────────────────────────────── */}
           {books.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-14 h-14 rounded-full bg-parchment-warm flex items-center justify-center mb-5">
-                <PenLine className="w-6 h-6 text-ink-faint" strokeWidth={1.5} />
-              </div>
-              <h2 className="font-serif text-2xl font-semibold text-ink mb-3">
-                Your library awaits.
-              </h2>
-              <p className="text-sm text-ink-muted leading-relaxed max-w-xs mb-2">
-                A blank page is not an empty thing — it holds every story you haven&apos;t written yet.
-              </p>
-              <p className="text-xs text-ink-faint mb-10">
-                Begin your first manuscript to get started.
-              </p>
-              <Link href="/books/new">
-                <button className="flex items-center gap-2 bg-ink text-parchment px-6 py-3 rounded-xl font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm">
-                  <Plus className="w-3.5 h-3.5" />
-                  Create Your First Manuscript
-                </button>
-              </Link>
-            </div>
+            <EmptyLibrary />
           ) : filtered.length > 0 ? (
             <section>
               {query && (
@@ -223,7 +279,7 @@ export default function LibraryPage() {
                   <span className="text-[10px] font-sans uppercase tracking-[0.16em] font-semibold text-ink-faint">
                     Results for &ldquo;{query}&rdquo;
                   </span>
-                  <div className="flex-1 h-px bg-parchment-deep" />
+                  <div className="flex-1 h-px bg-parchment-deep/60" />
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -234,12 +290,7 @@ export default function LibraryPage() {
               </div>
             </section>
           ) : (
-            <div className="text-center py-20">
-              <p className="font-serif text-xl text-ink-muted mb-2">
-                No results for &ldquo;{query}&rdquo;
-              </p>
-              <p className="text-sm text-ink-faint">Try a different title, genre, or author name.</p>
-            </div>
+            <NoSearchResults query={query} />
           )}
 
         </div>
