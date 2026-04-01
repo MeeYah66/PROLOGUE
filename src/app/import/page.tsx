@@ -9,6 +9,7 @@ import {
   ChevronUp,
   FileUp,
   Loader2,
+  Menu,
   Scissors,
   Sparkles,
   UnfoldVertical,
@@ -108,11 +109,43 @@ function splitChapterAtMidpoint(chapter: ParsedChapter): [ParsedChapter, ParsedC
   ];
 }
 
+function ImportTopBar({ onOpenNav }: { onOpenNav: () => void }) {
+  return (
+    <div className="sticky top-0 z-30 h-12 px-3 md:px-6 bg-parchment/95 backdrop-blur-sm border-b border-parchment-deep">
+      <div className="h-full max-w-5xl mx-auto flex items-center">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            onClick={onOpenNav}
+            aria-label="Open navigation"
+            className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint transition-all"
+          >
+            <Menu className="w-3.5 h-3.5" strokeWidth={1.8} />
+          </button>
+
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm text-ink-faint hover:text-ink hover:bg-parchment-warm transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back
+          </Link>
+
+          <span className="h-4 w-px bg-parchment-deep/90 mx-0.5" />
+          <p className="text-[10px] sm:text-[11px] font-sans uppercase tracking-[0.17em] font-semibold text-amber-label">
+            Import Manuscript
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ImportManuscriptPage() {
   const router = useRouter();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [stage, setStage] = useState<ImportStage>("upload");
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState("");
@@ -319,33 +352,19 @@ export default function ImportManuscriptPage() {
 
   return (
     <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 35%, #f7f7f6 100%)" }}>
-      <AppNav />
+      <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-12">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 pt-10">
-          <div
-            className={cn(
-              "flex items-start justify-between gap-4",
-              stage === "upload" ? "mb-5" : "mb-8"
-            )}
-          >
-            <div className="max-w-[780px]">
-              <p className="text-[11px] font-sans uppercase tracking-[0.2em] text-amber-label mb-2 font-semibold">
-                Import Manuscript
-              </p>
-              <h1 className="font-serif text-[2.35rem] md:text-[2.75rem] leading-[1.02] font-semibold text-ink tracking-tight text-balance">
-                Continue writing where you left off.
-              </h1>
-              <p className="text-sm text-ink-muted mt-3 max-w-[700px] leading-relaxed">
-                Bring in your existing draft. We will structure it into chapters so you can edit, reorder, and keep writing inside Prologue.
-              </p>
-            </div>
-            <Link href="/" className="shrink-0">
-              <Button variant="ghost" size="sm" className="gap-1.5">
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Back
-              </Button>
-            </Link>
+        <ImportTopBar onOpenNav={() => setMobileNavOpen(true)} />
+
+        <div className="max-w-5xl mx-auto px-4 md:px-8 pt-8">
+          <div className={cn("max-w-[780px]", stage === "upload" ? "mb-5" : "mb-8")}>
+            <h1 className="font-serif text-[2.35rem] md:text-[2.75rem] leading-[1.02] font-semibold text-ink tracking-tight text-balance">
+              Continue writing where you left off.
+            </h1>
+            <p className="text-sm text-ink-muted mt-3 max-w-[700px] leading-relaxed">
+              Bring in your existing draft. We will structure it into chapters so you can edit, reorder, and keep writing inside Prologue.
+            </p>
           </div>
 
           {stage === "upload" && (
