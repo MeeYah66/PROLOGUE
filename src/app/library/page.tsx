@@ -123,10 +123,10 @@ function EmptyLibrary() {
       </h2>
 
       {/* Atmospheric subtext */}
-      <p className="text-sm text-ink-muted leading-relaxed max-w-sm mx-auto mb-3">
+      <p className="text-sm text-ink-muted leading-relaxed max-w-lg mx-auto mb-3">
         Every published novel started as a blank document and a stubborn writer who refused to quit.
       </p>
-      <p className="text-sm text-ink-muted leading-relaxed max-w-sm mx-auto mb-12">
+      <p className="text-sm text-ink-muted leading-relaxed max-w-lg mx-auto mb-12">
         Yours begins today.
       </p>
 

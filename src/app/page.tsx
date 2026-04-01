@@ -14,7 +14,6 @@ import {
   BookMarked,
   ScrollText,
   Trophy,
-  Zap,
   Target,
   X,
 } from "lucide-react";
@@ -236,13 +235,10 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
   if (!book) {
     return (
       <div className="rounded-xl border border-parchment-deep bg-white px-8 py-10 flex flex-col items-start text-left">
-        <p className="text-[10px] font-sans uppercase tracking-[0.2em] font-semibold text-amber-label mb-4">
-          Currently Writing
-        </p>
         <p className="font-serif text-xl font-semibold text-ink leading-snug mb-2">
           The cursor blinks,<br />waiting for you.
         </p>
-        <p className="text-sm text-ink-muted leading-relaxed mb-6 max-w-xs">
+        <p className="text-sm text-ink-muted leading-relaxed mb-6">
           You don&apos;t need a perfect first line. You just need a first line.
         </p>
         <Link href="/books/new">
@@ -266,15 +262,10 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
 
       <div className="flex flex-col flex-1 min-w-0 gap-3">
 
-        {/* Label + chapter — same row */}
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-[9px] font-sans uppercase tracking-[0.20em] font-semibold shrink-0 text-amber-label">
-            Currently Writing
-          </p>
-          {lastCh && (
-            <span className="text-[10px] text-ink-muted truncate">Ch. {lastCh.number} — {lastCh.title}</span>
-          )}
-        </div>
+        {/* Chapter label */}
+        {lastCh && (
+          <span className="text-[10px] text-ink-muted truncate">Ch. {lastCh.number} — {lastCh.title}</span>
+        )}
 
         {/* Title */}
         <h3 className="font-serif text-[1.1rem] font-semibold text-ink leading-snug truncate">
@@ -356,10 +347,6 @@ function QuickCapture() {
 
   return (
     <div className="rounded-xl border border-parchment-deep bg-white p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Zap className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
-        <h3 className="font-serif text-sm font-semibold text-ink">Quick Capture</h3>
-      </div>
 
       {/* Input */}
       <textarea
@@ -662,8 +649,7 @@ function RecentManuscripts({ books }: { books: Book[] }) {
 
   return (
     <div className="bg-white p-4 space-y-2">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-serif text-sm font-semibold text-ink">Recent Manuscripts</h3>
+      <div className="flex justify-end mb-2">
         <Link
           href="/library"
           className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink transition-colors"
