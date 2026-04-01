@@ -4,8 +4,7 @@ import { createRequire } from "node:module";
 export const runtime = "nodejs";
 
 const require = createRequire(import.meta.url);
-// pdf-parse exports a function directly: pdfParse(buffer) → { text, numpages, ... }
-const pdfParse = require("pdf-parse") as (
+type PdfParseFunction = (
   buffer: Buffer,
   options?: Record<string, unknown>
 ) => Promise<{ text: string; numpages: number }>;
@@ -36,6 +35,8 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Load parser lazily so route-module evaluation during build doesn't crash.
+    const pdfParse = require("pdf-parse") as PdfParseFunction;
     const result = await pdfParse(buffer);
     const text = (result.text ?? "").replace(/\u0000/g, "").trim();
 
