@@ -8,6 +8,119 @@ type PdfParseFunction = (
   buffer: Buffer,
   options?: Record<string, unknown>
 ) => Promise<{ text: string; numpages: number }>;
+type Pdf2JsonParser = new (
+  context?: unknown,
+  needRawText?: boolean,
+  password?: string
+) => {
+  on: (
+    event: "pdfParser_dataError" | "pdfParser_dataReady",
+    handler: (payload: unknown) => void
+  ) => void;
+  parseBuffer: (buffer: Buffer, verbosity?: number) => void;
+  destroy?: () => void;
+};
+
+type Pdf2JsonOutput = {
+  Pages?: Array<{
+    Texts?: Array<{
+      x?: number;
+      y?: number;
+      R?: Array<{ T?: string }>;
+    }>;
+  }>;
+};
+
+function normalizeExtractedText(value: string): string {
+  return value
+    .replace(/\u0000/g, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function decodePdfToken(value: string): string {
+  try {
+    return decodeURIComponent(value.replace(/\+/g, "%20"));
+  } catch {
+    return value;
+  }
+}
+
+async function extractWithPdfParse(buffer: Buffer): Promise<string> {
+  const pdfParse = require("pdf-parse") as PdfParseFunction;
+  const result = await pdfParse(buffer);
+  return normalizeExtractedText(result.text ?? "");
+}
+
+async function extractWithPdf2Json(buffer: Buffer): Promise<string> {
+  const PDFParser = require("pdf2json") as Pdf2JsonParser;
+
+  const parsed = await new Promise<Pdf2JsonOutput>((resolve, reject) => {
+    const parser = new PDFParser(null, true);
+
+    parser.on("pdfParser_dataError", (payload) => {
+      parser.destroy?.();
+      if (
+        payload &&
+        typeof payload === "object" &&
+        "parserError" in payload &&
+        payload.parserError instanceof Error
+      ) {
+        reject(payload.parserError);
+        return;
+      }
+      reject(new Error("pdf2json could not parse this PDF."));
+    });
+
+    parser.on("pdfParser_dataReady", (payload) => {
+      parser.destroy?.();
+      resolve(payload as Pdf2JsonOutput);
+    });
+
+    parser.parseBuffer(buffer);
+  });
+
+  const pages = parsed.Pages ?? [];
+  if (pages.length === 0) return "";
+
+  const allPages = pages.map((page) => {
+    const textBlocks = [...(page.Texts ?? [])].sort((a, b) => {
+      const yA = a.y ?? 0;
+      const yB = b.y ?? 0;
+      if (Math.abs(yA - yB) > 0.2) return yA - yB;
+      return (a.x ?? 0) - (b.x ?? 0);
+    });
+
+    const rows = new Map<number, string[]>();
+
+    for (const block of textBlocks) {
+      const raw = (block.R ?? [])
+        .map((run) => decodePdfToken(run.T ?? ""))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (!raw) continue;
+
+      const rowKey = Math.round((block.y ?? 0) * 5) / 5;
+      const row = rows.get(rowKey) ?? [];
+      row.push(raw);
+      rows.set(rowKey, row);
+    }
+
+    return [...rows.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, fragments]) => fragments.join(" ").trim())
+      .filter(Boolean)
+      .join("\n");
+  });
+
+  return normalizeExtractedText(allPages.join("\n\n"));
+}
 
 export async function POST(request: Request) {
   try {
@@ -35,16 +148,34 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Load parser lazily so route-module evaluation during build doesn't crash.
-    const pdfParse = require("pdf-parse") as PdfParseFunction;
-    const result = await pdfParse(buffer);
-    const text = (result.text ?? "").replace(/\u0000/g, "").trim();
+    let text = "";
+    const parserErrors: string[] = [];
+
+    try {
+      text = await extractWithPdfParse(buffer);
+    } catch (error) {
+      parserErrors.push(
+        error instanceof Error ? error.message : "Primary parser failed."
+      );
+    }
 
     if (!text) {
+      try {
+        text = await extractWithPdf2Json(buffer);
+      } catch (error) {
+        parserErrors.push(
+          error instanceof Error ? error.message : "Fallback parser failed."
+        );
+      }
+    }
+
+    if (!text) {
+      const detail = parserErrors[0];
       return NextResponse.json(
         {
-          error:
-            "We could not extract readable text from this PDF. Try a text-based export or .docx version.",
+          error: detail
+            ? `We could not detect readable text in this PDF. ${detail}`
+            : "We could not detect readable text in this PDF. If it contains scanned pages/images, run OCR and export as searchable PDF, .docx, or .txt.",
         },
         { status: 422 }
       );
