@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
-  ChevronDown,
-  ChevronUp,
   FileUp,
   Loader2,
   Menu,
@@ -223,18 +221,6 @@ export default function ImportManuscriptPage() {
     const file = fileList?.[0];
     if (!file) return;
     beginParsing(file);
-  }
-
-  function moveChapter(index: number, direction: "up" | "down") {
-    setChapters((current) => {
-      const targetIndex = direction === "up" ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= current.length) return current;
-
-      const next = [...current];
-      const [moved] = next.splice(index, 1);
-      next.splice(targetIndex, 0, moved);
-      return next;
-    });
   }
 
   function renameChapter(index: number, value: string) {
@@ -526,13 +512,19 @@ export default function ImportManuscriptPage() {
                     return (
                       <div
                         key={chapter.id}
-                        className="rounded-xl border border-parchment-deep bg-parchment/45 p-3 transition-colors hover:border-gold/35"
+                        className="rounded-xl overflow-hidden border border-parchment-deep/95 bg-parchment/45 transition-colors hover:border-gold/35"
                       >
-                        <div className="flex items-start justify-between gap-3.5">
+                        <div className="flex items-center justify-between gap-3 px-3 py-2.5 bg-parchment-warm/85 border-b border-parchment-deep/90">
+                          <p className="text-[10px] uppercase tracking-[0.16em] text-amber-label font-semibold">
+                            Chapter {index + 1}
+                          </p>
+                          <Badge className="text-[10px] bg-parchment border border-parchment-deep/90 text-ink-muted hover:bg-parchment">
+                            {chapter.wordCount.toLocaleString()} words
+                          </Badge>
+                        </div>
+
+                        <div className="bg-white/95 px-3 py-3.5">
                           <div className="flex-1 min-w-0">
-                            <p className="text-[10px] uppercase tracking-[0.16em] text-ink-faint font-medium mb-1.5">
-                              Chapter {index + 1}
-                            </p>
                             <Input
                               value={chapter.title}
                               onChange={(event) => renameChapter(index, event.target.value)}
@@ -542,53 +534,30 @@ export default function ImportManuscriptPage() {
                               {chapterSnippet(chapter.content)}
                             </p>
                           </div>
-
-                          <div className="flex flex-col items-end gap-2 shrink-0">
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => moveChapter(index, "up")}
-                                disabled={index === 0}
-                                className="w-7 h-7 rounded-md border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint disabled:opacity-35 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                                aria-label="Move chapter up"
-                              >
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => moveChapter(index, "down")}
-                                disabled={index === chapters.length - 1}
-                                className="w-7 h-7 rounded-md border border-parchment-deep text-ink-faint hover:text-ink hover:border-ink-faint disabled:opacity-35 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                                aria-label="Move chapter down"
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                            <Badge className="text-[10px]">{chapter.wordCount.toLocaleString()} words</Badge>
+                          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs bg-white"
+                              disabled={index === 0}
+                              onClick={() => mergeWithPrevious(index)}
+                            >
+                              <UnfoldVertical className="w-3 h-3" />
+                              Merge
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs bg-white"
+                              disabled={!splitAvailable}
+                              onClick={() => splitChapter(index)}
+                            >
+                              <Scissors className="w-3 h-3" />
+                              Split
+                            </Button>
                           </div>
-                        </div>
-
-                        <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs bg-white"
-                            disabled={index === 0}
-                            onClick={() => mergeWithPrevious(index)}
-                          >
-                            <UnfoldVertical className="w-3 h-3" />
-                            Merge
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs bg-white"
-                            disabled={!splitAvailable}
-                            onClick={() => splitChapter(index)}
-                          >
-                            <Scissors className="w-3 h-3" />
-                            Split
-                          </Button>
                         </div>
                       </div>
                     );
