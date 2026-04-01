@@ -340,3 +340,30 @@ body {
     rgba(0,0,0,0.6) 100%
   );
 }
+
+/* Manuscript import pulse border */
+.import-pulse-border {
+  position: relative;
+  isolation: isolate;
+}
+
+.import-pulse-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid rgba(201, 168, 76, 0.52);
+  opacity: 0.55;
+  pointer-events: none;
+  animation: import-stroke-pulse 2.5s ease-in-out infinite;
+}
+
+.import-pulse-border[data-drag="true"]::before {
+  border-color: rgba(201, 168, 76, 0.9);
+  animation-duration: 1.2s;
+}
+
+@keyframes import-stroke-pulse {
+  0%, 100% { opacity: 0.38; }
+  50% { opacity: 0.95; }
+}

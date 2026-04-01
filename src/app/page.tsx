@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 import { useTheme } from "@/lib/theme";
 import { AmbientButton } from "@/components/ambient/AmbientButton";
+import { NewManuscriptDialog } from "@/components/dashboard/NewManuscriptDialog";
 import { cn } from "@/lib/utils";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -231,7 +232,13 @@ function MiniCover({ book }: { book: Book }) {
 
 // ─── Currently Writing ────────────────────────────────────────────────────────
 
-function CurrentlyWriting({ book }: { book: Book | null }) {
+function CurrentlyWriting({
+  book,
+  onCreateNew,
+}: {
+  book: Book | null;
+  onCreateNew: () => void;
+}) {
   if (!book) {
     return (
       <div className="rounded-xl border border-parchment-deep bg-white px-8 py-10 flex flex-col items-start text-left">
@@ -241,12 +248,10 @@ function CurrentlyWriting({ book }: { book: Book | null }) {
         <p className="text-sm text-ink-muted leading-relaxed mb-6">
           You don&apos;t need a perfect first line. You just need a first line.
         </p>
-        <Link href="/books/new">
-          <Button size="sm" className="gap-1.5 bg-ink text-parchment hover:bg-ink-soft">
-            <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
-            Begin your manuscript
-          </Button>
-        </Link>
+        <Button size="sm" className="gap-1.5 bg-ink text-parchment hover:bg-ink-soft" onClick={onCreateNew}>
+          <PenLine className="w-3.5 h-3.5" strokeWidth={1.8} />
+          Begin your manuscript
+        </Button>
       </div>
     );
   }
@@ -701,6 +706,7 @@ export default function DashboardPage() {
   const [books, setBooks]           = useState<Book[]>([]);
   const [booksReady, setBooksReady] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [showNewManuscriptDialog, setShowNewManuscriptDialog] = useState(false);
   const [hour, setHour]             = useState(new Date().getHours());
 
   useEffect(() => {
@@ -765,12 +771,13 @@ export default function DashboardPage() {
                 {greeting}, {firstName}.
               </h1>
             </div>
-            <Link href="/books/new" className="shrink-0 mt-2">
-              <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap">
-                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                New Manuscript
-              </button>
-            </Link>
+            <button
+              onClick={() => setShowNewManuscriptDialog(true)}
+              className="shrink-0 mt-2 flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors shadow-sm whitespace-nowrap"
+            >
+              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              New Manuscript
+            </button>
           </div>
 
           {/* ── Stats Strip ────────────────────────────────────────────────── */}
@@ -788,7 +795,7 @@ export default function DashboardPage() {
             {/* Left — Currently Writing + Quick Capture + Recent Manuscripts */}
             <div className="flex flex-col gap-5">
               <SectionFrame title="Currently Writing">
-                <CurrentlyWriting book={featured} />
+                <CurrentlyWriting book={featured} onCreateNew={() => setShowNewManuscriptDialog(true)} />
               </SectionFrame>
               <SectionFrame title="Quick Capture">
                 <QuickCapture />
@@ -808,6 +815,10 @@ export default function DashboardPage() {
 
         </div>
       </main>
+      <NewManuscriptDialog
+        open={showNewManuscriptDialog}
+        onOpenChange={setShowNewManuscriptDialog}
+      />
     </div>
   );
 }
