@@ -251,12 +251,12 @@ export function WritingEditor({
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className={cn("flex flex-col h-full", focusMode ? "bg-white" : "bg-parchment")}>
+    <div className="flex flex-col h-full bg-parchment">
 
       {/* ── Status / meta bar ─────────────────────────────────────────── */}
       <div
         className={cn(
-          "flex items-center justify-between px-6 py-2.5 border-b border-parchment-deep transition-opacity",
+          "flex items-center justify-between px-6 py-2.5 border-b border-parchment-deep/50 transition-opacity",
           focusMode && "opacity-0 hover:opacity-100"
         )}
       >
@@ -318,7 +318,7 @@ export function WritingEditor({
       {/* ── Formatting toolbar ────────────────────────────────────────── */}
       <div
         className={cn(
-          "flex items-center gap-1 px-5 py-1.5 border-b border-parchment-deep bg-parchment/80 flex-wrap transition-opacity",
+          "flex items-center gap-1 px-5 py-1.5 border-b border-parchment-deep/40 bg-parchment/50 flex-wrap transition-opacity",
           focusMode && "opacity-0 hover:opacity-100"
         )}
       >
@@ -417,42 +417,50 @@ export function WritingEditor({
       </div>
 
       {/* ── Editor area ───────────────────────────────────────────────── */}
-      <div className={cn("flex-1 overflow-y-auto", focusMode ? "py-16" : "py-10")}>
-        <div className={cn("mx-auto", focusMode ? "max-w-[640px] px-8" : "max-w-[680px] px-8")}>
+      <div className={cn("flex-1 overflow-y-auto", focusMode ? "py-14" : "py-8")}>
+        <div className={cn("mx-auto px-6", focusMode ? "max-w-[720px]" : "max-w-[800px]")}>
 
-          {/* Chapter label */}
-          <p className="text-xs text-ink-faint mb-3 font-medium tracking-wider uppercase">
-            Chapter {chapter.number}
-          </p>
+          {/* Paper sheet */}
+          <div className="bg-white rounded-2xl shadow-[0px_4px_32px_rgba(0,0,0,0.07)] px-14 py-12 min-h-[70vh]">
 
-          {/* Chapter title */}
-          <input
-            type="text"
-            value={localTitle}
-            onChange={(e) => {
-              setLocalTitle(e.target.value);
-              scheduleAutoSavTitle(e.target.value);
-            }}
-            placeholder="Chapter title"
-            className="w-full bg-transparent border-none outline-none text-ink font-serif text-3xl font-semibold placeholder:text-ink-faint/40 mb-8 leading-tight focus:ring-0"
-            style={{ fontFamily: "var(--font-lora)" }}
-          />
+            {/* Chapter label */}
+            <p className="text-[10px] font-sans uppercase tracking-[0.22em] font-semibold text-amber-label mb-5">
+              Chapter {chapter.number}
+            </p>
 
-          {/* Rich text editor */}
-          <EditorContent
-            editor={editor}
-            className="tiptap-editor"
-            style={{ fontFamily: FONTS.find((f) => f.value === activeFont)?.css ?? "var(--font-lora)" }}
-          />
+            {/* Chapter title */}
+            <input
+              type="text"
+              value={localTitle}
+              onChange={(e) => {
+                setLocalTitle(e.target.value);
+                scheduleAutoSavTitle(e.target.value);
+              }}
+              placeholder="Chapter title"
+              className="w-full bg-transparent border-none outline-none text-ink font-serif text-[2.2rem] font-semibold placeholder:text-ink-faint/30 mb-10 leading-tight focus:ring-0 tracking-tight"
+              style={{ fontFamily: "var(--font-lora)" }}
+            />
 
-          {/* End of chapter indicator */}
-          {wordCount > 100 && (
-            <div className="flex items-center gap-4 mt-12 pt-6 border-t border-parchment-deep">
-              <span className="text-xs text-ink-faint">End of chapter</span>
-              <div className="flex-1 h-px bg-parchment-deep" />
-              <span className="text-xs text-ink-faint">{wordCount.toLocaleString()} words</span>
-            </div>
-          )}
+            {/* Rich text editor */}
+            <EditorContent
+              editor={editor}
+              className="tiptap-editor"
+              style={{ fontFamily: FONTS.find((f) => f.value === activeFont)?.css ?? "var(--font-lora)" }}
+            />
+
+            {/* End of chapter indicator */}
+            {wordCount > 100 && (
+              <div className="flex items-center gap-4 mt-14 pt-6 border-t border-parchment-deep/60">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-ink-faint/60 font-sans">End of chapter</span>
+                <div className="flex-1 h-px bg-parchment-deep/40" />
+                <span className="text-[10px] uppercase tracking-[0.18em] text-ink-faint/60 font-sans">{wordCount.toLocaleString()} words</span>
+              </div>
+            )}
+
+          </div>
+
+          {/* Bottom breathing room */}
+          <div className="h-16" />
         </div>
       </div>
     </div>
