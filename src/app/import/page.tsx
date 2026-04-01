@@ -345,10 +345,10 @@ export default function ImportManuscriptPage() {
 
         <div className="max-w-5xl mx-auto px-4 md:px-8 pt-8">
           <div className={cn("max-w-[780px]", stage === "upload" ? "mb-5" : "mb-8")}>
-            <h1 className="font-serif text-[2.3rem] md:text-[2.65rem] leading-[1.01] font-semibold text-ink tracking-tight text-balance">
+            <h1 className="font-serif text-[2.35rem] md:text-[2.75rem] leading-[1.02] font-semibold text-ink tracking-tight text-balance">
               Continue writing where you left off.
             </h1>
-            <p className="text-[0.97rem] text-ink-muted/90 mt-2.5 max-w-[680px] leading-[1.58]">
+            <p className="text-sm text-ink-muted mt-3 max-w-[700px] leading-relaxed">
               Bring in your existing draft. We will structure it into chapters so you can edit, reorder, and keep writing inside Prologue.
             </p>
           </div>
@@ -436,11 +436,11 @@ export default function ImportManuscriptPage() {
                   <Loader2 className="w-4.5 h-4.5 text-ink-muted animate-spin" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-ink-faint font-medium mb-1">Importing</p>
-                  <h2 className="font-serif text-[1.6rem] leading-[1.1] font-semibold text-ink">Structuring your manuscript...</h2>
+                  <p className="text-[11px] uppercase tracking-[0.17em] text-ink-faint font-medium mb-1">Importing</p>
+                  <h2 className="font-serif text-2xl font-semibold text-ink">Structuring your manuscript...</h2>
                 </div>
               </div>
-              <p className="text-[0.95rem] text-ink-muted/90 mb-4">{PROCESSING_MESSAGES[processingIndex]}</p>
+              <p className="text-sm text-ink-muted mb-4">{PROCESSING_MESSAGES[processingIndex]}</p>
               <Progress value={processingProgress} className="h-2" />
             </div>
           )}
@@ -451,9 +451,9 @@ export default function ImportManuscriptPage() {
                 <div className="w-10 h-10 rounded-full bg-parchment-warm border border-parchment-deep flex items-center justify-center">
                   <Loader2 className="w-4.5 h-4.5 text-ink-muted animate-spin" />
                 </div>
-                <h2 className="font-serif text-[1.6rem] leading-[1.1] font-semibold text-ink">Building your writing studio...</h2>
+                <h2 className="font-serif text-2xl font-semibold text-ink">Building your writing studio...</h2>
               </div>
-              <p className="text-[0.95rem] text-ink-muted/90 leading-relaxed">
+              <p className="text-sm text-ink-muted leading-relaxed">
                 We are creating your book, attaching chapter content, and opening your manuscript in the editor.
               </p>
             </div>
@@ -464,10 +464,10 @@ export default function ImportManuscriptPage() {
               <div className="rounded-2xl border border-parchment-deep bg-white p-5 md:p-6">
                 <div className="flex items-center justify-between gap-3 mb-5">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-amber-label font-semibold mb-1.5">
+                    <p className="text-[11px] uppercase tracking-[0.17em] text-amber-label font-semibold mb-1">
                       Review structure
                     </p>
-                    <h2 className="font-serif text-[1.72rem] md:text-[1.8rem] font-semibold text-ink leading-[1.08]">
+                    <h2 className="font-serif text-2xl font-semibold text-ink leading-tight">
                       Confirm chapters before import
                     </h2>
                   </div>
@@ -478,9 +478,7 @@ export default function ImportManuscriptPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                   <div className="space-y-1.5">
-                    <Label htmlFor="import-title" className="text-[11px] uppercase tracking-[0.13em] text-ink-faint font-medium">
-                      Book title
-                    </Label>
+                    <Label htmlFor="import-title">Book title</Label>
                     <Input
                       id="import-title"
                       value={bookTitle}
@@ -489,14 +487,12 @@ export default function ImportManuscriptPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[11px] uppercase tracking-[0.13em] text-ink-faint font-medium">
-                      Genre
-                    </Label>
+                    <Label>Genre</Label>
                     <Select
                       value={genre}
                       onValueChange={setGenre}
                     >
-                      <SelectTrigger className="bg-parchment text-[0.98rem]">
+                      <SelectTrigger className="bg-parchment">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -519,10 +515,10 @@ export default function ImportManuscriptPage() {
                         className="rounded-xl overflow-hidden border border-parchment-deep/95 bg-parchment/45 transition-colors hover:border-gold/35"
                       >
                         <div className="flex items-center justify-between gap-3 px-3 py-2.5 bg-parchment-warm/85 border-b border-parchment-deep/90">
-                          <p className="text-[10px] uppercase tracking-[0.18em] text-amber-label font-semibold">
+                          <p className="text-[10px] uppercase tracking-[0.16em] text-amber-label font-semibold">
                             Chapter {index + 1}
                           </p>
-                          <Badge className="text-[11px] font-medium tracking-[0.01em] bg-parchment border border-parchment-deep/90 text-ink-muted hover:bg-parchment">
+                          <Badge className="text-[10px] bg-parchment border border-parchment-deep/90 text-ink-muted hover:bg-parchment">
                             {chapter.wordCount.toLocaleString()} words
                           </Badge>
                         </div>
@@ -533,9 +529,9 @@ export default function ImportManuscriptPage() {
                               value={chapter.title}
                               onChange={(event) => renameChapter(index, event.target.value)}
                               aria-label={`Chapter ${index + 1} title`}
-                              className="font-serif text-[1.06rem] leading-snug h-10 mb-2 bg-white border-parchment-deep/95 shadow-[inset_0_1px_2px_rgba(26,20,8,0.06)] hover:border-ink-faint/80 focus-visible:border-gold/70 focus-visible:ring-2 focus-visible:ring-gold/35"
+                              className="font-serif h-10 mb-2 bg-white border-parchment-deep/95 shadow-[inset_0_1px_2px_rgba(26,20,8,0.06)] hover:border-ink-faint/80 focus-visible:border-gold/70 focus-visible:ring-2 focus-visible:ring-gold/35"
                             />
-                            <p className="text-[0.92rem] text-ink-muted/90 leading-relaxed line-clamp-1">
+                            <p className="text-xs text-ink-muted leading-relaxed line-clamp-1">
                               {chapterSnippet(chapter.content)}
                             </p>
                           </div>
@@ -571,30 +567,30 @@ export default function ImportManuscriptPage() {
               </div>
 
               <aside className="rounded-2xl border border-parchment-deep bg-white p-4 md:p-5 sticky top-6">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-ink-faint font-medium mb-1.5">
+                <p className="text-[11px] uppercase tracking-[0.17em] text-ink-faint font-medium mb-1.5">
                   Import summary
                 </p>
-                <h3 className="font-serif text-[1.42rem] md:text-[1.55rem] font-semibold text-ink mb-3 leading-[1.08]">
+                <h3 className="font-serif text-xl font-semibold text-ink mb-3 leading-tight">
                   {bookTitle || "Imported manuscript"}
                 </h3>
 
                 <div className="space-y-2.5 mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.95rem] text-ink-muted/90">Detected sections</span>
-                    <span className="text-[1.02rem] font-medium text-ink">{chapters.length}</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-ink-muted">Detected sections</span>
+                    <span className="font-medium text-ink">{chapters.length}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.95rem] text-ink-muted/90">Total words</span>
-                    <span className="text-[1.02rem] font-medium text-ink">{totalWords.toLocaleString()}</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-ink-muted">Total words</span>
+                    <span className="font-medium text-ink">{totalWords.toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.95rem] text-ink-muted/90">Source file</span>
-                    <span className="text-[1.02rem] font-medium text-ink uppercase tracking-[0.02em]">{detected.sourceType}</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-ink-muted">Source file</span>
+                    <span className="font-medium text-ink uppercase">{detected.sourceType}</span>
                   </div>
                 </div>
 
                 <Separator className="mb-4" />
-                <p className="text-[0.95rem] leading-relaxed text-ink-faint mb-4">
+                <p className="text-xs text-ink-faint mb-4">
                   You can rename, reorder, split, or merge now. Nothing is final until import.
                 </p>
 
