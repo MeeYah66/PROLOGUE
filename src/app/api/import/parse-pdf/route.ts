@@ -8,6 +8,8 @@ type PdfParseFunction = (
   buffer: Buffer,
   options?: Record<string, unknown>
 ) => Promise<{ text: string; numpages: number }>;
+
+type PdfjsTextItem = { str?: string };
 type Pdf2JsonParser = new (
   context?: unknown,
   needRawText?: boolean,
@@ -54,6 +56,39 @@ async function extractWithPdfParse(buffer: Buffer): Promise<string> {
   const pdfParse = require("pdf-parse") as PdfParseFunction;
   const result = await pdfParse(buffer);
   return normalizeExtractedText(result.text ?? "");
+}
+
+async function extractWithPdfJs(buffer: Buffer): Promise<string> {
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const loadingTask = pdfjs.getDocument({
+    data: new Uint8Array(buffer),
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    stopAtErrors: false,
+    disableFontFace: true,
+  });
+
+  try {
+    const pdf = await loadingTask.promise;
+    const pageChunks: string[] = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      const textContent = await page.getTextContent();
+      const items = textContent.items as PdfjsTextItem[];
+      const pageText = items
+        .map((item) => (typeof item.str === "string" ? item.str : ""))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (pageText) pageChunks.push(pageText);
+    }
+
+    return normalizeExtractedText(pageChunks.join("\n\n"));
+  } finally {
+    await loadingTask.destroy().catch(() => undefined);
+  }
 }
 
 async function extractWithPdf2Json(buffer: Buffer): Promise<string> {
@@ -152,11 +187,25 @@ export async function POST(request: Request) {
     const parserErrors: string[] = [];
 
     try {
-      text = await extractWithPdfParse(buffer);
+      text = await extractWithPdfJs(buffer);
     } catch (error) {
       parserErrors.push(
-        error instanceof Error ? error.message : "Primary parser failed."
+        `PDF.js: ${
+          error instanceof Error ? error.message : "Primary parser failed."
+        }`
       );
+    }
+
+    if (!text) {
+      try {
+        text = await extractWithPdfParse(buffer);
+      } catch (error) {
+        parserErrors.push(
+          `pdf-parse: ${
+            error instanceof Error ? error.message : "Fallback parser failed."
+          }`
+        );
+      }
     }
 
     if (!text) {
@@ -164,7 +213,9 @@ export async function POST(request: Request) {
         text = await extractWithPdf2Json(buffer);
       } catch (error) {
         parserErrors.push(
-          error instanceof Error ? error.message : "Fallback parser failed."
+          `pdf2json: ${
+            error instanceof Error ? error.message : "Fallback parser failed."
+          }`
         );
       }
     }
