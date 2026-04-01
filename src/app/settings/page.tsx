@@ -24,6 +24,7 @@ import { AppNav } from "@/components/layout/AppNav";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useTheme } from "@/lib/theme";
 
 function SettingRow({
   icon: Icon,
@@ -66,13 +67,19 @@ function ToggleSetting({
   title,
   description,
   defaultOn = false,
+  checked,
+  onToggle,
 }: {
   icon: React.ElementType;
   title: string;
   description: string;
   defaultOn?: boolean;
+  checked?: boolean;
+  onToggle?: () => void;
 }) {
-  const [on, setOn] = useState(defaultOn);
+  const [localOn, setLocalOn] = useState(defaultOn);
+  const on = checked !== undefined ? checked : localOn;
+  const handleToggle = onToggle ?? (() => setLocalOn((v) => !v));
   return (
     <div className="flex items-center justify-between py-4 gap-4">
       <div className="flex items-center gap-3 min-w-0">
@@ -85,16 +92,16 @@ function ToggleSetting({
         </div>
       </div>
       <button
-        onClick={() => setOn((v) => !v)}
+        onClick={handleToggle}
         className={cn(
-          "w-10 h-5.5 rounded-full relative transition-colors shrink-0",
+          "rounded-full relative transition-colors shrink-0",
           on ? "bg-gold" : "bg-parchment-deep"
         )}
         style={{ height: "22px", minWidth: "40px" }}
       >
         <div
           className={cn(
-            "absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform",
+            "toggle-knob absolute top-0.5 w-4 h-4 rounded-full shadow-sm transition-transform",
             on ? "translate-x-5" : "translate-x-0.5"
           )}
         />
@@ -105,6 +112,7 @@ function ToggleSetting({
 
 export default function SettingsPage() {
   const [fontSize, setFontSize] = useState<"small" | "medium" | "large">("medium");
+  const { theme, toggle: toggleTheme } = useTheme();
 
   return (
     <div className="flex min-h-screen bg-parchment">
@@ -222,9 +230,11 @@ export default function SettingsPage() {
               </div>
               <div className="px-4">
                 <ToggleSetting
-                  icon={Moon}
+                  icon={theme === "dark" ? Sun : Moon}
                   title="Dark Mode"
                   description="Switch to a dark theme for night-time writing"
+                  checked={theme === "dark"}
+                  onToggle={toggleTheme}
                 />
               </div>
               <div className="px-4">

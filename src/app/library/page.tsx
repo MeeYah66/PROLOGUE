@@ -228,7 +228,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 25%, #faf8f5 65%, #f6f7f9 100%)" }}>
+    <div className="flex min-h-screen" style={{ background: "var(--page-gradient)" }}>
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-14">

@@ -421,7 +421,7 @@ export function WritingEditor({
         <div className={cn("mx-auto px-6", focusMode ? "max-w-[720px]" : "max-w-[800px]")}>
 
           {/* Paper sheet */}
-          <div className="bg-white rounded-2xl shadow-[0px_4px_32px_rgba(0,0,0,0.07)] px-14 py-12 min-h-[70vh]">
+          <div className="paper-canvas bg-white rounded-2xl shadow-[0px_4px_32px_rgba(0,0,0,0.07)] px-14 py-12 min-h-[70vh]">
 
             {/* Chapter label */}
             <p className="text-[10px] font-sans uppercase tracking-[0.22em] font-semibold text-amber-label mb-5">

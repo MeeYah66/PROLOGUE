@@ -514,7 +514,7 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
         </div>
-        {met && <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: "#4f7a5e" }}>✓ Met</span>}
+        {met && <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: "rgb(var(--color-sage-dark))" }}>✓ Met</span>}
       </div>
 
       <div className="flex items-baseline gap-1.5 mb-2">
@@ -724,7 +724,7 @@ export default function DashboardPage() {
 
   if (authLoading || !booksReady) {
     return (
-      <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 25%, #faf8f5 65%, #f6f7f9 100%)" }}>
+      <div className="flex min-h-screen" style={{ background: "var(--page-gradient)" }}>
         <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
         <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
@@ -753,7 +753,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="flex min-h-screen" style={{ background: "linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 25%, #faf8f5 65%, #f6f7f9 100%)" }}>
+    <div className="flex min-h-screen" style={{ background: "var(--page-gradient)" }}>
       <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <main className="flex-1 md:ml-48 pb-14">

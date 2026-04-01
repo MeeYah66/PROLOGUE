@@ -29,6 +29,9 @@
   --color-bar-today:      26 20 8;       /* bar chart: today */
   --color-bar-empty:      237 232 222;   /* bar chart: no activity */
 
+  /* ── Page gradient ── */
+  --page-gradient: linear-gradient(to bottom, #f8f3ec 0%, #faf8f5 25%, #faf8f5 65%, #f6f7f9 100%);
+
   /* ── shadcn tokens ── */
   --background: 40 30% 97%;
   --foreground: 0 0% 10%;
@@ -63,6 +66,9 @@
   --color-amber-label:    201 168 76;    /* gold on dark */
   --color-bar-today:      220 215 205;   /* off-white for today bar */
   --color-bar-empty:      36 36 36;      /* dark border for empty bars */
+
+  /* ── Page gradient (dark) ── */
+  --page-gradient: linear-gradient(to bottom, #121212 0%, #151515 30%, #181818 100%);
 
   /* shadcn tokens */
   --background: 0 0% 7%;
@@ -294,9 +300,30 @@ body {
 }
 [data-theme="dark"] .tiptap-editor .ProseMirror blockquote {
   color: rgb(var(--color-ink-muted));
+  background: rgba(201, 168, 76, 0.06);
 }
 [data-theme="dark"] .prose-editor {
   color: rgb(var(--color-ink-soft));
+}
+/* Placeholder */
+[data-theme="dark"] .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: rgb(var(--color-ink-faint));
+}
+/* HR ornament */
+[data-theme="dark"] .tiptap-editor .ProseMirror hr::after {
+  color: rgba(220, 215, 205, 0.2);
+}
+/* Paper canvas: stronger shadow + slightly lighter surface in dark */
+[data-theme="dark"] .paper-canvas {
+  box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.35) !important;
+  background-color: rgb(28, 28, 28) !important;
+}
+/* Toggle switch knob — stays light in both modes */
+.toggle-knob {
+  background-color: #ffffff;
+}
+[data-theme="dark"] .toggle-knob {
+  background-color: rgb(var(--color-ink));
 }
 
 /* ── Ambient sound equaliser bars ────────────────────────────────────────── */
