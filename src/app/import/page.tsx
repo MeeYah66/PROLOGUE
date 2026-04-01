@@ -528,7 +528,8 @@ export default function ImportManuscriptPage() {
                             <Input
                               value={chapter.title}
                               onChange={(event) => renameChapter(index, event.target.value)}
-                              className="font-serif h-9 mb-2"
+                              aria-label={`Chapter ${index + 1} title`}
+                              className="font-serif h-10 mb-2 bg-white border-parchment-deep/95 shadow-[inset_0_1px_2px_rgba(26,20,8,0.06)] hover:border-ink-faint/80 focus-visible:border-gold/70 focus-visible:ring-2 focus-visible:ring-gold/35"
                             />
                             <p className="text-xs text-ink-muted leading-relaxed line-clamp-1">
                               {chapterSnippet(chapter.content)}
