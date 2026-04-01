@@ -323,7 +323,12 @@ export default function ImportManuscriptPage() {
 
       <main className="flex-1 md:ml-48 pb-12">
         <div className="max-w-5xl mx-auto px-4 md:px-8 pt-10">
-          <div className="flex items-start justify-between gap-4 mb-8">
+          <div
+            className={cn(
+              "flex items-start justify-between gap-4",
+              stage === "upload" ? "mb-5" : "mb-8"
+            )}
+          >
             <div className="max-w-[780px]">
               <p className="text-[11px] font-sans uppercase tracking-[0.2em] text-amber-label mb-2 font-semibold">
                 Import Manuscript
@@ -349,11 +354,12 @@ export default function ImportManuscriptPage() {
                 <button
                   data-drag={dragActive ? "true" : "false"}
                   className={cn(
-                    "group relative w-full rounded-[1.35rem] bg-white/92 px-4 sm:px-6 py-4 sm:py-4.5 text-left",
-                    "shadow-[0_8px_24px_rgba(28,21,10,0.08)] transition-all duration-200",
-                    "hover:-translate-y-px hover:bg-white hover:shadow-[0_14px_30px_rgba(28,21,10,0.12)]",
+                    "group relative w-full rounded-[1.35rem] border border-parchment-deep/70 bg-parchment-warm/92 px-4 sm:px-6 py-4 sm:py-5 text-left",
+                    "shadow-[0_8px_22px_rgba(28,21,10,0.08)] transition-all duration-200",
+                    "hover:-translate-y-px hover:bg-parchment-warm hover:shadow-[0_14px_28px_rgba(28,21,10,0.13)]",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-parchment",
-                    dragActive && "bg-gold/12 shadow-[0_0_0_2px_rgba(201,168,76,0.36),0_14px_28px_rgba(28,21,10,0.1)]"
+                    dragActive &&
+                      "border-gold/45 bg-gold/14 shadow-[0_0_0_2px_rgba(201,168,76,0.30),0_14px_28px_rgba(28,21,10,0.1)]"
                   )}
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(event) => {
@@ -374,7 +380,7 @@ export default function ImportManuscriptPage() {
                     onFileSelected(event.dataTransfer.files);
                   }}
                 >
-                  <span className="pointer-events-none absolute inset-0 rounded-[1.35rem] bg-gradient-to-r from-gold/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  <span className="pointer-events-none absolute inset-0 rounded-[1.35rem] bg-gradient-to-r from-gold/12 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
                   <span className="relative z-[1] flex items-center gap-3 sm:gap-4">
                     <span className="w-10 h-10 rounded-xl bg-parchment-warm border border-parchment-deep/80 flex items-center justify-center shrink-0">
@@ -385,13 +391,13 @@ export default function ImportManuscriptPage() {
                       <span className="block text-[1rem] sm:text-[1.03rem] leading-tight font-medium text-ink">
                         Upload your manuscript
                       </span>
-                      <span className="block text-xs sm:text-[12.5px] text-ink-muted mt-1">
+                      <span className="block text-xs sm:text-[12.5px] text-ink-muted/95 mt-1">
                         Drag and drop or choose a file (.docx, .txt, .pdf)
                       </span>
                     </span>
 
-                    <span className="w-8 h-8 rounded-full bg-parchment border border-parchment-deep/85 text-ink-muted flex items-center justify-center shrink-0 group-hover:text-ink transition-colors">
-                      <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                    <span className="shrink-0 flex items-center pl-3 ml-1 border-l border-parchment-deep/75 text-ink-muted group-hover:text-ink transition-colors">
+                      <ArrowLeft className="w-4 h-4 rotate-180" />
                     </span>
                   </span>
                 </button>
@@ -406,9 +412,9 @@ export default function ImportManuscriptPage() {
 
                 <Link
                   href="/books/new"
-                  className="inline-flex mt-4 text-sm text-ink-muted hover:text-ink underline-offset-4 hover:underline"
+                  className="inline-flex mt-3.5 text-[13px] text-ink-faint hover:text-ink-muted underline-offset-4 hover:underline"
                 >
-                  Prefer to start fresh? Create a blank manuscript →
+                  Prefer to start fresh? Create a blank manuscript -&gt;
                 </Link>
               </div>
 
