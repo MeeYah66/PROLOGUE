@@ -345,21 +345,15 @@ export default function ImportManuscriptPage() {
 
           {stage === "upload" && (
             <>
-              <div className="animate-fade-in rounded-2xl border border-parchment-deep bg-white p-5 md:p-7 shadow-[0_8px_28px_rgba(0,0,0,0.05)]">
-                <div className="flex items-center justify-between gap-3 mb-5">
-                  <p className="text-sm text-ink-muted">Drop a file or choose from your device.</p>
-                  <div className="flex items-center gap-1.5">
-                    <Badge variant="genre">.docx</Badge>
-                    <Badge variant="genre">.txt</Badge>
-                    <Badge variant="genre">.pdf</Badge>
-                  </div>
-                </div>
-
+              <div className="animate-fade-in">
                 <button
                   data-drag={dragActive ? "true" : "false"}
                   className={cn(
-                    "import-pulse-border relative overflow-hidden w-full rounded-full border border-gold/35 bg-gold/24 px-4 sm:px-5 h-[78px] flex items-center justify-between gap-4 transition-all duration-300",
-                    dragActive && "bg-gold/34 border-gold/60 shadow-[0_0_0_3px_rgba(201,168,76,0.18)]"
+                    "group relative w-full rounded-[1.35rem] bg-white/92 px-4 sm:px-6 py-4 sm:py-4.5 text-left",
+                    "shadow-[0_8px_24px_rgba(28,21,10,0.08)] transition-all duration-200",
+                    "hover:-translate-y-px hover:bg-white hover:shadow-[0_14px_30px_rgba(28,21,10,0.12)]",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-parchment",
+                    dragActive && "bg-gold/12 shadow-[0_0_0_2px_rgba(201,168,76,0.36),0_14px_28px_rgba(28,21,10,0.1)]"
                   )}
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(event) => {
@@ -380,22 +374,25 @@ export default function ImportManuscriptPage() {
                     onFileSelected(event.dataTransfer.files);
                   }}
                 >
-                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-gold/10 via-transparent to-transparent" />
-                  <span className="flex items-center gap-3 min-w-0">
-                    <span className="w-10 h-10 rounded-full bg-white border border-parchment-deep flex items-center justify-center shrink-0">
-                      <FileUp className="w-4 h-4 text-gold-dark" />
+                  <span className="pointer-events-none absolute inset-0 rounded-[1.35rem] bg-gradient-to-r from-gold/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+                  <span className="relative z-[1] flex items-center gap-3 sm:gap-4">
+                    <span className="w-10 h-10 rounded-xl bg-parchment-warm border border-parchment-deep/80 flex items-center justify-center shrink-0">
+                      <FileUp className="w-4.5 h-4.5 text-gold-dark" />
                     </span>
-                    <span className="min-w-0">
-                      <span className="block text-[1.05rem] leading-tight font-medium text-ink">
+
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[1rem] sm:text-[1.03rem] leading-tight font-medium text-ink">
                         Upload your manuscript
                       </span>
-                      <span className="block text-xs text-ink-muted mt-1">
-                        Drag and drop or tap to choose a file
+                      <span className="block text-xs sm:text-[12.5px] text-ink-muted mt-1">
+                        Drag and drop or choose a file (.docx, .txt, .pdf)
                       </span>
                     </span>
-                  </span>
-                  <span className="w-10 h-10 rounded-full bg-gold/70 text-parchment flex items-center justify-center shrink-0">
-                    <ArrowLeft className="w-4 h-4 rotate-180" />
+
+                    <span className="w-8 h-8 rounded-full bg-parchment border border-parchment-deep/85 text-ink-muted flex items-center justify-center shrink-0 group-hover:text-ink transition-colors">
+                      <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                    </span>
                   </span>
                 </button>
 
@@ -407,11 +404,11 @@ export default function ImportManuscriptPage() {
                   onChange={(event) => onFileSelected(event.target.files)}
                 />
 
-                <p className="text-xs text-ink-faint mt-4 leading-relaxed">
-                  We detect title, chapter breaks, and section headings before import.
-                </p>
-                <Link href="/books/new" className="inline-flex mt-4 text-sm text-ink-muted hover:text-ink underline-offset-4 hover:underline">
-                  Or start from a blank manuscript
+                <Link
+                  href="/books/new"
+                  className="inline-flex mt-4 text-sm text-ink-muted hover:text-ink underline-offset-4 hover:underline"
+                >
+                  Prefer to start fresh? Create a blank manuscript →
                 </Link>
               </div>
 
