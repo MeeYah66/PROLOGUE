@@ -91,13 +91,61 @@ export default function SignupPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(232,201,122,0.22),transparent_34%),radial-gradient(circle_at_82%_78%,rgba(201,168,76,0.2),transparent_40%)]" />
 
       <div
-        className="pointer-events-none absolute -top-40 right-[-260px] h-[520px] w-[940px] rounded-[999px] border-[52px] border-gold/70 blur-[2px]"
+        className="pointer-events-none absolute -top-28 right-[-180px] h-[360px] w-[700px] rounded-[999px] border-[34px] border-gold/68 blur-[1px]"
         style={{ transform: "rotate(-23deg)" }}
       />
       <div
-        className="pointer-events-none absolute -bottom-36 left-[-290px] h-[500px] w-[930px] rounded-[999px] border-[50px] border-gold/65 blur-[2px]"
+        className="pointer-events-none absolute -bottom-24 left-[-220px] h-[350px] w-[690px] rounded-[999px] border-[32px] border-gold/62 blur-[1px]"
         style={{ transform: "rotate(16deg)" }}
       />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden quill-motion">
+        <svg
+          className="absolute inset-0 h-full w-full opacity-70"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="signupInk" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(156,122,46,0.18)" />
+              <stop offset="45%" stopColor="rgba(176,142,62,0.34)" />
+              <stop offset="100%" stopColor="rgba(138,109,44,0.15)" />
+            </linearGradient>
+          </defs>
+
+          <path
+            id="quillPath"
+            d="M-120 560 C 190 420, 420 720, 730 522 S 1260 412, 1540 606"
+            fill="none"
+            stroke="url(#signupInk)"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            className="animate-ink-trace"
+          />
+          <path
+            d="M-110 568 C 202 430, 430 716, 736 530 S 1250 420, 1530 614"
+            fill="none"
+            stroke="rgba(255,255,255,0.28)"
+            strokeWidth="1"
+            strokeLinecap="round"
+            className="animate-ink-fade"
+          />
+
+          <g className="animate-quill-float">
+            <animateMotion dur="17s" repeatCount="indefinite" rotate="auto">
+              <mpath href="#quillPath" />
+            </animateMotion>
+            <path
+              d="M2 10 C 2 4 7 1 12 1 C 16 1 18 3 19 7 C 20 10 19 13 16 16 L9 23 L2 10 Z"
+              fill="rgba(48,39,25,0.85)"
+            />
+            <path
+              d="M10 21 L15 26 L8 27 Z"
+              fill="rgba(148,118,53,0.95)"
+            />
+          </g>
+        </svg>
+      </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-7 sm:px-8">
         <header className="flex items-center justify-between">
@@ -206,7 +254,73 @@ export default function SignupPage() {
           </section>
         </main>
       </div>
+      <style jsx>{`
+        .animate-ink-trace {
+          stroke-dasharray: 10 14;
+          animation: signupInkTrace 17s linear infinite;
+        }
+
+        .animate-ink-fade {
+          animation: signupInkFade 17s ease-in-out infinite;
+        }
+
+        .animate-quill-float {
+          animation: signupQuillTilt 3.2s ease-in-out infinite;
+          transform-origin: center;
+        }
+
+        @keyframes signupInkTrace {
+          0% {
+            opacity: 0.06;
+            stroke-dashoffset: 620;
+          }
+          28% {
+            opacity: 0.38;
+          }
+          78% {
+            opacity: 0.24;
+          }
+          100% {
+            opacity: 0.05;
+            stroke-dashoffset: 0;
+          }
+        }
+
+        @keyframes signupInkFade {
+          0%,
+          100% {
+            opacity: 0.04;
+          }
+          45% {
+            opacity: 0.24;
+          }
+          72% {
+            opacity: 0.14;
+          }
+        }
+
+        @keyframes signupQuillTilt {
+          0%,
+          100% {
+            transform: translateY(-1px) rotate(-3deg);
+          }
+          50% {
+            transform: translateY(2px) rotate(2deg);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .animate-ink-trace,
+          .animate-ink-fade,
+          .animate-quill-float {
+            animation: none !important;
+          }
+
+          .quill-motion {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
-
