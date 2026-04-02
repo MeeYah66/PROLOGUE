@@ -27,6 +27,7 @@ interface ToastMessage {
   description?: string;
   variant: ToastVariant;
   duration: number;
+  phase: "enter" | "open" | "exit";
 }
 
 interface ToastContextValue {
@@ -36,6 +37,7 @@ interface ToastContextValue {
 
 const DEFAULT_DURATION_MS = 3200;
 const MAX_TOASTS = 3;
+const EXIT_DURATION_MS = 220;
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
@@ -74,40 +76,104 @@ function iconClasses(variant: ToastVariant): string {
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const timers = useRef<Record<string, number>>({});
+  const autoTimers = useRef<Record<string, number>>({});
+  const removeTimers = useRef<Record<string, number>>({});
+  const animationFrames = useRef<number[]>([]);
+  const dismissing = useRef<Record<string, boolean>>({});
 
-  const dismiss = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    const timerId = timers.current[id];
-    if (timerId) {
-      window.clearTimeout(timerId);
-      delete timers.current[id];
+  const clearToastTimers = useCallback((id: string) => {
+    const autoTimerId = autoTimers.current[id];
+    if (autoTimerId) {
+      window.clearTimeout(autoTimerId);
+      delete autoTimers.current[id];
+    }
+
+    const removeTimerId = removeTimers.current[id];
+    if (removeTimerId) {
+      window.clearTimeout(removeTimerId);
+      delete removeTimers.current[id];
     }
   }, []);
+
+  const removeToast = useCallback(
+    (id: string) => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+      clearToastTimers(id);
+      delete dismissing.current[id];
+    },
+    [clearToastTimers]
+  );
+
+  const dismiss = useCallback((id: string) => {
+    if (dismissing.current[id]) return;
+    dismissing.current[id] = true;
+
+    setToasts((prev) =>
+      prev.map((toast) => (toast.id === id ? { ...toast, phase: "exit" } : toast))
+    );
+
+    const autoTimerId = autoTimers.current[id];
+    if (autoTimerId) {
+      window.clearTimeout(autoTimerId);
+      delete autoTimers.current[id];
+    }
+
+    removeTimers.current[id] = window.setTimeout(() => {
+      removeToast(id);
+    }, EXIT_DURATION_MS);
+  }, [removeToast]);
 
   const toast = useCallback(
     ({ title, description, variant = "info", duration = DEFAULT_DURATION_MS }: ToastInput) => {
       if (!title.trim()) return;
 
       const id = `toast_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const safeDuration = Number.isFinite(duration)
+        ? Math.max(1000, Math.floor(duration))
+        : DEFAULT_DURATION_MS;
       const message: ToastMessage = {
         id,
         title: title.trim(),
         description: description?.trim(),
         variant,
-        duration,
+        duration: safeDuration,
+        phase: "enter",
       };
 
-      setToasts((prev) => [...prev.slice(-(MAX_TOASTS - 1)), message]);
-      timers.current[id] = window.setTimeout(() => dismiss(id), duration);
+      setToasts((prev) => {
+        const next = [...prev, message];
+        if (next.length <= MAX_TOASTS) return next;
+
+        const dropped = next.slice(0, next.length - MAX_TOASTS);
+        dropped.forEach((item) => {
+          clearToastTimers(item.id);
+          delete dismissing.current[item.id];
+        });
+        return next.slice(-MAX_TOASTS);
+      });
+
+      const rafId = window.requestAnimationFrame(() => {
+        setToasts((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, phase: "open" } : item))
+        );
+      });
+      animationFrames.current.push(rafId);
+
+      autoTimers.current[id] = window.setTimeout(() => dismiss(id), safeDuration);
     },
-    [dismiss]
+    [clearToastTimers, dismiss]
   );
 
   useEffect(() => {
     return () => {
-      Object.values(timers.current).forEach((timerId) => {
+      Object.values(autoTimers.current).forEach((timerId) => {
         window.clearTimeout(timerId);
+      });
+      Object.values(removeTimers.current).forEach((timerId) => {
+        window.clearTimeout(timerId);
+      });
+      animationFrames.current.forEach((frameId) => {
+        window.cancelAnimationFrame(frameId);
       });
     };
   }, []);
@@ -124,12 +190,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               role="status"
               aria-live="polite"
               className={cn(
-                "pointer-events-auto rounded-xl border px-3.5 py-3 shadow-[0px_6px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm transition-all duration-200",
+                "toast-surface pointer-events-auto relative overflow-hidden rounded-xl border px-3.5 py-3 backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px]",
+                item.phase === "enter" && "toast-enter",
+                item.phase === "open" && "toast-open",
+                item.phase === "exit" && "toast-exit",
                 toastClasses(item.variant)
               )}
             >
               <div className="flex items-start gap-2.5">
-                <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", iconClasses(item.variant))} strokeWidth={1.8} />
+                <Icon className={cn("toast-icon-pop mt-0.5 h-4 w-4 shrink-0", iconClasses(item.variant))} strokeWidth={1.8} />
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-medium leading-snug">{item.title}</p>
                   {item.description && (
@@ -145,6 +214,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   <X className="h-3.5 w-3.5" strokeWidth={1.8} />
                 </button>
               </div>
+              <div
+                aria-hidden
+                className={cn(
+                  "toast-progress absolute inset-x-0 bottom-0 h-[2px] origin-left",
+                  item.variant === "success"
+                    ? "bg-gold/80"
+                    : item.variant === "error"
+                      ? "bg-red-400/80"
+                      : "bg-ink/45"
+                )}
+                style={{ animationDuration: `${item.duration}ms` }}
+              />
             </div>
           );
         })}
@@ -160,4 +241,3 @@ export function useToast() {
   }
   return context;
 }
-
