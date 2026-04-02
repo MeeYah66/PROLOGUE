@@ -120,7 +120,7 @@ function StepPanel({
       <p className="px-4 text-[10px] uppercase tracking-[0.18em] font-semibold text-amber-label mb-3">
         {sectionTitle}
       </p>
-      <div className="[&>div]:rounded-none [&>div]:border-0 [&>div]:shadow-none">
+      <div className="[&>div]:rounded-t-2xl [&>div]:rounded-b-none [&>div]:border-0 [&>div]:shadow-none">
         {children}
       </div>
     </section>
@@ -179,7 +179,7 @@ export default function NewBookPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#efede7]">
+    <div className="flex min-h-screen" style={{ background: "var(--page-gradient)" }}>
       <AppNav />
       <main className="flex-1 md:ml-48">
         <header className="sticky top-0 z-30 h-12 border-b border-parchment-deep bg-parchment/95 backdrop-blur-sm">
@@ -232,7 +232,7 @@ export default function NewBookPage() {
 
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
               {step === 1 && (
-                <div className="animate-fade-in space-y-3">
+                <div className="animate-fade-in space-y-5">
                   <div className="px-1 sm:px-0">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
                       {STEP_COPY[1].eyebrow}
@@ -248,7 +248,7 @@ export default function NewBookPage() {
                   <StepPanel
                     sectionTitle="Manuscript Information"
                   >
-                    <div className="rounded-xl border border-parchment-deep bg-white p-5 sm:p-6">
+                    <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="title">Title *</Label>
@@ -364,7 +364,7 @@ export default function NewBookPage() {
               )}
 
               {step === 2 && (
-                <div className="animate-fade-in space-y-3">
+                <div className="animate-fade-in space-y-5">
                   <div className="px-1 sm:px-0">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
                       {STEP_COPY[2].eyebrow}
@@ -378,7 +378,7 @@ export default function NewBookPage() {
                   </div>
 
                   <StepPanel sectionTitle="Cover Direction">
-                    <div className="rounded-xl border border-parchment-deep bg-white p-5 sm:p-6">
+                    <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
                       <div className="grid gap-4 sm:grid-cols-2">
                         {COVER_STYLES.map((style) => {
                           const selected = form.coverStyle === style.id;
@@ -431,7 +431,7 @@ export default function NewBookPage() {
               )}
 
               {step === 3 && (
-                <div className="animate-fade-in space-y-3">
+                <div className="animate-fade-in space-y-5">
                   <div className="px-1 sm:px-0">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
                       {STEP_COPY[3].eyebrow}
@@ -445,7 +445,7 @@ export default function NewBookPage() {
                   </div>
 
                   <StepPanel sectionTitle="Review">
-                    <div className="rounded-xl border border-parchment-deep bg-white p-5 sm:p-6">
+                    <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
                       <div className="space-y-4">
                         <div className="overflow-hidden rounded-lg border border-parchment-deep/80">
                           <div className="h-32 px-5 py-4" style={{ backgroundColor: selectedStyle.bg }}>
