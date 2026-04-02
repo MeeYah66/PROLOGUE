@@ -45,8 +45,10 @@ function ChoiceCard({
     <article
       className={cn(
         "group relative h-full min-h-[236px] text-left flex flex-col p-5 sm:p-6 transition-all duration-200",
-        "hover:shadow-[inset_0_0_0_1px_rgba(201,168,76,0.22)]",
-        isPrimary ? "bg-white/95 hover:bg-white" : "bg-parchment/35 hover:bg-parchment/60",
+        "hover:shadow-[inset_0_0_0_1px_rgba(201,168,76,0.18)]",
+        isPrimary
+          ? "bg-parchment-warm/82 shadow-[inset_0_0_0_1px_rgba(201,168,76,0.24)]"
+          : "bg-parchment/50 hover:bg-parchment-warm/62",
         className
       )}
     >
@@ -54,25 +56,25 @@ function ChoiceCard({
         className={cn(
           "w-9 h-9 rounded-lg border flex items-center justify-center mb-3.5 transition-colors",
           isPrimary
-            ? "bg-parchment-warm border-gold/35 text-gold-dark"
-            : "bg-white/85 border-parchment-deep text-ink-muted group-hover:text-ink"
+            ? "bg-parchment border-gold/35 text-gold-dark"
+            : "bg-parchment-warm/82 border-parchment-deep text-ink-muted group-hover:text-ink"
         )}
       >
         <Icon className="w-4 h-4" />
       </div>
 
       <div className="flex items-center gap-2 mb-1.5">
-        <p className="font-serif text-[1.22rem] font-semibold text-ink leading-[1.2]">{title}</p>
+        <p className="font-serif text-[1.28rem] font-semibold text-ink leading-[1.2] tracking-tight">{title}</p>
         {isPrimary && (
-          <span className="inline-flex h-5 items-center rounded-full bg-gold/14 px-2 text-[10px] uppercase tracking-[0.12em] text-amber-label font-semibold">
+          <span className="inline-flex h-5 items-center rounded-full bg-gold/12 px-2 text-[9px] uppercase tracking-[0.16em] text-amber-label font-semibold">
             Recommended
           </span>
         )}
       </div>
 
-      <p className="text-[0.9rem] text-ink-muted leading-relaxed mb-2.5">{description}</p>
+      <p className="text-sm text-ink-muted leading-relaxed mb-2.5">{description}</p>
       {microcopy && (
-        <p className="text-xs text-ink-faint leading-relaxed mb-4">
+        <p className="text-[13px] text-ink-faint leading-relaxed mb-4">
           {microcopy}
         </p>
       )}
@@ -84,10 +86,10 @@ function ChoiceCard({
           onClick={onSelect}
           variant={isPrimary ? "default" : "outline"}
           className={cn(
-            "w-full h-9 text-[0.9rem] justify-center gap-1.5",
+            "w-full h-9 text-sm justify-center gap-1.5 rounded-lg",
             isPrimary
               ? "bg-ink text-parchment hover:bg-ink-soft"
-              : "bg-white/80 border-parchment-deep hover:border-gold/35 hover:bg-white"
+              : "bg-parchment border-parchment-deep hover:border-gold/35 hover:bg-parchment-warm"
           )}
         >
           {ctaLabel}
@@ -110,21 +112,21 @@ export function NewManuscriptDialog({ open, onOpenChange }: NewManuscriptDialogP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[760px] p-0 overflow-hidden">
         <div className="p-6 sm:p-7">
-          <DialogHeader className="space-y-1">
-            <p className="text-[11px] uppercase tracking-[0.17em] text-amber-label font-semibold">
+          <DialogHeader className="space-y-1.5">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-amber-label font-semibold">
               New manuscript
             </p>
-            <DialogTitle className="text-[1.44rem] leading-tight">
+            <DialogTitle className="font-serif text-2xl font-semibold leading-tight tracking-tight text-ink">
               How would you like to begin?
             </DialogTitle>
-            <DialogDescription className="text-[0.92rem] leading-relaxed max-w-[63ch]">
+            <DialogDescription className="text-sm leading-relaxed max-w-[63ch] text-ink-muted">
               Start something new, or continue a story you&apos;ve already begun.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="my-4 h-px bg-parchment-deep" />
+          <div className="my-4 h-px bg-parchment-deep/85" />
 
-          <div className="rounded-2xl border border-parchment-deep bg-parchment-warm/35 overflow-hidden">
+          <div className="rounded-2xl border border-parchment-deep/90 bg-parchment-warm/35 overflow-hidden">
             <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-parchment-deep/85">
               <ChoiceCard
                 title="Start from scratch"
