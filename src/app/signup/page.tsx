@@ -120,41 +120,45 @@ export default function SignupPage() {
         >
           <defs>
             <linearGradient id="signupInk" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(156,122,46,0.18)" />
-              <stop offset="45%" stopColor="rgba(176,142,62,0.34)" />
-              <stop offset="100%" stopColor="rgba(138,109,44,0.15)" />
+              <stop offset="0%" stopColor="rgba(144,111,43,0.18)" />
+              <stop offset="52%" stopColor="rgba(168,132,52,0.45)" />
+              <stop offset="100%" stopColor="rgba(132,103,38,0.2)" />
             </linearGradient>
           </defs>
 
           <path
-            id="quillPath"
-            d="M-120 560 C 190 420, 420 720, 730 522 S 1260 412, 1540 606"
+            d="M130 248 C 420 246, 860 250, 1240 247"
             fill="none"
             stroke="url(#signupInk)"
-            strokeWidth="2.1"
+            strokeWidth="1.75"
             strokeLinecap="round"
-            className="animate-ink-trace"
+            className="writing-line writing-line-a"
           />
           <path
-            d="M-110 568 C 202 430, 430 716, 736 530 S 1250 420, 1530 614"
+            d="M140 380 C 430 378, 850 382, 1220 380"
             fill="none"
-            stroke="rgba(255,255,255,0.28)"
-            strokeWidth="1"
+            stroke="url(#signupInk)"
+            strokeWidth="1.75"
             strokeLinecap="round"
-            className="animate-ink-fade"
+            className="writing-line writing-line-b"
+          />
+          <path
+            d="M150 512 C 440 510, 830 513, 1180 510"
+            fill="none"
+            stroke="url(#signupInk)"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            className="writing-line writing-line-c"
           />
 
-          <g className="animate-quill-float">
-            <animateMotion dur="17s" repeatCount="indefinite" rotate="auto">
-              <mpath href="#quillPath" />
-            </animateMotion>
+          <g className="animate-quill-write">
             <path
               d="M2 10 C 2 4 7 1 12 1 C 16 1 18 3 19 7 C 20 10 19 13 16 16 L9 23 L2 10 Z"
-              fill="rgba(48,39,25,0.85)"
+              fill="rgba(45,36,23,0.88)"
             />
             <path
               d="M10 21 L15 26 L8 27 Z"
-              fill="rgba(148,118,53,0.95)"
+              fill="rgba(151,118,47,0.95)"
             />
           </g>
         </svg>
@@ -271,64 +275,128 @@ export default function SignupPage() {
         </main>
       </div>
       <style jsx>{`
-        .animate-ink-trace {
-          stroke-dasharray: 10 14;
-          animation: signupInkTrace 17s linear infinite;
+        .writing-line {
+          stroke-dasharray: 1300;
+          stroke-dashoffset: 1300;
+          opacity: 0;
         }
 
-        .animate-ink-fade {
-          animation: signupInkFade 17s ease-in-out infinite;
+        .writing-line-a {
+          animation: signupWriteLineA 18s linear infinite;
         }
 
-        .animate-quill-float {
-          animation: signupQuillTilt 3.2s ease-in-out infinite;
+        .writing-line-b {
+          animation: signupWriteLineB 18s linear infinite;
+        }
+
+        .writing-line-c {
+          animation: signupWriteLineC 18s linear infinite;
+        }
+
+        .animate-quill-write {
+          animation: signupQuillWrite 18s linear infinite;
           transform-origin: center;
         }
 
-        @keyframes signupInkTrace {
+        @keyframes signupWriteLineA {
           0% {
-            opacity: 0.06;
-            stroke-dashoffset: 620;
+            stroke-dashoffset: 1300;
+            opacity: 0;
           }
-          28% {
+          2% {
+            opacity: 0.42;
+          }
+          30% {
+            stroke-dashoffset: 0;
             opacity: 0.38;
           }
-          78% {
-            opacity: 0.24;
+          92% {
+            stroke-dashoffset: 0;
+            opacity: 0.08;
           }
           100% {
-            opacity: 0.05;
-            stroke-dashoffset: 0;
+            stroke-dashoffset: 1300;
+            opacity: 0;
           }
         }
 
-        @keyframes signupInkFade {
+        @keyframes signupWriteLineB {
           0%,
-          100% {
-            opacity: 0.04;
+          32% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
           }
-          45% {
-            opacity: 0.24;
+          35% {
+            opacity: 0.4;
+          }
+          62% {
+            stroke-dashoffset: 0;
+            opacity: 0.36;
+          }
+          92% {
+            stroke-dashoffset: 0;
+            opacity: 0.08;
+          }
+          100% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+        }
+
+        @keyframes signupWriteLineC {
+          0%,
+          66% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+          70% {
+            opacity: 0.38;
+          }
+          96% {
+            stroke-dashoffset: 0;
+            opacity: 0.34;
+          }
+          100% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+        }
+
+        @keyframes signupQuillWrite {
+          0% {
+            transform: translate(130px, 248px) rotate(11deg);
+          }
+          28% {
+            transform: translate(1240px, 248px) rotate(-5deg);
+          }
+          33% {
+            transform: translate(1260px, 228px) rotate(-11deg);
+          }
+          38% {
+            transform: translate(140px, 382px) rotate(10deg);
+          }
+          62% {
+            transform: translate(1220px, 382px) rotate(-5deg);
+          }
+          67% {
+            transform: translate(1240px, 362px) rotate(-10deg);
           }
           72% {
-            opacity: 0.14;
+            transform: translate(150px, 512px) rotate(10deg);
           }
-        }
-
-        @keyframes signupQuillTilt {
-          0%,
+          96% {
+            transform: translate(1180px, 512px) rotate(-4deg);
+          }
           100% {
-            transform: translateY(-1px) rotate(-3deg);
-          }
-          50% {
-            transform: translateY(2px) rotate(2deg);
+            transform: translate(1205px, 496px) rotate(-9deg);
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .animate-ink-trace,
-          .animate-ink-fade,
-          .animate-quill-float {
+          .writing-line-a,
+          .writing-line-b,
+          .writing-line-c,
+          .animate-quill-write {
             animation: none !important;
           }
 
