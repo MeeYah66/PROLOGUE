@@ -55,7 +55,7 @@ export function AmbientButton() {
       >
         <Headphones className="w-3.5 h-3.5" strokeWidth={1.8} />
         {isPlaying && (
-          <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+          <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-gold/80" />
         )}
       </button>
 

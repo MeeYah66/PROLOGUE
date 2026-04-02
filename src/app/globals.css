@@ -88,6 +88,46 @@
   --ring: 40 10% 75%;
 }
 
+/* Final dark calibration */
+[data-theme="dark"] {
+  --color-ink:            232 236 242;
+  --color-ink-soft:       202 207 216;
+  --color-ink-muted:      150 156 168;
+  --color-ink-faint:      112 118 130;
+  --color-parchment:      11 13 16;
+  --color-parchment-warm: 17 20 24;
+  --color-parchment-deep: 29 33 39;
+  --color-gold:           148 131 94;
+  --color-gold-light:     169 154 118;
+  --color-gold-dark:      121 106 76;
+  --color-sage:           108 129 124;
+  --color-sage-light:     134 152 148;
+  --color-sage-dark:      86 102 99;
+
+  --color-card-bg:        17 20 24;
+  --color-amber-label:    160 144 111;
+  --color-bar-today:      206 211 221;
+  --color-bar-empty:      38 43 51;
+
+  --page-gradient: linear-gradient(to bottom, #0b0d10 0%, #0d1014 52%, #11151b 100%);
+
+  --background: 224 19% 8%;
+  --foreground: 220 18% 91%;
+  --card: 223 17% 11%;
+  --card-foreground: 220 18% 91%;
+  --primary: 220 16% 90%;
+  --primary-foreground: 224 19% 9%;
+  --secondary: 224 14% 14%;
+  --secondary-foreground: 220 11% 78%;
+  --muted: 224 14% 14%;
+  --muted-foreground: 220 10% 63%;
+  --accent: 224 14% 16%;
+  --accent-foreground: 220 14% 88%;
+  --border: 224 12% 20%;
+  --input: 224 12% 20%;
+  --ring: 220 16% 72%;
+}
+
 * {
   border-color: hsl(var(--border));
   box-sizing: border-box;
@@ -133,7 +173,40 @@ body {
   background: rgb(var(--color-parchment-deep));
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgb(58 50 38);
+  background: rgb(54 61 73);
+}
+
+[data-theme="dark"] .text-amber-label {
+  color: rgb(160 144 111);
+}
+
+/* Calm status chips in dark mode */
+[data-theme="dark"] .bg-amber-50 {
+  background-color: rgba(148, 131, 94, 0.14) !important;
+}
+[data-theme="dark"] .text-amber-700 {
+  color: rgb(175 161 128) !important;
+}
+[data-theme="dark"] .border-amber-200 {
+  border-color: rgba(148, 131, 94, 0.32) !important;
+}
+[data-theme="dark"] .bg-blue-50 {
+  background-color: rgba(115, 136, 165, 0.14) !important;
+}
+[data-theme="dark"] .text-blue-700 {
+  color: rgb(162 179 203) !important;
+}
+[data-theme="dark"] .border-blue-200 {
+  border-color: rgba(115, 136, 165, 0.34) !important;
+}
+[data-theme="dark"] .bg-emerald-50 {
+  background-color: rgba(108, 129, 124, 0.14) !important;
+}
+[data-theme="dark"] .text-emerald-700 {
+  color: rgb(160 181 174) !important;
+}
+[data-theme="dark"] .border-emerald-200 {
+  border-color: rgba(108, 129, 124, 0.34) !important;
 }
 
 /* Writing editor prose */
@@ -300,7 +373,7 @@ body {
 }
 [data-theme="dark"] .tiptap-editor .ProseMirror blockquote {
   color: rgb(var(--color-ink-muted));
-  background: rgba(201, 168, 76, 0.06);
+  background: rgba(148, 131, 94, 0.04);
 }
 [data-theme="dark"] .prose-editor {
   color: rgb(var(--color-ink-soft));
@@ -315,8 +388,8 @@ body {
 }
 /* Paper canvas: stronger shadow + slightly lighter surface in dark */
 [data-theme="dark"] .paper-canvas {
-  box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.35) !important;
-  background-color: rgb(28, 28, 28) !important;
+  box-shadow: 0px 10px 34px rgba(0, 0, 0, 0.28) !important;
+  background-color: rgb(19, 22, 27) !important;
 }
 /* Toggle switch knob — stays light in both modes */
 .toggle-knob {
@@ -394,3 +467,4 @@ body {
   0%, 100% { opacity: 0.38; }
   50% { opacity: 0.95; }
 }
+

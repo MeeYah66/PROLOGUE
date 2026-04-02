@@ -12,7 +12,7 @@ const buttonVariants = cva(
         secondary: "bg-parchment-deep text-ink hover:bg-parchment-warm border border-parchment-deep",
         ghost: "text-ink-muted hover:bg-parchment-warm hover:text-ink",
         outline: "border border-parchment-deep bg-transparent text-ink hover:bg-parchment-warm",
-        gold: "bg-gold/75 text-parchment hover:bg-gold/90 hover:shadow-[0_0_14px_rgba(201,168,76,0.22)] transition-shadow",
+        gold: "bg-gold/75 text-parchment hover:bg-gold/90 hover:shadow-[0_0_10px_rgba(201,168,76,0.12)] transition-shadow",
         destructive: "bg-red-600 text-white hover:bg-red-700",
         link: "text-ink underline-offset-4 hover:underline p-0 h-auto",
       },

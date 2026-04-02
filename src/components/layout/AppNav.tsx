@@ -33,8 +33,8 @@ function Avatar({ avatarUrl, name, size = "md" }: { avatarUrl?: string; name: st
     return <img src={avatarUrl} alt={name} className={cn(sz, "rounded-full object-cover shrink-0")} />;
   }
   return (
-    <div className={cn(sz, "rounded-full flex items-center justify-center shrink-0")} style={{ backgroundColor: "#2d2d2d" }}>
-      <span className="font-semibold tracking-wide select-none" style={{ color: "#c9a84c" }}>{initials(name)}</span>
+    <div className={cn(sz, "rounded-full flex items-center justify-center shrink-0 bg-parchment-deep")}>
+      <span className="font-semibold tracking-wide select-none text-ink-soft">{initials(name)}</span>
     </div>
   );
 }

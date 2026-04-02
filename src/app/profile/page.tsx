@@ -235,7 +235,7 @@ export default function ProfilePage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="font-serif text-2xl font-semibold" style={{ color: "#c9a84c" }}>
+                  <span className="font-serif text-2xl font-semibold text-amber-label">
                     {user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)}
                   </span>
                 )}
