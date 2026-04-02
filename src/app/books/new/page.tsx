@@ -126,7 +126,7 @@ export default function NewBookPage() {
   const selectedStyle = LINEN_COVER_OPTIONS.find((style) => style.id === form.coverStyle) ?? LINEN_COVER_OPTIONS[0];
   const resolvedAuthorName = form.authorName.trim() || penName;
   const fieldClassName =
-    "h-10 rounded-lg border-parchment-deep/80 bg-white text-[0.95rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] focus:border-gold/50 focus:ring-gold/15";
+    "h-10 rounded-lg border-parchment-deep/85 bg-white text-[0.95rem] shadow-none focus:border-parchment-deep/85 focus:ring-0 dark:border-parchment-deep dark:bg-parchment/60 dark:focus:border-parchment-deep";
 
   async function handleCreate() {
     if (!user || isCreating) return;
