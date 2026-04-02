@@ -56,6 +56,8 @@ function BookCover({ book, hovered }: { book: Book; hovered: boolean }) {
         <LinenBookThumbnail
           title={book.title}
           style={book.cover.style}
+          subtitle={book.subtitle}
+          author={book.authorName}
           imageUrl={book.cover.imageUrl}
           variant="card"
           className="h-[114px] w-[76px]"

@@ -213,6 +213,8 @@ function MiniCover({ book }: { book: Book }) {
     <LinenBookThumbnail
       title={book.title}
       style={book.cover.style}
+      subtitle={book.subtitle}
+      author={book.authorName}
       imageUrl={book.cover.imageUrl}
       variant="mini"
       className="w-[56px] h-[90px] shrink-0"

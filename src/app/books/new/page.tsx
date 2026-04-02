@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { AppNav } from "@/components/layout/AppNav";
 import {
   LINEN_COVER_OPTIONS,
-  type LinenCoverOption,
+  LinenBookThumbnail,
 } from "@/components/cover/LinenBookThumbnail";
 
 const GENRE_ICONS: Record<string, React.ReactNode> = {
@@ -93,61 +93,6 @@ function StepPanel({
   );
 }
 
-function BookCoverPreview({
-  title,
-  style,
-}: {
-  title: string;
-  style: LinenCoverOption;
-}) {
-  const displayTitle = title.trim() || "Untitled Manuscript";
-
-  return (
-    <div className="relative mx-auto w-[148px] sm:w-[160px]">
-      <div className="absolute -bottom-3 left-6 right-1 h-4 rounded-full bg-black/35 blur-md opacity-35" />
-      <div className="relative flex h-[206px] sm:h-[220px]">
-        <div
-          className="absolute inset-y-[8px] left-0 w-[8px] rounded-l-[6px] border border-black/15"
-          style={{
-            background: `linear-gradient(180deg, ${style.spine} 0%, ${style.bg} 45%, ${style.spine} 100%)`,
-          }}
-        />
-        <div
-          className="relative ml-[7px] w-full overflow-hidden rounded-[8px] border border-black/15 shadow-[0_20px_28px_-18px_rgba(0,0,0,0.75)]"
-          style={{ backgroundColor: style.bg }}
-        >
-          <div
-            className="absolute inset-0 opacity-35"
-            style={{
-              backgroundImage: "radial-gradient(rgba(255,255,255,0.22) 0.8px, transparent 0.8px)",
-              backgroundSize: "3px 3px",
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{ boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.28), inset 0 -42px 70px ${style.vignette}` }}
-          />
-          <div className="absolute inset-3 rounded-[6px] border" style={{ borderColor: style.foil, opacity: 0.86 }} />
-          <div className="absolute inset-5 rounded-[4px] border" style={{ borderColor: style.foil, opacity: 0.48 }} />
-          <div
-            className="absolute left-1/2 top-5 h-12 w-[74%] -translate-x-1/2 rounded-t-full border-x border-t"
-            style={{ borderColor: style.foil, opacity: 0.66 }}
-          />
-          <div className="absolute left-1/2 top-[39%] h-px w-[68%] -translate-x-1/2" style={{ backgroundColor: style.foil, opacity: 0.55 }} />
-          <div className="absolute inset-x-6 top-[43%]">
-            <p
-              className="line-clamp-3 text-center font-serif text-[14px] font-medium uppercase leading-[1.22] tracking-[0.05em]"
-              style={{ color: style.accent }}
-            >
-              {displayTitle}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function NewBookPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -186,8 +131,8 @@ export default function NewBookPage() {
         targetWordCount: form.targetWordCount,
         cover: {
           style: form.coverStyle,
-          titleColor: "#f5f0e8",
-          authorColor: selectedStyle.accent,
+          titleColor: selectedStyle.titleColor,
+          authorColor: selectedStyle.authorColor,
           alignment: "left",
           backgroundColor: selectedStyle.bg,
           overlayOpacity: 0.5,
@@ -419,7 +364,14 @@ export default function NewBookPage() {
                               )}
                             >
                               <div className="rounded-lg border border-parchment-deep/65 bg-parchment-warm/30 px-4 py-5">
-                                <BookCoverPreview title={form.title} style={style} />
+                                <LinenBookThumbnail
+                                  title={form.title}
+                                  subtitle={form.subtitle}
+                                  author={form.authorName}
+                                  style={style.id}
+                                  variant="builder"
+                                  className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
+                                />
                               </div>
 
                               <div className="mt-3 flex items-start justify-between gap-3 px-0.5">
@@ -470,7 +422,14 @@ export default function NewBookPage() {
                       </p>
                       <div className="grid gap-4 md:grid-cols-[200px_minmax(0,1fr)] md:items-start">
                         <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/28 p-4">
-                          <BookCoverPreview title={form.title} style={selectedStyle} />
+                          <LinenBookThumbnail
+                            title={form.title}
+                            subtitle={form.subtitle}
+                            author={form.authorName}
+                            style={selectedStyle.id}
+                            variant="builder"
+                            className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
+                          />
                           <p className="mt-3 text-[10px] uppercase tracking-[0.15em] text-amber-label">
                             Selected Cover
                           </p>
