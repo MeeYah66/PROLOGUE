@@ -3,25 +3,24 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/context";
 import { BrandLogo, BrandMark } from "@/components/brand/BrandLogo";
 
-// Shared input style — warm tint bg, softened border, gold focus glow
 const INPUT =
-  "w-full h-12 px-4 rounded-xl border border-parchment-deep/70 bg-parchment/50 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-gold/40 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
+  "w-full h-12 px-4 rounded-full border border-white/70 bg-white/78 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-gold/55 focus:ring-4 focus:ring-gold/10 transition-all duration-200";
 
 export default function SignupPage() {
   const { signUp } = useAuth();
-  const router     = useRouter();
-  const [name, setName]         = useState("");
-  const [email, setEmail]       = useState("");
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm]   = useState("");
+  const [confirm, setConfirm] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,6 +34,7 @@ export default function SignupPage() {
       setError("Password must be at least 6 characters.");
       return;
     }
+
     setError("");
     setLoading(true);
     try {
@@ -55,203 +55,158 @@ export default function SignupPage() {
 
   if (confirmed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-parchment px-6">
-        <div className="w-full max-w-[360px] text-center">
-          <div className="w-12 h-12 rounded-full bg-parchment-warm flex items-center justify-center mx-auto mb-6">
-            <BrandMark className="h-6 w-5" />
+      <div className="relative min-h-screen overflow-hidden bg-[#f2efe8]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(232,201,122,0.18),transparent_38%),radial-gradient(circle_at_82%_88%,rgba(201,168,76,0.17),transparent_36%)]" />
+
+        <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-7 sm:px-8">
+          <BrandLogo className="w-fit" />
+
+          <div className="mx-auto my-auto w-full max-w-[460px]">
+            <section className="rounded-[26px] border border-white/70 bg-white/52 px-6 py-8 shadow-[0_22px_50px_-28px_rgba(26,20,8,0.4)] backdrop-blur-xl sm:px-8">
+              <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/70 bg-white/80 shadow-[0_8px_20px_-14px_rgba(26,20,8,0.35)]">
+                <BrandMark className="h-8 w-6" />
+              </div>
+              <h1 className="text-center font-serif text-3xl font-semibold text-ink">Check your inbox</h1>
+              <p className="mt-3 text-center text-sm leading-relaxed text-ink-muted">
+                We sent a confirmation link to{" "}
+                <span className="font-medium text-ink">{email}</span>.
+                Confirm your email to open your writing studio.
+              </p>
+              <button
+                onClick={() => router.push("/signin")}
+                className="mt-7 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-4 text-sm font-medium text-parchment transition-all duration-200 hover:bg-ink-soft"
+              >
+                Continue to Sign In
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </section>
           </div>
-          <h1 className="font-serif text-2xl font-semibold text-ink mb-3">Check your email</h1>
-          <p className="text-sm text-ink-muted leading-relaxed mb-6">
-            We sent a confirmation link to <span className="text-ink font-medium">{email}</span>.
-            Click it to activate your account, then sign in.
-          </p>
-          <button
-            onClick={() => router.push("/signin")}
-            className="w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium hover:bg-ink-soft transition-all duration-200"
-          >
-            Go to Sign In
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-parchment">
+    <div className="relative min-h-screen overflow-hidden bg-[#f2efe8]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(232,201,122,0.22),transparent_34%),radial-gradient(circle_at_82%_78%,rgba(201,168,76,0.2),transparent_40%)]" />
 
-      {/* ── LEFT — auth area ──────────────────────────────────────────────── */}
-      <div className="flex-1 md:flex-none md:w-[46%] flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-16 min-h-screen md:min-h-0 bg-parchment">
-        <div className="w-full max-w-[360px] mx-auto">
+      <div
+        className="pointer-events-none absolute -top-40 right-[-260px] h-[520px] w-[940px] rounded-[999px] border-[52px] border-gold/70 blur-[2px]"
+        style={{ transform: "rotate(-23deg)" }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-36 left-[-290px] h-[500px] w-[930px] rounded-[999px] border-[50px] border-gold/65 blur-[2px]"
+        style={{ transform: "rotate(16deg)" }}
+      />
 
-          {/* Logo */}
-          <BrandLogo className="mb-12 gap-2" />
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-7 sm:px-8">
+        <header className="flex items-center justify-between">
+          <BrandLogo className="gap-2.5" />
+          <span className="hidden rounded-full border border-ink/10 bg-white/70 px-4 py-1.5 text-xs font-medium text-ink-muted backdrop-blur-sm sm:inline-flex">
+            Novel Writing Studio
+          </span>
+        </header>
 
-          {/* Headline */}
-          <div className="mb-9">
-            <h1 className="font-serif text-[2rem] font-semibold text-ink leading-[1.18] tracking-tight mb-3">
-              Write the story<br />only you can tell.
-            </h1>
-            <p className="text-sm text-ink-muted leading-relaxed">
-              A private writing studio built for novelists,<br className="hidden sm:block" /> romantics, and serious storytellers.
-            </p>
-          </div>
+        <main className="mx-auto my-auto w-full max-w-[500px]">
+          <section className="rounded-[26px] border border-white/70 bg-white/52 px-6 py-7 shadow-[0_30px_60px_-30px_rgba(26,20,8,0.45)] backdrop-blur-xl sm:px-8 sm:py-8">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-white/72 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-amber-label">
+                <Sparkles className="h-3 w-3" />
+                Start Your Manuscript
+              </div>
+              <h1 className="font-serif text-[2rem] font-semibold leading-[1.12] tracking-tight text-ink sm:text-[2.2rem]">
+                Create your Prologue account
+              </h1>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-muted">
+                Build your private writing space and start shaping your story, chapter by chapter.
+              </p>
+            </div>
 
-          {/* Signup form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Your name or pen name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              autoFocus
-              className={INPUT}
-            />
-            <input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className={INPUT}
-            />
-            <div className="relative">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <input
+                type="text"
+                placeholder="Your pen name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoFocus
+                className={INPUT}
+              />
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={INPUT}
+              />
+
+              <div className="relative">
+                <input
+                  type={showPass ? "text" : "password"}
+                  placeholder="Password (minimum 6 characters)"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className={cn(INPUT, "pr-11")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint transition-colors hover:text-ink"
+                  tabIndex={-1}
+                >
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+
               <input
                 type={showPass ? "text" : "password"}
-                placeholder="Password (min 6 characters)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Confirm password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
                 required
-                minLength={6}
-                className={cn(INPUT, "pr-10")}
+                className={INPUT}
               />
+
+              {error && <p className="px-1 text-xs text-red-500">{error}</p>}
+
               <button
-                type="button"
-                onClick={() => setShowPass((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink transition-colors duration-200"
-                tabIndex={-1}
+                type="submit"
+                disabled={!canSubmit}
+                className={cn(
+                  "mt-1 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-4 text-sm font-medium text-parchment transition-all duration-200",
+                  "hover:bg-ink-soft active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-45"
+                )}
               >
-                {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Setting up your studio...
+                  </span>
+                ) : (
+                  <>
+                    Create account
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </>
+                )}
               </button>
-            </div>
-            <input
-              type={showPass ? "text" : "password"}
-              placeholder="Confirm password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-              className={INPUT}
-            />
+            </form>
 
-            {error && (
-              <p className="text-xs text-red-500 px-1">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className={cn(
-                "w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200",
-                "hover:bg-ink-soft active:scale-[0.99]",
-                "disabled:opacity-40 disabled:cursor-not-allowed"
-              )}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                  Creating your studio…
-                </span>
-              ) : (
-                <>
-                  Begin Writing
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Sign in link */}
-          <p className="mt-6 text-center text-xs text-ink-faint">
-            Already have an account?{" "}
-            <Link href="/signin" className="text-ink-muted underline-offset-2 hover:underline hover:text-ink transition-colors duration-200">
-              Sign in
-            </Link>
-          </p>
-
-          {/* Legal */}
-          <p className="mt-8 text-center text-[10px] text-ink-faint/60 leading-relaxed max-w-[280px] mx-auto">
-            By creating an account, you agree to Prologue's{" "}
-            <span className="underline underline-offset-2 cursor-pointer hover:text-ink-faint transition-colors duration-200">Terms</span>
-            {" "}and{" "}
-            <span className="underline underline-offset-2 cursor-pointer hover:text-ink-faint transition-colors duration-200">Privacy Policy</span>.
-          </p>
-        </div>
-      </div>
-
-      {/* ── RIGHT — immersive visual panel ─────────────────────────────────── */}
-      <div className="hidden md:flex flex-1 relative overflow-hidden">
-
-        {/* Background image */}
-        <div className="absolute inset-0 z-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVl1eegQCwkzrn7F1r8u6mfYfX86Pi6gRTrMLaQx-H6wZwTkT7v2DXWkshAIbQsBfH6SpwIKxbTIQFhvr1G_N9GwHrABAwI0edq9Lco95VQ9GDzPke7dwa9lGy3eRn7zpo_zeSF994FmD5OZ1_uRbyMccHl-5f2JCpO_vtEcrK9IfaZRKOtDsFSkzIgRYk1nJ1hXFJA0C61DzvxO9bT0pxg73RMQBSRUll3fVrQuxyWjFgAyQrBZfQiVaGJNL2-Wj3DCMJ6ajMFEUb"
-            alt="Quiet library atmosphere"
-            className="w-full h-full object-cover"
-          />
-          {/* Ambient tint */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to top right, rgba(45,52,51,0.72) 0%, rgba(45,52,51,0.22) 50%, transparent 100%)",
-            }}
-          />
-          {/* Bottom gradient — anchors the quote text against any image variation */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to top, rgba(8,10,10,0.68) 0%, rgba(8,10,10,0.28) 38%, transparent 62%)",
-            }}
-          />
-        </div>
-
-        {/* Quote — bottom */}
-        <div className="relative z-10 h-full flex flex-col justify-end p-16 pointer-events-none">
-          <div className="max-w-xl space-y-5">
-            <div className="w-12 h-px bg-white/30" />
-            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white/70">
-              "Every story begins with a single page, waiting for the weight of your thoughts."
-            </blockquote>
-            <p className="font-sans text-sm uppercase tracking-[0.2em] text-white/50">
-              The Silent Manuscript
+            <p className="mt-5 text-center text-xs text-ink-faint">
+              Already have an account?{" "}
+              <Link href="/signin" className="font-medium text-ink-muted underline-offset-2 transition-colors hover:text-ink hover:underline">
+                Sign in
+              </Link>
             </p>
-          </div>
-        </div>
-
+          </section>
+        </main>
       </div>
-
-      {/* ── MOBILE atmospheric header (shown instead of right panel) ─────── */}
-      <div
-        className="md:hidden w-full h-48 relative overflow-hidden order-first"
-        style={{ backgroundColor: "#100e0c" }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            background: "radial-gradient(ellipse 100% 80% at 50% 60%, rgba(60,42,24,0.7) 0%, transparent 70%)",
-          }}
-        />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <BrandMark className="h-7 w-6 opacity-75" />
-          <p className="font-serif italic text-sm text-parchment/60 tracking-wide">
-            Every story begins with a single page.
-          </p>
-        </div>
-      </div>
-
     </div>
   );
 }
+
