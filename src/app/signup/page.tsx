@@ -56,7 +56,17 @@ export default function SignupPage() {
   if (confirmed) {
     return (
       <div className="relative min-h-screen overflow-hidden bg-[#f2efe8]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(232,201,122,0.18),transparent_38%),radial-gradient(circle_at_82%_88%,rgba(201,168,76,0.17),transparent_36%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(232,201,122,0.16),transparent_38%),radial-gradient(circle_at_84%_82%,rgba(201,168,76,0.13),transparent_42%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.32] bg-[repeating-linear-gradient(to_bottom,rgba(56,45,30,0.045)_0px,rgba(56,45,30,0.045)_1px,transparent_1px,transparent_34px)]" />
+        <div className="pointer-events-none absolute inset-y-0 left-[8.5%] hidden w-px bg-gradient-to-b from-transparent via-[#b08f4f]/42 to-transparent lg:block" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage: "radial-gradient(rgba(78,62,38,0.45) 0.5px, transparent 0.5px)",
+            backgroundSize: "3px 3px",
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.5),transparent_58%)]" />
 
         <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-7 sm:px-8">
           <BrandLogo className="w-fit" />
@@ -91,19 +101,17 @@ export default function SignupPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(232,201,122,0.16),transparent_38%),radial-gradient(circle_at_84%_82%,rgba(201,168,76,0.13),transparent_42%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.34] bg-[repeating-linear-gradient(to_bottom,rgba(56,45,30,0.05)_0px,rgba(56,45,30,0.05)_1px,transparent_1px,transparent_34px)]" />
       <div className="pointer-events-none absolute inset-y-0 left-[8.5%] hidden w-px bg-gradient-to-b from-transparent via-[#b08f4f]/45 to-transparent lg:block" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage: "radial-gradient(rgba(78,62,38,0.45) 0.5px, transparent 0.5px)",
+          backgroundSize: "3px 3px",
+        }}
+      />
       <div className="pointer-events-none absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.5),transparent_58%)]" />
-
-      <div
-        className="pointer-events-none absolute -top-20 right-[-120px] h-[270px] w-[540px] rounded-[999px] border-[24px] border-gold/46 blur-[1px]"
-        style={{ transform: "rotate(-23deg)" }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-16 left-[-170px] h-[250px] w-[510px] rounded-[999px] border-[22px] border-gold/42 blur-[1px]"
-        style={{ transform: "rotate(16deg)" }}
-      />
       <div className="pointer-events-none absolute inset-0 overflow-hidden quill-motion">
         <svg
-          className="absolute inset-0 h-full w-full opacity-70"
+          className="absolute inset-0 h-full w-full opacity-60"
           viewBox="0 0 1440 900"
           preserveAspectRatio="none"
           aria-hidden="true"
