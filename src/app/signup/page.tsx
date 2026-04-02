@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Feather, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/context";
+import { BrandLogo, BrandMark } from "@/components/brand/BrandLogo";
 
 // Shared input style — warm tint bg, softened border, gold focus glow
 const INPUT =
@@ -57,7 +58,7 @@ export default function SignupPage() {
       <div className="min-h-screen flex items-center justify-center bg-parchment px-6">
         <div className="w-full max-w-[360px] text-center">
           <div className="w-12 h-12 rounded-full bg-parchment-warm flex items-center justify-center mx-auto mb-6">
-            <Feather className="w-5 h-5 text-ink-muted" strokeWidth={1.5} />
+            <BrandMark className="h-6 w-5" />
           </div>
           <h1 className="font-serif text-2xl font-semibold text-ink mb-3">Check your email</h1>
           <p className="text-sm text-ink-muted leading-relaxed mb-6">
@@ -83,12 +84,7 @@ export default function SignupPage() {
         <div className="w-full max-w-[360px] mx-auto">
 
           {/* Logo */}
-          <div className="flex items-center gap-2.5 mb-12">
-            <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center shrink-0">
-              <Feather className="w-3.5 h-3.5 text-parchment" strokeWidth={1.5} />
-            </div>
-            <span className="font-serif text-base font-semibold text-ink tracking-tight">Prologue</span>
-          </div>
+          <BrandLogo className="mb-12 gap-2" />
 
           {/* Headline */}
           <div className="mb-9">
@@ -249,11 +245,7 @@ export default function SignupPage() {
           }}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <Feather
-            className="w-7 h-7"
-            style={{ color: "rgba(200,155,80,0.5)" }}
-            strokeWidth={1}
-          />
+          <BrandMark className="h-7 w-6 opacity-75" />
           <p className="font-serif italic text-sm text-parchment/60 tracking-wide">
             Every story begins with a single page.
           </p>

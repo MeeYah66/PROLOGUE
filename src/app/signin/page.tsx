@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Feather, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/context";
+import { BrandLogo, BrandMark } from "@/components/brand/BrandLogo";
 
 // ─── Google icon (inline SVG — no external dep) ───────────────────────────
 function GoogleIcon({ className }: { className?: string }) {
@@ -67,12 +68,7 @@ export default function SignInPage() {
         <div className="w-full max-w-[360px] mx-auto">
 
           {/* Logo */}
-          <div className="flex items-center gap-2.5 mb-12">
-            <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center shrink-0">
-              <Feather className="w-3.5 h-3.5 text-parchment" strokeWidth={1.5} />
-            </div>
-            <span className="font-serif text-base font-semibold text-ink tracking-tight">Prologue</span>
-          </div>
+          <BrandLogo className="mb-12 gap-2" />
 
           {/* Headline */}
           <div className="mb-9">
@@ -251,7 +247,7 @@ export default function SignInPage() {
           }}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <Feather className="w-7 h-7" style={{ color: "rgba(200,155,80,0.5)" }} strokeWidth={1} />
+          <BrandMark className="h-7 w-6 opacity-75" />
           <p className="font-serif italic text-sm text-parchment/60 tracking-wide">
             Welcome back to your story.
           </p>

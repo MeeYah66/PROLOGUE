@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prologue Logo Preview</title>
+  <style>
+    :root {
+      --bg: #f5f0e8;
+      --ink: #1a1408;
+      --muted: #6b6255;
+      --line: #d8d0c4;
+      --panel: #ffffff;
+      --gold-light: #e8c97a;
+      --gold: #c9a84c;
+      --gold-dark: #9e7a2d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at 20% 0%, #faf8f4 0%, var(--bg) 55%);
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+    p.top {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 18px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mark-shell {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      flex: 0 0 auto;
+    }
+    .mark {
+      width: 22px;
+      height: 26px;
+      display: block;
+      background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 45%, var(--gold-dark) 100%);
+      -webkit-mask-image: url("/brand/prologue-mark.png");
+      mask-image: url("/brand/prologue-mark.png");
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-position: center;
+      mask-position: center;
+      filter: drop-shadow(0 1px 1px rgba(26,20,8,.12));
+    }
+    .brand {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .dark {
+      background: #1d1b1a;
+      border-color: #2d2927;
+      color: #f7f3eb;
+    }
+    .dark .mark-shell {
+      background: #f8f5ef;
+      border-color: #d5cbbb;
+    }
+    .dark small { color: #d0c7b8; }
+    small {
+      margin-top: 12px;
+      color: var(--muted);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .center {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .center .row { justify-content: center; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Prologue Logo Preview</h1>
+    <p class="top">Using your supplied pen-mark asset with Prologue wordmark styling.</p>
+
+    <section class="grid">
+      <article class="card">
+        <div class="row">
+          <span class="mark-shell">
+            <span class="mark" aria-hidden="true"></span>
+          </span>
+          <span class="brand">Prologue</span>
+        </div>
+        <small>Sidebar / default app brand lockup.</small>
+      </article>
+
+      <article class="card dark">
+        <div class="row">
+          <span class="mark-shell">
+            <span class="mark" aria-hidden="true"></span>
+          </span>
+          <span class="brand">Prologue</span>
+        </div>
+        <small>Dark surface contrast check.</small>
+      </article>
+
+      <article class="card center">
+        <div class="row">
+          <span class="mark-shell">
+            <span class="mark" aria-hidden="true"></span>
+          </span>
+        </div>
+        <small>Mark-only usage.</small>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

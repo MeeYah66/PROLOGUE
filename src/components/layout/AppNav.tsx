@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BookMarked, Settings, LogOut, UserRound, PenLine, X } from "lucide-react";
+import { LayoutDashboard, BookMarked, Settings, LogOut, UserRound, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth/context";
+import { BrandMark } from "@/components/brand/BrandLogo";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/"         },
@@ -52,7 +53,7 @@ function NavContent({ onClose }: { onClose?: () => void }) {
       <div className="flex items-center justify-between mb-7 px-2">
         <Link href="/" className="flex items-center gap-2.5 group" onClick={onClose}>
           <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center shrink-0 group-hover:bg-ink-soft transition-colors">
-            <PenLine className="w-3.5 h-3.5 text-parchment" strokeWidth={2} />
+            <BrandMark className="h-3.5 w-3" tone="light" />
           </div>
           <span className="font-serif text-base font-semibold text-ink tracking-tight">Prologue</span>
         </Link>
