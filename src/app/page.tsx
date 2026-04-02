@@ -437,6 +437,16 @@ function DailyGoal({ wordsToday, enabled }: { wordsToday: number; enabled: boole
 
   const pct = hasGoal ? Math.min(Math.round((wordsToday / goal) * 100), 100) : 0;
   const met = hasGoal && wordsToday >= goal;
+  const overflowWords = hasGoal ? Math.max(wordsToday - goal, 0) : 0;
+  const remainingWords = hasGoal ? Math.max(goal - wordsToday, 0) : 0;
+  const statusLabel = met ? "Goal reached" : remainingWords <= 75 ? "Almost there" : "In progress";
+  const encouragement = met
+    ? overflowWords > 0
+      ? `You pushed ${overflowWords.toLocaleString()} words beyond your goal today.`
+      : "You hit your target today. Your story moved forward."
+    : remainingWords <= 75
+      ? `Only ${remainingWords.toLocaleString()} words left. One focused sprint and you are there.`
+      : `${remainingWords.toLocaleString()} words to go. Keep writing while your idea is warm.`;
 
   if (!enabled) {
     return (
@@ -527,7 +537,14 @@ function DailyGoal({ wordsToday, enabled }: { wordsToday: number; enabled: boole
           <Target className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
           <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
         </div>
-        {met && <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: "rgb(var(--color-sage-dark))" }}>✓ Met</span>}
+        <span
+          className={cn(
+            "rounded-full border px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] font-semibold",
+            met ? "border-gold/40 bg-gold/10 text-gold-dark" : "border-parchment-deep text-ink-muted"
+          )}
+        >
+          {statusLabel}
+        </span>
       </div>
 
       <div className="flex items-baseline gap-1.5 mb-2">
@@ -535,10 +552,19 @@ function DailyGoal({ wordsToday, enabled }: { wordsToday: number; enabled: boole
         <span className="text-[11px] text-ink-muted">/ {goal.toLocaleString()} words today</span>
       </div>
 
+      <p
+        className={cn(
+          "mb-3 rounded-lg border px-2.5 py-2 text-[11px] leading-relaxed",
+          met ? "border-gold/30 bg-gold/10 text-gold-dark" : "border-parchment-deep/70 bg-parchment-warm/40 text-ink-muted"
+        )}
+      >
+        {encouragement}
+      </p>
+
       <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden mb-2">
         <div
           className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, backgroundColor: met ? "rgb(var(--color-sage))" : "rgb(var(--color-bar-today))" }}
+          style={{ width: `${pct}%`, backgroundColor: met ? "rgb(var(--color-gold))" : "rgb(var(--color-bar-today))" }}
         />
       </div>
 
@@ -546,7 +572,7 @@ function DailyGoal({ wordsToday, enabled }: { wordsToday: number; enabled: boole
         onClick={() => { setDraft(String(goal)); setEditing(true); }}
         className="text-[10px] text-ink-faint hover:text-ink transition-colors"
       >
-        {pct}% complete · tap to adjust goal
+        {pct}% complete · tap to adjust your goal
       </button>
     </div>
   );
