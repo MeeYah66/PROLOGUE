@@ -100,38 +100,25 @@ const STEP_COPY: Record<number, { eyebrow: string; title: string; description: s
 };
 
 interface StepPanelProps {
-  eyebrow: string;
-  title: string;
-  description: string;
+  sectionTitle: string;
   children: React.ReactNode;
   className?: string;
-  action?: React.ReactNode;
 }
 
 function StepPanel({
-  eyebrow,
-  title,
-  description,
+  sectionTitle,
   children,
-  action,
   className,
 }: StepPanelProps) {
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[22px] border border-parchment-deep/75 bg-[#e9e5dc] pt-6 px-0 pb-0",
+        "overflow-hidden rounded-[22px] border border-parchment-deep/75 bg-[#e9e5dc] pt-3 px-0 pb-0",
         className
       )}
     >
-      <div className="mb-0 flex items-start justify-between gap-4 px-6 pb-5 sm:px-8">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-            {eyebrow}
-          </p>
-          <h2 className="mt-1 font-serif text-[1.5rem] font-semibold leading-tight text-ink">{title}</h2>
-          <p className="mt-1 text-[0.95rem] leading-relaxed text-ink-muted">{description}</p>
-        </div>
-        {action}
+      <div className="px-6 pb-3 sm:px-8">
+        <h3 className="text-[16px] font-medium leading-tight text-ink">{sectionTitle}</h3>
       </div>
       <div className="rounded-t-[18px] border border-parchment-deep/75 bg-white p-4 shadow-[0_1px_2px_rgba(26,20,16,0.06)] sm:p-6">
         {children}
@@ -244,15 +231,24 @@ export default function NewBookPage() {
         </header>
 
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
-          {step === 1 && (
-                <StepPanel
-                  eyebrow={STEP_COPY[1].eyebrow}
-                  title={STEP_COPY[1].title}
-                  description={STEP_COPY[1].description}
-                  action={<Button type="button" variant="ghost" size="sm">Edit</Button>}
-                  className="animate-fade-in"
-                >
-                  <div className="space-y-3">
+              {step === 1 && (
+                <div className="animate-fade-in space-y-3">
+                  <div className="px-1 sm:px-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+                      {STEP_COPY[1].eyebrow}
+                    </p>
+                    <h1 className="mt-1 font-serif text-[2rem] font-semibold leading-tight text-ink">
+                      {STEP_COPY[1].title}
+                    </h1>
+                    <p className="mt-1 text-[1rem] leading-relaxed text-ink-muted">
+                      {STEP_COPY[1].description}
+                    </p>
+                  </div>
+
+                  <StepPanel
+                    sectionTitle="Manuscript Information"
+                  >
+                    <div className="space-y-3">
                     <div className="space-y-2">
                       <Label htmlFor="title">Title *</Label>
                       <Input
@@ -360,18 +356,27 @@ export default function NewBookPage() {
                         <span>200k</span>
                       </div>
                     </div>
-                  </div>
-                </StepPanel>
-          )}
+                    </div>
+                  </StepPanel>
+                </div>
+              )}
 
-          {step === 2 && (
-                <StepPanel
-                  eyebrow={STEP_COPY[2].eyebrow}
-                  title={STEP_COPY[2].title}
-                  description={STEP_COPY[2].description}
-                  className="animate-fade-in"
-                >
-                  <div className="grid gap-3 sm:grid-cols-2">
+              {step === 2 && (
+                <div className="animate-fade-in space-y-3">
+                  <div className="px-1 sm:px-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+                      {STEP_COPY[2].eyebrow}
+                    </p>
+                    <h1 className="mt-1 font-serif text-[2rem] font-semibold leading-tight text-ink">
+                      {STEP_COPY[2].title}
+                    </h1>
+                    <p className="mt-1 text-[1rem] leading-relaxed text-ink-muted">
+                      {STEP_COPY[2].description}
+                    </p>
+                  </div>
+
+                  <StepPanel sectionTitle="Cover Direction">
+                    <div className="grid gap-3 sm:grid-cols-2">
                     {COVER_STYLES.map((style) => {
                       const selected = form.coverStyle === style.id;
                       return (
@@ -416,19 +421,27 @@ export default function NewBookPage() {
                         </button>
                       );
                     })}
-                  </div>
-                </StepPanel>
-          )}
+                    </div>
+                  </StepPanel>
+                </div>
+              )}
 
-          {step === 3 && (
-                <StepPanel
-                  eyebrow={STEP_COPY[3].eyebrow}
-                  title={STEP_COPY[3].title}
-                  description={STEP_COPY[3].description}
-                  action={<Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)}>Edit</Button>}
-                  className="animate-fade-in"
-                >
-                  <div className="space-y-3">
+              {step === 3 && (
+                <div className="animate-fade-in space-y-3">
+                  <div className="px-1 sm:px-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+                      {STEP_COPY[3].eyebrow}
+                    </p>
+                    <h1 className="mt-1 font-serif text-[2rem] font-semibold leading-tight text-ink">
+                      {STEP_COPY[3].title}
+                    </h1>
+                    <p className="mt-1 text-[1rem] leading-relaxed text-ink-muted">
+                      {STEP_COPY[3].description}
+                    </p>
+                  </div>
+
+                  <StepPanel sectionTitle="Review">
+                    <div className="space-y-3">
                     <div className="overflow-hidden rounded-lg border border-parchment-deep/80">
                       <div className="h-32 px-5 py-4" style={{ backgroundColor: selectedStyle.bg }}>
                         <p className="font-serif text-xl font-semibold leading-tight text-parchment">{form.title}</p>
@@ -462,9 +475,10 @@ export default function NewBookPage() {
                         <p className="mt-1 text-sm leading-relaxed text-ink-muted">{form.blurb}</p>
                       </div>
                     )}
-                  </div>
-                </StepPanel>
-          )}
+                    </div>
+                  </StepPanel>
+                </div>
+              )}
 
           {/* Navigation */}
           <div className="mt-7 flex items-center justify-between border-t border-parchment-deep/75 pt-5">
