@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -96,6 +96,7 @@ function StepPanel({
 export default function NewBookPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const penName = user?.name?.trim() || "";
   const [step, setStep] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState({
@@ -103,7 +104,7 @@ export default function NewBookPage() {
     subtitle: "",
     genre: "",
     blurb: "",
-    authorName: "",
+    authorName: penName,
     status: "draft" as BookStatus,
     targetWordCount: 80000,
     coverStyle: "minimal" as CoverStyle,
@@ -112,8 +113,18 @@ export default function NewBookPage() {
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  useEffect(() => {
+    if (!penName) return;
+    setForm((prev) => (
+      prev.authorName.trim().length > 0
+        ? prev
+        : { ...prev, authorName: penName }
+    ));
+  }, [penName]);
+
   const canProceed = step === 1 ? form.title.trim().length > 0 && form.genre.length > 0 : true;
   const selectedStyle = LINEN_COVER_OPTIONS.find((style) => style.id === form.coverStyle) ?? LINEN_COVER_OPTIONS[0];
+  const resolvedAuthorName = form.authorName.trim() || penName;
   const fieldClassName =
     "h-10 rounded-lg border-parchment-deep/80 bg-white text-[0.95rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] focus:border-gold/50 focus:ring-gold/15";
 
@@ -126,7 +137,7 @@ export default function NewBookPage() {
         subtitle: form.subtitle || undefined,
         genre: form.genre,
         blurb: form.blurb,
-        authorName: form.authorName || "Author",
+        authorName: resolvedAuthorName,
         status: form.status,
         targetWordCount: form.targetWordCount,
         cover: {
@@ -367,7 +378,7 @@ export default function NewBookPage() {
                                 <LinenBookThumbnail
                                   title={form.title}
                                   subtitle={form.subtitle}
-                                  author={form.authorName}
+                                  author={resolvedAuthorName}
                                   style={style.id}
                                   variant="builder"
                                   className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
@@ -425,7 +436,7 @@ export default function NewBookPage() {
                           <LinenBookThumbnail
                             title={form.title}
                             subtitle={form.subtitle}
-                            author={form.authorName}
+                            author={resolvedAuthorName}
                             style={selectedStyle.id}
                             variant="builder"
                             className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
@@ -454,7 +465,7 @@ export default function NewBookPage() {
                             <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
                               <dt className="text-ink-faint">Author</dt>
                               <dd className="max-w-[65%] truncate font-medium text-ink">
-                                {form.authorName.trim() || "Author"}
+                                {resolvedAuthorName}
                               </dd>
                             </div>
                             <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">

@@ -13,8 +13,6 @@ export type LinenCoverOption = {
   titleColor: string;
   subtitleColor: string;
   authorColor: string;
-  badgeBg: string;
-  badgeText: string;
 };
 
 export const LINEN_COVER_OPTIONS: LinenCoverOption[] = [
@@ -27,8 +25,6 @@ export const LINEN_COVER_OPTIONS: LinenCoverOption[] = [
     titleColor: "#9d8a5d",
     subtitleColor: "#6d6558",
     authorColor: "#4b463f",
-    badgeBg: "#b9a069",
-    badgeText: "#f9f5eb",
   },
   {
     id: "classic",
@@ -39,8 +35,6 @@ export const LINEN_COVER_OPTIONS: LinenCoverOption[] = [
     titleColor: "#5f6f86",
     subtitleColor: "#5e6673",
     authorColor: "#353b45",
-    badgeBg: "#6e7f99",
-    badgeText: "#edf2f8",
   },
   {
     id: "ethereal",
@@ -51,8 +45,6 @@ export const LINEN_COVER_OPTIONS: LinenCoverOption[] = [
     titleColor: "#6f7e6f",
     subtitleColor: "#5d665c",
     authorColor: "#424a43",
-    badgeBg: "#8f9d87",
-    badgeText: "#f2f6ef",
   },
   {
     id: "bold",
@@ -63,8 +55,6 @@ export const LINEN_COVER_OPTIONS: LinenCoverOption[] = [
     titleColor: "#8a6b58",
     subtitleColor: "#675b52",
     authorColor: "#463e39",
-    badgeBg: "#b68e73",
-    badgeText: "#fcf3ea",
   },
 ];
 
@@ -89,7 +79,6 @@ type LinenBookThumbnailProps = {
   author?: string;
   imageUrl?: string;
   className?: string;
-  showBadge?: boolean;
   variant?: CoverVariant;
 };
 
@@ -100,15 +89,13 @@ export function LinenBookThumbnail({
   author,
   imageUrl,
   className,
-  showBadge,
   variant = "card",
 }: LinenBookThumbnailProps) {
   const palette = getLinenCoverOption(style);
   const displayTitle = title.trim() || "Untitled Manuscript";
   const displaySubtitle =
     subtitle?.trim() || (variant === "builder" ? "A manuscript in progress" : "");
-  const displayAuthor = author?.trim() || (variant === "builder" ? "Author Name" : "");
-  const shouldShowBadge = showBadge ?? variant !== "mini";
+  const displayAuthor = author?.trim() || "";
 
   const titleClassName =
     variant === "mini"
@@ -160,22 +147,6 @@ export function LinenBookThumbnail({
             }}
           />
 
-          {shouldShowBadge && (
-            <div
-              className={cn(
-                "absolute left-[9%] top-[9%] rounded-full text-center font-semibold uppercase",
-                variant === "builder"
-                  ? "h-[18%] w-[30%] text-[6.2px] leading-[1.15] tracking-[0.06em] pt-[5.2%]"
-                  : "h-[14%] w-[28%] text-[4.8px] leading-[1.15] tracking-[0.05em] pt-[4.2%]"
-              )}
-              style={{ backgroundColor: palette.badgeBg, color: palette.badgeText }}
-            >
-              Updated
-              <br />
-              Edition
-            </div>
-          )}
-
           <div className="absolute inset-x-[10%] top-[29%] text-center">
             <p className={cn("line-clamp-3 font-serif font-medium", titleClassName)} style={{ color: palette.titleColor }}>
               {displayTitle}
@@ -191,7 +162,7 @@ export function LinenBookThumbnail({
             </p>
           )}
 
-          {(variant === "builder" || variant === "card") && (
+          {(variant === "builder" || variant === "card") && displayAuthor && (
             <p
               className={cn(
                 "absolute inset-x-[10%] bottom-[9%] truncate text-center font-sans font-medium uppercase",
@@ -199,7 +170,7 @@ export function LinenBookThumbnail({
               )}
               style={{ color: palette.authorColor }}
             >
-              {displayAuthor || "Author Name"}
+              {displayAuthor}
             </p>
           )}
         </div>
@@ -207,4 +178,3 @@ export function LinenBookThumbnail({
     </div>
   );
 }
-
