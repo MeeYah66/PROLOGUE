@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth/context";
 import { BrandLogo, BrandMark } from "@/components/brand/BrandLogo";
 
 const INPUT =
-  "w-full h-12 px-4 rounded-full border border-white/70 bg-white/78 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-gold/55 focus:ring-4 focus:ring-gold/10 transition-all duration-200";
+  "w-full h-11 px-3.5 rounded-[12px] border border-ink/12 bg-[#f6f3ec]/92 text-[15px] text-ink placeholder:text-ink-faint/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] focus:outline-none focus:border-gold/65 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
 
 export default function SignupPage() {
   const { signUp } = useAuth();
@@ -88,14 +88,17 @@ export default function SignupPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f2efe8]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(232,201,122,0.22),transparent_34%),radial-gradient(circle_at_82%_78%,rgba(201,168,76,0.2),transparent_40%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(232,201,122,0.16),transparent_38%),radial-gradient(circle_at_84%_82%,rgba(201,168,76,0.13),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.34] bg-[repeating-linear-gradient(to_bottom,rgba(56,45,30,0.05)_0px,rgba(56,45,30,0.05)_1px,transparent_1px,transparent_34px)]" />
+      <div className="pointer-events-none absolute inset-y-0 left-[8.5%] hidden w-px bg-gradient-to-b from-transparent via-[#b08f4f]/45 to-transparent lg:block" />
+      <div className="pointer-events-none absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.5),transparent_58%)]" />
 
       <div
-        className="pointer-events-none absolute -top-28 right-[-180px] h-[360px] w-[700px] rounded-[999px] border-[34px] border-gold/68 blur-[1px]"
+        className="pointer-events-none absolute -top-20 right-[-120px] h-[270px] w-[540px] rounded-[999px] border-[24px] border-gold/46 blur-[1px]"
         style={{ transform: "rotate(-23deg)" }}
       />
       <div
-        className="pointer-events-none absolute -bottom-24 left-[-220px] h-[350px] w-[690px] rounded-[999px] border-[32px] border-gold/62 blur-[1px]"
+        className="pointer-events-none absolute -bottom-16 left-[-170px] h-[250px] w-[510px] rounded-[999px] border-[22px] border-gold/42 blur-[1px]"
         style={{ transform: "rotate(16deg)" }}
       />
       <div className="pointer-events-none absolute inset-0 overflow-hidden quill-motion">
@@ -156,17 +159,20 @@ export default function SignupPage() {
         </header>
 
         <main className="mx-auto my-auto w-full max-w-[500px]">
-          <section className="rounded-[26px] border border-white/70 bg-white/52 px-6 py-7 shadow-[0_30px_60px_-30px_rgba(26,20,8,0.45)] backdrop-blur-xl sm:px-8 sm:py-8">
+          <section className="rounded-[26px] border border-white/75 bg-white/56 px-6 py-7 shadow-[0_34px_66px_-34px_rgba(26,20,8,0.46)] backdrop-blur-xl sm:px-8 sm:py-8">
             <div className="mb-6 text-center">
-              <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-white/72 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-amber-label">
-                <Sparkles className="h-3 w-3" />
-                Start Your Manuscript
+              <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-[10px] border border-gold/35 bg-[#f6f2e8]/88 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-label shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+                <Sparkles className="h-3 w-3 text-gold/90" />
+                Writing Studio Setup
               </div>
-              <h1 className="font-serif text-[2rem] font-semibold leading-[1.12] tracking-tight text-ink sm:text-[2.2rem]">
+              <h1 className="font-serif text-[2.1rem] font-semibold leading-[1.08] tracking-tight text-ink sm:text-[2.35rem]">
                 Create your Prologue account
               </h1>
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-muted">
+              <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-ink-muted">
                 Build your private writing space and start shaping your story, chapter by chapter.
+              </p>
+              <p className="mx-auto mt-2 max-w-sm font-serif text-[13px] italic leading-relaxed text-[#6e614d]">
+                Every great manuscript begins with a single quiet page.
               </p>
             </div>
 
@@ -224,7 +230,7 @@ export default function SignupPage() {
                 type="submit"
                 disabled={!canSubmit}
                 className={cn(
-                  "mt-1 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-4 text-sm font-medium text-parchment transition-all duration-200",
+                  "mt-1 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[12px] bg-ink px-4 text-sm font-medium text-parchment transition-all duration-200",
                   "hover:bg-ink-soft active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-45"
                 )}
               >
@@ -245,7 +251,7 @@ export default function SignupPage() {
               </button>
             </form>
 
-            <p className="mt-5 text-center text-xs text-ink-faint">
+            <p className="mt-5 text-center text-[12px] text-ink-faint">
               Already have an account?{" "}
               <Link href="/signin" className="font-medium text-ink-muted underline-offset-2 transition-colors hover:text-ink hover:underline">
                 Sign in
