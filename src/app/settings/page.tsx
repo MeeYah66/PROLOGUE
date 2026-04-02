@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth/context";
 import { useWritingSettings } from "@/lib/writing-settings";
+import { useToast } from "@/lib/toast/context";
 
 function SettingRow({
   icon: Icon,
@@ -106,6 +107,76 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { settings, updateSettings } = useWritingSettings(user?.id);
   const { theme, toggle: toggleTheme } = useTheme();
+  const { toast } = useToast();
+
+  function handleFontSizeChange(size: "small" | "medium" | "large") {
+    if (settings.editorFontSize === size) return;
+
+    updateSettings({ editorFontSize: size });
+    toast({
+      variant: "success",
+      title: `Editor font set to ${size}`,
+      description: "Your writing editor now uses this text size.",
+    });
+  }
+
+  function handleAutoSaveToggle() {
+    const next = !settings.autoSave;
+    updateSettings({ autoSave: next });
+    toast({
+      variant: "success",
+      title: next ? "Auto-save enabled" : "Auto-save paused",
+      description: next
+        ? "Changes will save automatically while you write."
+        : "Remember to save manually while this is off.",
+    });
+  }
+
+  function handleThemeToggle() {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    toggleTheme();
+    toast({
+      variant: "success",
+      title: nextTheme === "dark" ? "Dark mode enabled" : "Light mode enabled",
+      description: "Your appearance preference has been updated.",
+    });
+  }
+
+  function handleSpellcheckToggle() {
+    const next = !settings.spellcheck;
+    updateSettings({ spellcheck: next });
+    toast({
+      variant: "success",
+      title: next ? "Spellcheck enabled" : "Spellcheck disabled",
+      description: next
+        ? "Misspelled words will be highlighted as you type."
+        : "Spellcheck highlights are now hidden.",
+    });
+  }
+
+  function handleDailyGoalToggle() {
+    const next = !settings.dailyWordGoalEnabled;
+    updateSettings({ dailyWordGoalEnabled: next });
+    toast({
+      variant: "success",
+      title: next ? "Daily Goal enabled" : "Daily Goal hidden",
+      description: next
+        ? "Your dashboard will show daily goal progress."
+        : "Daily goal tracking is hidden until you turn it back on.",
+    });
+  }
+
+  function handleSessionTimerToggle() {
+    const next = !settings.sessionTimer;
+    updateSettings({ sessionTimer: next });
+    toast({
+      variant: "success",
+      title: next ? "Session Timer enabled" : "Session Timer hidden",
+      description: next
+        ? "Writing sessions now display a live timer."
+        : "Session timer is now turned off.",
+    });
+  }
 
   return (
     <div className="flex min-h-screen bg-parchment">
@@ -201,7 +272,7 @@ export default function SettingsPage() {
                   {(["small", "medium", "large"] as const).map((size) => (
                     <button
                       key={size}
-                      onClick={() => updateSettings({ editorFontSize: size })}
+                      onClick={() => handleFontSizeChange(size)}
                       className={cn(
                         "px-2.5 py-1 rounded-md text-xs transition-all capitalize",
                         settings.editorFontSize === size ? "bg-parchment text-ink shadow-sm font-medium" : "text-ink-muted hover:text-ink"
@@ -219,7 +290,7 @@ export default function SettingsPage() {
                   title="Auto-save"
                   description="Automatically save your writing every few seconds"
                   checked={settings.autoSave}
-                  onToggle={() => updateSettings({ autoSave: !settings.autoSave })}
+                  onToggle={handleAutoSaveToggle}
                 />
               </div>
               <div className="px-4">
@@ -228,7 +299,7 @@ export default function SettingsPage() {
                   title="Dark Mode"
                   description="Switch to a dark theme for night-time writing"
                   checked={theme === "dark"}
-                  onToggle={toggleTheme}
+                  onToggle={handleThemeToggle}
                 />
               </div>
               <div className="px-4">
@@ -237,7 +308,7 @@ export default function SettingsPage() {
                   title="Spellcheck"
                   description="Highlight misspelled words as you type"
                   checked={settings.spellcheck}
-                  onToggle={() => updateSettings({ spellcheck: !settings.spellcheck })}
+                  onToggle={handleSpellcheckToggle}
                 />
               </div>
             </div>
@@ -256,9 +327,7 @@ export default function SettingsPage() {
                   title="Daily Word Goal"
                   description="Show or hide daily goal tracking on your dashboard"
                   checked={settings.dailyWordGoalEnabled}
-                  onToggle={() =>
-                    updateSettings({ dailyWordGoalEnabled: !settings.dailyWordGoalEnabled })
-                  }
+                  onToggle={handleDailyGoalToggle}
                 />
               </div>
               <div className="px-4">
@@ -267,7 +336,7 @@ export default function SettingsPage() {
                   title="Session Timer"
                   description="Show a timer to track how long you write each session"
                   checked={settings.sessionTimer}
-                  onToggle={() => updateSettings({ sessionTimer: !settings.sessionTimer })}
+                  onToggle={handleSessionTimerToggle}
                 />
               </div>
             </div>
