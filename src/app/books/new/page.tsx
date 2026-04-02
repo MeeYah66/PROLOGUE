@@ -76,60 +76,66 @@ const GENRE_ICONS: Record<string, React.ReactNode> = {
 };
 
 const STEP_META = [
-  { id: 1, title: "Details", note: "Project setup" },
-  { id: 2, title: "Style", note: "Visual direction" },
+  { id: 1, title: "Manuscript", note: "Project setup" },
+  { id: 2, title: "Cover", note: "Visual direction" },
   { id: 3, title: "Review", note: "Ready to create" },
 ] as const;
 
 const STEP_COPY: Record<number, { eyebrow: string; title: string; description: string }> = {
   1: {
-    eyebrow: "Step 1 - Manuscript details",
-    title: "Frame the foundation of your new manuscript",
-    description:
-      "Capture the core metadata once so your writing studio, cover, and exports stay consistent from day one.",
+    eyebrow: "Step 1",
+    title: "Manuscript Information",
+    description: "Confirm your details to begin writing in a structured workspace.",
   },
   2: {
-    eyebrow: "Step 2 - Cover direction",
-    title: "Choose an initial visual language",
-    description:
-      "Pick a cover mood that reflects your story. You can refine typography, color, and layout after the workspace is created.",
+    eyebrow: "Step 2",
+    title: "Cover Direction",
+    description: "Choose a visual direction for your manuscript cover before you enter the studio.",
   },
   3: {
-    eyebrow: "Step 3 - Review and create",
-    title: "Final check before opening the writing studio",
-    description:
-      "Review your setup and create the manuscript workspace. You can still edit all of these values later.",
+    eyebrow: "Step 3",
+    title: "Review and Create",
+    description: "Review your setup and create your manuscript workspace.",
   },
 };
 
-interface SectionCardProps {
+interface StepPanelProps {
   eyebrow: string;
   title: string;
   description: string;
   children: React.ReactNode;
   className?: string;
+  action?: React.ReactNode;
 }
 
-function SectionCard({
+function StepPanel({
   eyebrow,
   title,
   description,
   children,
+  action,
   className,
-}: SectionCardProps) {
+}: StepPanelProps) {
   return (
     <section
       className={cn(
-        "rounded-2xl border border-parchment-deep/90 bg-white/90 p-5 shadow-[0_24px_50px_-40px_rgba(26,20,16,0.6)] sm:p-6",
+        "rounded-[22px] border border-parchment-deep/80 bg-[#ede9df] p-4 sm:p-5",
         className
       )}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-        {eyebrow}
-      </p>
-      <h2 className="mt-1 font-serif text-[1.24rem] font-semibold text-ink">{title}</h2>
-      <p className="mt-1 text-sm leading-relaxed text-ink-muted">{description}</p>
-      <div className="mt-5">{children}</div>
+      <div className="mb-3 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+            {eyebrow}
+          </p>
+          <h2 className="mt-1 font-serif text-[1.5rem] font-semibold leading-tight text-ink">{title}</h2>
+          <p className="mt-1 text-[0.95rem] leading-relaxed text-ink-muted">{description}</p>
+        </div>
+        {action}
+      </div>
+      <div className="rounded-[18px] border border-parchment-deep/80 bg-white p-4 shadow-[0_18px_40px_-34px_rgba(26,20,16,0.62)] sm:p-6">
+        {children}
+      </div>
     </section>
   );
 }
@@ -155,9 +161,8 @@ export default function NewBookPage() {
 
   const canProceed = step === 1 ? form.title.trim().length > 0 && form.genre.length > 0 : true;
   const selectedStyle = COVER_STYLES.find((style) => style.id === form.coverStyle) ?? COVER_STYLES[0];
-  const progressPercent = Math.round((step / STEP_META.length) * 100);
   const fieldClassName =
-    "h-11 rounded-xl border-parchment-deep/90 bg-white text-[0.95rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] focus:border-gold/55 focus:ring-gold/20";
+    "h-10 rounded-lg border-parchment-deep/80 bg-white text-[0.95rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] focus:border-gold/50 focus:ring-gold/15";
 
   async function handleCreate() {
     if (!user || isCreating) return;
@@ -187,104 +192,70 @@ export default function NewBookPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[radial-gradient(circle_at_15%_0%,#fffdf9_0%,#faf7f0_35%,#f6f1e8_100%)]">
+    <div className="flex min-h-screen bg-[#efede7]">
       <AppNav />
       <main className="flex-1 md:ml-48">
-        <header className="sticky top-0 z-30 border-b border-parchment-deep/85 bg-parchment/80 backdrop-blur-md">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-            <Link href="/">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 rounded-full px-4 text-ink-muted hover:bg-white/80 hover:text-ink"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Library
-              </Button>
-            </Link>
+        <div className="mx-auto max-w-5xl px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
+          <div className="overflow-hidden rounded-[26px] border border-parchment-deep/80 bg-[#f8f6f1] shadow-[0_36px_94px_-72px_rgba(26,20,16,0.72)]">
+            <div className="border-b border-parchment-deep/75 px-4 py-3 sm:px-6">
+              <div className="flex items-center justify-between gap-3">
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="gap-1.5 rounded-full px-4">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                </Link>
 
-            <div className="hidden items-center gap-3 lg:flex">
-              {STEP_META.map((item, index) => {
-                const isComplete = step > item.id;
-                const isActive = step === item.id;
-
-                return (
-                  <div key={item.id} className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-all",
-                        isComplete
-                          ? "bg-ink text-parchment"
-                          : isActive
-                            ? "bg-parchment-warm text-ink ring-1 ring-gold/45"
-                            : "bg-white text-ink-faint ring-1 ring-parchment-deep"
-                      )}
-                    >
-                      {isComplete ? <Check className="h-3.5 w-3.5" /> : item.id}
-                    </div>
-                    <div className="leading-tight">
-                      <p
-                        className={cn(
-                          "text-[11px] font-semibold uppercase tracking-[0.11em]",
-                          isActive ? "text-ink" : "text-ink-faint"
-                        )}
-                      >
-                        {item.title}
-                      </p>
-                      <p className="text-[11px] text-ink-faint">{item.note}</p>
-                    </div>
-                    {index < STEP_META.length - 1 && <div className="h-px w-8 bg-parchment-deep" />}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="rounded-full border border-parchment-deep/80 bg-white/90 px-3 py-1 text-xs text-ink-muted lg:hidden">
-              Step {step} of {STEP_META.length}
-            </div>
-          </div>
-        </header>
-
-        <div className="mx-auto max-w-6xl px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
-          <div className="relative overflow-hidden rounded-[30px] border border-parchment-deep/90 bg-white/75 shadow-[0_50px_120px_-65px_rgba(26,20,16,0.65)]">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-white/50 via-parchment-warm/60 to-white/50" />
-
-            <div className="relative p-5 sm:p-8 lg:p-10">
-              <div className="mb-7 flex flex-wrap items-end justify-between gap-5 border-b border-parchment-deep/75 pb-6">
-                <div className="max-w-2xl">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-label">
-                    {STEP_COPY[step].eyebrow}
-                  </p>
-                  <h1 className="mt-2 font-serif text-[1.82rem] font-semibold leading-tight text-ink sm:text-[2.05rem]">
-                    {STEP_COPY[step].title}
-                  </h1>
-                  <p className="mt-2 max-w-[64ch] text-sm leading-relaxed text-ink-muted sm:text-[0.95rem]">
-                    {STEP_COPY[step].description}
-                  </p>
+                <div className="hidden items-center gap-2.5 md:flex">
+                  {STEP_META.map((item, index) => {
+                    const isComplete = step > item.id;
+                    const isActive = step === item.id;
+                    return (
+                      <div key={item.id} className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold",
+                            isComplete
+                              ? "bg-ink text-parchment"
+                              : isActive
+                                ? "bg-ink text-parchment"
+                                : "border border-parchment-deep bg-white text-ink-faint"
+                          )}
+                        >
+                          {isComplete ? <Check className="h-3 w-3" /> : item.id}
+                        </span>
+                        <span className={cn("text-[13px]", isActive ? "font-medium text-ink" : "text-ink-faint")}>
+                          {item.title}
+                        </span>
+                        {index < STEP_META.length - 1 && <span className="mx-1 h-px w-6 bg-parchment-deep" />}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className="w-full rounded-2xl border border-parchment-deep/85 bg-white/92 p-4 sm:w-60">
-                  <div className="mb-2 flex items-center justify-between text-xs text-ink-muted">
-                    <span>Progress</span>
-                    <span>{progressPercent}%</span>
+                <div className="flex items-center gap-2">
+                  <div className="rounded-full border border-parchment-deep/80 bg-white px-3 py-1 text-xs text-ink-muted md:hidden">
+                    Step {step}/{STEP_META.length}
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-parchment-deep/70">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-gold/85 via-gold to-gold-dark transition-all duration-300"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
+                  <Link href="/library">
+                    <Button size="sm" variant="outline" className="rounded-full px-4">
+                      Save & Exit
+                    </Button>
+                  </Link>
                 </div>
               </div>
-          {step === 1 && (
-            <div className="grid animate-fade-in gap-5 lg:grid-cols-[minmax(0,1fr)_290px]">
-              <div className="space-y-5">
-                <SectionCard
-                  eyebrow="Identity"
-                  title="Manuscript basics"
-                  description="Give your manuscript a title and subtitle so every downstream surface has a clear anchor."
+            </div>
+
+            <div className="p-4 sm:p-5 lg:p-7">
+              {step === 1 && (
+                <StepPanel
+                  eyebrow={STEP_COPY[1].eyebrow}
+                  title={STEP_COPY[1].title}
+                  description={STEP_COPY[1].description}
+                  action={<Button type="button" variant="ghost" size="sm">Edit</Button>}
+                  className="animate-fade-in"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="space-y-2">
                       <Label htmlFor="title">Title *</Label>
                       <Input
@@ -307,52 +278,46 @@ export default function NewBookPage() {
                         className={fieldClassName}
                       />
                     </div>
-                  </div>
-                </SectionCard>
 
-                <SectionCard
-                  eyebrow="Context"
-                  title="Publishing context"
-                  description="Set the metadata your readers and collaborators will see first."
-                >
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Genre *</Label>
-                      <Select value={form.genre} onValueChange={(value) => update("genre", value)}>
-                        <SelectTrigger className={fieldClassName}>
-                          <SelectValue placeholder="Select a genre" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {GENRES.map((genre) => (
-                            <SelectItem key={genre} value={genre}>
-                              <span className="flex items-center gap-2">
-                                {GENRE_ICONS[genre]}
-                                {genre}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Genre *</Label>
+                        <Select value={form.genre} onValueChange={(value) => update("genre", value)}>
+                          <SelectTrigger className={fieldClassName}>
+                            <SelectValue placeholder="Select a genre" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GENRES.map((genre) => (
+                              <SelectItem key={genre} value={genre}>
+                                <span className="flex items-center gap-2">
+                                  {GENRE_ICONS[genre]}
+                                  {genre}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Writing Status</Label>
+                        <Select
+                          value={form.status}
+                          onValueChange={(value) => update("status", value as BookStatus)}
+                        >
+                          <SelectTrigger className={fieldClassName}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="ongoing">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Writing Status</Label>
-                      <Select
-                        value={form.status}
-                        onValueChange={(value) => update("status", value as BookStatus)}
-                      >
-                        <SelectTrigger className={fieldClassName}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="ongoing">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="author">Author Name</Label>
                       <Input
                         id="author"
@@ -362,15 +327,7 @@ export default function NewBookPage() {
                         className={fieldClassName}
                       />
                     </div>
-                  </div>
-                </SectionCard>
 
-                <SectionCard
-                  eyebrow="Narrative"
-                  title="Story positioning"
-                  description="Capture the hook and intended scale of this manuscript."
-                >
-                  <div className="space-y-5">
                     <div className="space-y-2">
                       <Label htmlFor="blurb">Blurb / Summary</Label>
                       <Textarea
@@ -383,7 +340,7 @@ export default function NewBookPage() {
                       />
                     </div>
 
-                    <div className="rounded-xl border border-parchment-deep/85 bg-parchment-warm/45 p-4">
+                    <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 p-4">
                       <Label htmlFor="target" className="flex items-center justify-between text-sm">
                         <span>Target Word Count</span>
                         <span className="font-normal text-ink-muted">
@@ -407,228 +364,113 @@ export default function NewBookPage() {
                       </div>
                     </div>
                   </div>
-                </SectionCard>
-              </div>
+                </StepPanel>
+              )}
 
-              <aside className="h-fit lg:sticky lg:top-28">
-                <section className="rounded-2xl border border-parchment-deep/90 bg-white/92 p-5 shadow-[0_24px_50px_-40px_rgba(26,20,16,0.6)]">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-                    Live summary
-                  </p>
-                  <h3 className="mt-1 font-serif text-xl font-semibold text-ink">
-                    {form.title || "Untitled manuscript"}
-                  </h3>
-                  <p className="mt-1 text-sm text-ink-faint">{form.subtitle || "Subtitle not set yet"}</p>
-
-                  <div className="mt-4 overflow-hidden rounded-xl border border-parchment-deep/90">
-                    <div className="h-24 px-4 py-3" style={{ backgroundColor: selectedStyle.bg }}>
-                      <p className="font-serif text-base font-semibold leading-tight text-parchment">
-                        {form.title || "Book title"}
-                      </p>
-                      <p className="mt-0.5 text-xs" style={{ color: selectedStyle.accent }}>
-                        {form.authorName || "Author name"}
-                      </p>
-                    </div>
-                    <dl className="divide-y divide-parchment-deep/80 bg-parchment/55">
-                      <div className="flex items-center justify-between px-3 py-2 text-xs">
-                        <dt className="text-ink-faint">Genre</dt>
-                        <dd className="font-medium text-ink">{form.genre || "Not selected"}</dd>
-                      </div>
-                      <div className="flex items-center justify-between px-3 py-2 text-xs">
-                        <dt className="text-ink-faint">Status</dt>
-                        <dd className="font-medium capitalize text-ink">{form.status}</dd>
-                      </div>
-                      <div className="flex items-center justify-between px-3 py-2 text-xs">
-                        <dt className="text-ink-faint">Target</dt>
-                        <dd className="font-medium text-ink">{form.targetWordCount.toLocaleString()}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </section>
-              </aside>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="grid animate-fade-in gap-5 lg:grid-cols-[minmax(0,1fr)_290px]">
-              <section className="rounded-2xl border border-parchment-deep/90 bg-white/92 p-5 shadow-[0_24px_50px_-40px_rgba(26,20,16,0.6)] sm:p-6">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-                  Cover direction
-                </p>
-                <h2 className="mt-1 font-serif text-[1.24rem] font-semibold text-ink">
-                  Choose your initial cover mood
-                </h2>
-                <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-                  Select one concept to start. Your typography and colors here shape the first impression in your library.
-                </p>
-
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  {COVER_STYLES.map((style) => {
-                    const selected = form.coverStyle === style.id;
-                    return (
-                      <button
-                        key={style.id}
-                        type="button"
-                        onClick={() => update("coverStyle", style.id)}
-                        className={cn(
-                          "group overflow-hidden rounded-xl border text-left transition-all",
-                          selected
-                            ? "border-gold/70 bg-parchment/40 shadow-[0_14px_30px_-20px_rgba(201,168,76,0.75)]"
-                            : "border-parchment-deep hover:border-gold/35 hover:bg-white"
-                        )}
-                      >
-                        <div className="h-40 px-4 py-4" style={{ backgroundColor: style.bg }}>
-                          <p className="font-serif text-base font-semibold text-parchment">
-                            {form.title || "Book title"}
-                          </p>
-                          <p className="mt-1 text-xs" style={{ color: style.accent }}>
-                            {form.authorName || "Author name"}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between gap-3 border-t border-parchment-deep/85 bg-white/92 px-3 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-ink-muted">{style.icon}</span>
-                            <div>
-                              <p className="text-sm font-medium text-ink">{style.label}</p>
-                              <p className="text-xs text-ink-faint">{style.description}</p>
-                            </div>
-                          </div>
-                          <span
-                            className={cn(
-                              "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
-                              selected
-                                ? "border-gold bg-gold text-parchment"
-                                : "border-parchment-deep text-transparent group-hover:text-ink-faint"
-                            )}
-                          >
-                            <Check className="h-3 w-3" />
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              <aside className="h-fit lg:sticky lg:top-28">
-                <section className="rounded-2xl border border-parchment-deep/90 bg-white/92 p-5 shadow-[0_24px_50px_-40px_rgba(26,20,16,0.6)]">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-                    Selected style
-                  </p>
-                  <h3 className="mt-1 font-serif text-xl font-semibold text-ink">{selectedStyle.label}</h3>
-                  <p className="mt-1 text-sm text-ink-muted">{selectedStyle.description}</p>
-
-                  <div className="mt-4 rounded-xl border border-parchment-deep/90 p-4">
-                    <p className="text-xs uppercase tracking-[0.1em] text-ink-faint">Color pairing</p>
-                    <div className="mt-3 flex items-center gap-3">
-                      <div
-                        className="h-10 flex-1 rounded-lg border border-parchment-deep/80"
-                        style={{ backgroundColor: selectedStyle.bg }}
-                      />
-                      <div
-                        className="h-10 w-16 rounded-lg border border-parchment-deep/80"
-                        style={{ backgroundColor: selectedStyle.accent }}
-                      />
-                    </div>
-                    <p className="mt-3 text-xs leading-relaxed text-ink-faint">
-                      This palette becomes your default cover mood. You can fine-tune every color and layout in the cover editor.
-                    </p>
-                  </div>
-                </section>
-              </aside>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="grid animate-fade-in gap-5 lg:grid-cols-[minmax(0,1fr)_290px]">
-              <section className="space-y-5">
-                <SectionCard
-                  eyebrow="Review"
-                  title="Manuscript configuration"
-                  description="Validate your choices before creating the workspace."
-                  className="bg-white/92"
+              {step === 2 && (
+                <StepPanel
+                  eyebrow={STEP_COPY[2].eyebrow}
+                  title={STEP_COPY[2].title}
+                  description={STEP_COPY[2].description}
+                  className="animate-fade-in"
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between rounded-xl border border-parchment-deep/85 bg-parchment-warm/35 px-4 py-3">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">Title</p>
-                        <p className="mt-1 font-serif text-lg font-semibold text-ink">{form.title}</p>
-                        {form.subtitle && <p className="text-sm text-ink-muted">{form.subtitle}</p>}
-                      </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)}>
-                        Edit
-                      </Button>
-                    </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {COVER_STYLES.map((style) => {
+                      const selected = form.coverStyle === style.id;
+                      return (
+                        <button
+                          key={style.id}
+                          type="button"
+                          onClick={() => update("coverStyle", style.id)}
+                          className={cn(
+                            "group overflow-hidden rounded-lg border text-left transition-all",
+                            selected
+                              ? "border-gold/70 bg-parchment/40 shadow-[0_14px_30px_-20px_rgba(201,168,76,0.75)]"
+                              : "border-parchment-deep hover:border-gold/35 hover:bg-white"
+                          )}
+                        >
+                          <div className="h-40 px-4 py-4" style={{ backgroundColor: style.bg }}>
+                            <p className="font-serif text-base font-semibold text-parchment">
+                              {form.title || "Book title"}
+                            </p>
+                            <p className="mt-1 text-xs" style={{ color: style.accent }}>
+                              {form.authorName || "Author name"}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between gap-3 border-t border-parchment-deep/85 bg-white/92 px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-ink-muted">{style.icon}</span>
+                              <div>
+                                <p className="text-sm font-medium text-ink">{style.label}</p>
+                                <p className="text-xs text-ink-faint">{style.description}</p>
+                              </div>
+                            </div>
+                            <span
+                              className={cn(
+                                "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
+                                selected
+                                  ? "border-gold bg-gold text-parchment"
+                                  : "border-parchment-deep text-transparent group-hover:text-ink-faint"
+                              )}
+                            >
+                              <Check className="h-3 w-3" />
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </StepPanel>
+              )}
 
-                    <dl className="overflow-hidden rounded-xl border border-parchment-deep/85 bg-white/80">
-                      <div className="flex items-center justify-between border-b border-parchment-deep/80 px-4 py-3 text-sm">
-                        <dt className="text-ink-faint">Genre</dt>
-                        <dd className="font-medium text-ink">{form.genre}</dd>
+              {step === 3 && (
+                <StepPanel
+                  eyebrow={STEP_COPY[3].eyebrow}
+                  title={STEP_COPY[3].title}
+                  description={STEP_COPY[3].description}
+                  action={<Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)}>Edit</Button>}
+                  className="animate-fade-in"
+                >
+                  <div className="space-y-3">
+                    <div className="overflow-hidden rounded-lg border border-parchment-deep/80">
+                      <div className="h-32 px-5 py-4" style={{ backgroundColor: selectedStyle.bg }}>
+                        <p className="font-serif text-xl font-semibold leading-tight text-parchment">{form.title}</p>
+                        <p className="mt-1 text-sm" style={{ color: selectedStyle.accent }}>
+                          {form.authorName || "Author"}
+                        </p>
                       </div>
-                      <div className="flex items-center justify-between border-b border-parchment-deep/80 px-4 py-3 text-sm">
-                        <dt className="text-ink-faint">Status</dt>
-                        <dd className="font-medium capitalize text-ink">{form.status}</dd>
-                      </div>
-                      <div className="flex items-center justify-between border-b border-parchment-deep/80 px-4 py-3 text-sm">
-                        <dt className="text-ink-faint">Target word count</dt>
-                        <dd className="font-medium text-ink">{form.targetWordCount.toLocaleString()} words</dd>
-                      </div>
-                      <div className="flex items-center justify-between px-4 py-3 text-sm">
-                        <dt className="text-ink-faint">Cover style</dt>
-                        <dd className="font-medium text-ink">{selectedStyle.label}</dd>
-                      </div>
-                    </dl>
+                      <dl className="divide-y divide-parchment-deep/80 bg-white">
+                        <div className="flex items-center justify-between px-4 py-3 text-sm">
+                          <dt className="text-ink-faint">Genre</dt>
+                          <dd className="font-medium text-ink">{form.genre}</dd>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 text-sm">
+                          <dt className="text-ink-faint">Status</dt>
+                          <dd className="font-medium capitalize text-ink">{form.status}</dd>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 text-sm">
+                          <dt className="text-ink-faint">Target word count</dt>
+                          <dd className="font-medium text-ink">{form.targetWordCount.toLocaleString()} words</dd>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 text-sm">
+                          <dt className="text-ink-faint">Cover style</dt>
+                          <dd className="font-medium text-ink">{selectedStyle.label}</dd>
+                        </div>
+                      </dl>
+                    </div>
 
                     {form.blurb.trim().length > 0 && (
-                      <div className="rounded-xl border border-parchment-deep/85 bg-parchment-warm/35 px-4 py-3">
+                      <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 px-4 py-3">
                         <p className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">Blurb</p>
                         <p className="mt-1 text-sm leading-relaxed text-ink-muted">{form.blurb}</p>
                       </div>
                     )}
                   </div>
-                </SectionCard>
-              </section>
-
-              <aside className="h-fit lg:sticky lg:top-28">
-                <section className="overflow-hidden rounded-2xl border border-parchment-deep/90 bg-white/92 shadow-[0_24px_50px_-40px_rgba(26,20,16,0.6)]">
-                  <div className="h-40 px-5 py-5" style={{ backgroundColor: selectedStyle.bg }}>
-                    <p className="font-serif text-xl font-semibold leading-tight text-parchment">{form.title}</p>
-                    <p className="mt-1 text-sm" style={{ color: selectedStyle.accent }}>
-                      {form.authorName || "Author"}
-                    </p>
-                  </div>
-                  <div className="space-y-2 p-5">
-                    <p className="text-xs uppercase tracking-[0.12em] text-ink-faint">Ready</p>
-                    <p className="text-sm leading-relaxed text-ink-muted">
-                      Create this manuscript now and move directly into the writing editor.
-                    </p>
-                    <Button
-                      type="button"
-                      onClick={handleCreate}
-                      disabled={isCreating}
-                      className="mt-2 w-full"
-                      size="lg"
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Creating workspace...
-                        </>
-                      ) : (
-                        <>
-                          <Feather className="h-4 w-4" />
-                          Create & Start Writing
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </section>
-              </aside>
-            </div>
-          )}
+                </StepPanel>
+              )}
 
               {/* Navigation */}
-              <div className="mt-8 flex items-center justify-between border-t border-parchment-deep/75 pt-6">
+              <div className="mt-7 flex items-center justify-between border-t border-parchment-deep/75 pt-5">
                 {step > 1 ? (
                   <Button type="button" variant="ghost" onClick={() => setStep((current) => current - 1)}>
                     <ArrowLeft className="h-4 w-4" />
