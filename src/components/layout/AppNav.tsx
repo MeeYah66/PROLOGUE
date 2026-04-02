@@ -53,7 +53,7 @@ function NavContent({ onClose }: { onClose?: () => void }) {
       <div className="flex items-center justify-between mb-7 px-2">
         <Link href="/" className="flex items-center gap-2.5 group" onClick={onClose}>
           <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center shrink-0 group-hover:bg-ink-soft transition-colors">
-            <BrandMark className="h-3.5 w-3" tone="light" />
+            <BrandMark className="h-5 w-4" tone="light" />
           </div>
           <span className="font-serif text-base font-semibold text-ink tracking-tight">Prologue</span>
         </Link>
