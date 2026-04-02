@@ -117,10 +117,10 @@ function StepPanel({
         className
       )}
     >
-      <div className="px-4 pb-3">
-        <h3 className="text-[16px] font-medium leading-tight text-ink">{sectionTitle}</h3>
-      </div>
-      <div className="bg-white px-4 py-4 sm:px-5 sm:py-5">
+      <p className="px-4 text-[10px] uppercase tracking-[0.18em] font-semibold text-amber-label mb-3">
+        {sectionTitle}
+      </p>
+      <div className="[&>div]:rounded-none [&>div]:border-0 [&>div]:shadow-none">
         {children}
       </div>
     </section>
@@ -248,114 +248,116 @@ export default function NewBookPage() {
                   <StepPanel
                     sectionTitle="Manuscript Information"
                   >
-                    <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Title *</Label>
-                      <Input
-                        id="title"
-                        placeholder="The name of your book"
-                        value={form.title}
-                        onChange={(e) => update("title", e.target.value)}
-                        className={cn(fieldClassName, "text-base font-serif")}
-                        autoFocus
-                      />
-                    </div>
+                    <div className="rounded-xl border border-parchment-deep bg-white p-5 sm:p-6">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="title">Title *</Label>
+                          <Input
+                            id="title"
+                            placeholder="The name of your book"
+                            value={form.title}
+                            onChange={(e) => update("title", e.target.value)}
+                            className={cn(fieldClassName, "text-base font-serif")}
+                            autoFocus
+                          />
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="subtitle">Subtitle</Label>
-                      <Input
-                        id="subtitle"
-                        placeholder="Optional subtitle or series name"
-                        value={form.subtitle}
-                        onChange={(e) => update("subtitle", e.target.value)}
-                        className={fieldClassName}
-                      />
-                    </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="subtitle">Subtitle</Label>
+                          <Input
+                            id="subtitle"
+                            placeholder="Optional subtitle or series name"
+                            value={form.subtitle}
+                            onChange={(e) => update("subtitle", e.target.value)}
+                            className={fieldClassName}
+                          />
+                        </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label>Genre *</Label>
-                        <Select value={form.genre} onValueChange={(value) => update("genre", value)}>
-                          <SelectTrigger className={fieldClassName}>
-                            <SelectValue placeholder="Select a genre" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {GENRES.map((genre) => (
-                              <SelectItem key={genre} value={genre}>
-                                <span className="flex items-center gap-2">
-                                  {GENRE_ICONS[genre]}
-                                  {genre}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Genre *</Label>
+                            <Select value={form.genre} onValueChange={(value) => update("genre", value)}>
+                              <SelectTrigger className={fieldClassName}>
+                                <SelectValue placeholder="Select a genre" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {GENRES.map((genre) => (
+                                  <SelectItem key={genre} value={genre}>
+                                    <span className="flex items-center gap-2">
+                                      {GENRE_ICONS[genre]}
+                                      {genre}
+                                    </span>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Writing Status</Label>
+                            <Select
+                              value={form.status}
+                              onValueChange={(value) => update("status", value as BookStatus)}
+                            >
+                              <SelectTrigger className={fieldClassName}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="draft">Draft</SelectItem>
+                                <SelectItem value="ongoing">In Progress</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="author">Author Name</Label>
+                          <Input
+                            id="author"
+                            placeholder="Your pen name or real name"
+                            value={form.authorName}
+                            onChange={(e) => update("authorName", e.target.value)}
+                            className={fieldClassName}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="blurb">Blurb / Summary</Label>
+                          <Textarea
+                            id="blurb"
+                            placeholder="Write a short description of your book - the hook that makes a reader want to continue..."
+                            value={form.blurb}
+                            onChange={(e) => update("blurb", e.target.value)}
+                            rows={5}
+                            className="rounded-xl border-parchment-deep/90 bg-white text-[0.95rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.74)] focus:border-gold/55 focus:ring-gold/20"
+                          />
+                        </div>
+
+                        <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 p-4">
+                          <Label htmlFor="target" className="flex items-center justify-between text-sm">
+                            <span>Target Word Count</span>
+                            <span className="font-normal text-ink-muted">
+                              {form.targetWordCount.toLocaleString()} words
+                            </span>
+                          </Label>
+                          <input
+                            id="target"
+                            type="range"
+                            min={10000}
+                            max={200000}
+                            step={5000}
+                            value={form.targetWordCount}
+                            onChange={(e) => update("targetWordCount", Number(e.target.value))}
+                            className="mt-3 w-full accent-gold"
+                          />
+                          <div className="mt-2 flex justify-between text-xs text-ink-faint">
+                            <span>10k</span>
+                            <span>80k</span>
+                            <span>200k</span>
+                          </div>
+                        </div>
                       </div>
-
-                      <div className="space-y-2">
-                        <Label>Writing Status</Label>
-                        <Select
-                          value={form.status}
-                          onValueChange={(value) => update("status", value as BookStatus)}
-                        >
-                          <SelectTrigger className={fieldClassName}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="ongoing">In Progress</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="author">Author Name</Label>
-                      <Input
-                        id="author"
-                        placeholder="Your pen name or real name"
-                        value={form.authorName}
-                        onChange={(e) => update("authorName", e.target.value)}
-                        className={fieldClassName}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="blurb">Blurb / Summary</Label>
-                      <Textarea
-                        id="blurb"
-                        placeholder="Write a short description of your book - the hook that makes a reader want to continue..."
-                        value={form.blurb}
-                        onChange={(e) => update("blurb", e.target.value)}
-                        rows={5}
-                        className="rounded-xl border-parchment-deep/90 bg-white text-[0.95rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.74)] focus:border-gold/55 focus:ring-gold/20"
-                      />
-                    </div>
-
-                    <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 p-4">
-                      <Label htmlFor="target" className="flex items-center justify-between text-sm">
-                        <span>Target Word Count</span>
-                        <span className="font-normal text-ink-muted">
-                          {form.targetWordCount.toLocaleString()} words
-                        </span>
-                      </Label>
-                      <input
-                        id="target"
-                        type="range"
-                        min={10000}
-                        max={200000}
-                        step={5000}
-                        value={form.targetWordCount}
-                        onChange={(e) => update("targetWordCount", Number(e.target.value))}
-                        className="mt-3 w-full accent-gold"
-                      />
-                      <div className="mt-2 flex justify-between text-xs text-ink-faint">
-                        <span>10k</span>
-                        <span>80k</span>
-                        <span>200k</span>
-                      </div>
-                    </div>
                     </div>
                   </StepPanel>
                 </div>
@@ -376,51 +378,53 @@ export default function NewBookPage() {
                   </div>
 
                   <StepPanel sectionTitle="Cover Direction">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                    {COVER_STYLES.map((style) => {
-                      const selected = form.coverStyle === style.id;
-                      return (
-                        <button
-                          key={style.id}
-                          type="button"
-                          onClick={() => update("coverStyle", style.id)}
-                          className={cn(
-                            "group overflow-hidden rounded-lg border text-left transition-all",
-                            selected
-                              ? "border-gold/70 bg-parchment/40 shadow-[0_14px_30px_-20px_rgba(201,168,76,0.75)]"
-                              : "border-parchment-deep hover:border-gold/35 hover:bg-white"
-                          )}
-                        >
-                          <div className="h-40 px-4 py-4" style={{ backgroundColor: style.bg }}>
-                            <p className="font-serif text-base font-semibold text-parchment">
-                              {form.title || "Book title"}
-                            </p>
-                            <p className="mt-1 text-xs" style={{ color: style.accent }}>
-                              {form.authorName || "Author name"}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between gap-3 border-t border-parchment-deep/85 bg-white/92 px-3 py-2.5">
-                            <div className="flex items-center gap-2">
-                              <span className="text-ink-muted">{style.icon}</span>
-                              <div>
-                                <p className="text-sm font-medium text-ink">{style.label}</p>
-                                <p className="text-xs text-ink-faint">{style.description}</p>
-                              </div>
-                            </div>
-                            <span
+                    <div className="rounded-xl border border-parchment-deep bg-white p-5 sm:p-6">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {COVER_STYLES.map((style) => {
+                          const selected = form.coverStyle === style.id;
+                          return (
+                            <button
+                              key={style.id}
+                              type="button"
+                              onClick={() => update("coverStyle", style.id)}
                               className={cn(
-                                "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
+                                "group overflow-hidden rounded-lg border text-left transition-all",
                                 selected
-                                  ? "border-gold bg-gold text-parchment"
-                                  : "border-parchment-deep text-transparent group-hover:text-ink-faint"
+                                  ? "border-gold/70 bg-parchment/40 shadow-[0_14px_30px_-20px_rgba(201,168,76,0.75)]"
+                                  : "border-parchment-deep hover:border-gold/35 hover:bg-white"
                               )}
                             >
-                              <Check className="h-3 w-3" />
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
+                              <div className="h-40 px-4 py-4" style={{ backgroundColor: style.bg }}>
+                                <p className="font-serif text-base font-semibold text-parchment">
+                                  {form.title || "Book title"}
+                                </p>
+                                <p className="mt-1 text-xs" style={{ color: style.accent }}>
+                                  {form.authorName || "Author name"}
+                                </p>
+                              </div>
+                              <div className="flex items-center justify-between gap-3 border-t border-parchment-deep/85 bg-white/92 px-3 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-ink-muted">{style.icon}</span>
+                                  <div>
+                                    <p className="text-sm font-medium text-ink">{style.label}</p>
+                                    <p className="text-xs text-ink-faint">{style.description}</p>
+                                  </div>
+                                </div>
+                                <span
+                                  className={cn(
+                                    "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
+                                    selected
+                                      ? "border-gold bg-gold text-parchment"
+                                      : "border-parchment-deep text-transparent group-hover:text-ink-faint"
+                                  )}
+                                >
+                                  <Check className="h-3 w-3" />
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </StepPanel>
                 </div>
@@ -441,40 +445,42 @@ export default function NewBookPage() {
                   </div>
 
                   <StepPanel sectionTitle="Review">
-                    <div className="space-y-3">
-                    <div className="overflow-hidden rounded-lg border border-parchment-deep/80">
-                      <div className="h-32 px-5 py-4" style={{ backgroundColor: selectedStyle.bg }}>
-                        <p className="font-serif text-xl font-semibold leading-tight text-parchment">{form.title}</p>
-                        <p className="mt-1 text-sm" style={{ color: selectedStyle.accent }}>
-                          {form.authorName || "Author"}
-                        </p>
-                      </div>
-                      <dl className="divide-y divide-parchment-deep/80 bg-white">
-                        <div className="flex items-center justify-between px-4 py-3 text-sm">
-                          <dt className="text-ink-faint">Genre</dt>
-                          <dd className="font-medium text-ink">{form.genre}</dd>
+                    <div className="rounded-xl border border-parchment-deep bg-white p-5 sm:p-6">
+                      <div className="space-y-4">
+                        <div className="overflow-hidden rounded-lg border border-parchment-deep/80">
+                          <div className="h-32 px-5 py-4" style={{ backgroundColor: selectedStyle.bg }}>
+                            <p className="font-serif text-xl font-semibold leading-tight text-parchment">{form.title}</p>
+                            <p className="mt-1 text-sm" style={{ color: selectedStyle.accent }}>
+                              {form.authorName || "Author"}
+                            </p>
+                          </div>
+                          <dl className="divide-y divide-parchment-deep/80 bg-white">
+                            <div className="flex items-center justify-between px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Genre</dt>
+                              <dd className="font-medium text-ink">{form.genre}</dd>
+                            </div>
+                            <div className="flex items-center justify-between px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Status</dt>
+                              <dd className="font-medium capitalize text-ink">{form.status}</dd>
+                            </div>
+                            <div className="flex items-center justify-between px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Target word count</dt>
+                              <dd className="font-medium text-ink">{form.targetWordCount.toLocaleString()} words</dd>
+                            </div>
+                            <div className="flex items-center justify-between px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Cover style</dt>
+                              <dd className="font-medium text-ink">{selectedStyle.label}</dd>
+                            </div>
+                          </dl>
                         </div>
-                        <div className="flex items-center justify-between px-4 py-3 text-sm">
-                          <dt className="text-ink-faint">Status</dt>
-                          <dd className="font-medium capitalize text-ink">{form.status}</dd>
-                        </div>
-                        <div className="flex items-center justify-between px-4 py-3 text-sm">
-                          <dt className="text-ink-faint">Target word count</dt>
-                          <dd className="font-medium text-ink">{form.targetWordCount.toLocaleString()} words</dd>
-                        </div>
-                        <div className="flex items-center justify-between px-4 py-3 text-sm">
-                          <dt className="text-ink-faint">Cover style</dt>
-                          <dd className="font-medium text-ink">{selectedStyle.label}</dd>
-                        </div>
-                      </dl>
-                    </div>
 
-                    {form.blurb.trim().length > 0 && (
-                      <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">Blurb</p>
-                        <p className="mt-1 text-sm leading-relaxed text-ink-muted">{form.blurb}</p>
+                        {form.blurb.trim().length > 0 && (
+                          <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 px-4 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">Blurb</p>
+                            <p className="mt-1 text-sm leading-relaxed text-ink-muted">{form.blurb}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
                     </div>
                   </StepPanel>
                 </div>
