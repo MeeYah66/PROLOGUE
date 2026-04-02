@@ -113,14 +113,14 @@ function StepPanel({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[22px] border border-parchment-deep/75 bg-[#e9e5dc] pt-3 px-0 pb-0",
+        "rounded-2xl bg-parchment-warm/50 pt-4 overflow-hidden border border-parchment-deep shadow-[0px_2px_8px_rgba(0,0,0,0.04)]",
         className
       )}
     >
-      <div className="px-6 pb-3 sm:px-8">
+      <div className="px-4 pb-3">
         <h3 className="text-[16px] font-medium leading-tight text-ink">{sectionTitle}</h3>
       </div>
-      <div className="rounded-t-[18px] border border-parchment-deep/75 bg-white p-4 shadow-[0_1px_2px_rgba(26,20,16,0.06)] sm:p-6">
+      <div className="bg-white px-4 py-4 sm:px-5 sm:py-5">
         {children}
       </div>
     </section>
@@ -237,10 +237,10 @@ export default function NewBookPage() {
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
                       {STEP_COPY[1].eyebrow}
                     </p>
-                    <h1 className="mt-1 font-serif text-[2rem] font-semibold leading-tight text-ink">
+                    <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-ink">
                       {STEP_COPY[1].title}
                     </h1>
-                    <p className="mt-1 text-[1rem] leading-relaxed text-ink-muted">
+                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">
                       {STEP_COPY[1].description}
                     </p>
                   </div>
@@ -367,10 +367,10 @@ export default function NewBookPage() {
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
                       {STEP_COPY[2].eyebrow}
                     </p>
-                    <h1 className="mt-1 font-serif text-[2rem] font-semibold leading-tight text-ink">
+                    <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-ink">
                       {STEP_COPY[2].title}
                     </h1>
-                    <p className="mt-1 text-[1rem] leading-relaxed text-ink-muted">
+                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">
                       {STEP_COPY[2].description}
                     </p>
                   </div>
@@ -432,10 +432,10 @@ export default function NewBookPage() {
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
                       {STEP_COPY[3].eyebrow}
                     </p>
-                    <h1 className="mt-1 font-serif text-[2rem] font-semibold leading-tight text-ink">
+                    <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-ink">
                       {STEP_COPY[3].title}
                     </h1>
-                    <p className="mt-1 text-[1rem] leading-relaxed text-ink-muted">
+                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">
                       {STEP_COPY[3].description}
                     </p>
                   </div>
