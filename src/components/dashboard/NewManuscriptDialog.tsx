@@ -64,7 +64,7 @@ function ChoiceCard({
       </div>
 
       <div className="flex items-center gap-2 mb-1.5">
-        <p className="font-serif text-[1.28rem] font-semibold text-ink leading-[1.2] tracking-tight">{title}</p>
+        <p className="font-serif text-[1.1rem] font-semibold text-ink leading-snug tracking-tight">{title}</p>
         {isPrimary && (
           <span className="inline-flex h-5 items-center rounded-full bg-gold/12 px-2 text-[9px] uppercase tracking-[0.16em] text-amber-label font-semibold">
             Recommended
@@ -74,7 +74,7 @@ function ChoiceCard({
 
       <p className="text-sm text-ink-muted leading-relaxed mb-2.5">{description}</p>
       {microcopy && (
-        <p className="text-[13px] text-ink-faint leading-relaxed mb-4">
+        <p className="text-xs text-ink-faint leading-relaxed mb-4">
           {microcopy}
         </p>
       )}

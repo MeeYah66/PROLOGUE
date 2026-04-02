@@ -345,7 +345,7 @@ export default function ImportManuscriptPage() {
 
         <div className="max-w-5xl mx-auto px-4 md:px-8 pt-8">
           <div className={cn("max-w-[780px]", stage === "upload" ? "mb-5" : "mb-8")}>
-            <h1 className="font-serif text-[2.35rem] md:text-[2.75rem] leading-[1.02] font-semibold text-ink tracking-tight text-balance">
+            <h1 className="font-serif text-[2rem] md:text-[2.25rem] leading-tight font-semibold text-ink tracking-tight text-balance">
               Continue writing where you left off.
             </h1>
             <p className="text-sm text-ink-muted mt-3 max-w-[700px] leading-relaxed">
@@ -360,11 +360,11 @@ export default function ImportManuscriptPage() {
                   data-drag={dragActive ? "true" : "false"}
                   className={cn(
                     "group relative w-full rounded-[1.35rem] border border-parchment-deep/70 bg-parchment-warm/92 px-4 sm:px-6 py-4 sm:py-5 text-left",
-                    "shadow-[0_8px_22px_rgba(28,21,10,0.08)] transition-all duration-200",
-                    "hover:-translate-y-px hover:bg-parchment-warm hover:shadow-[0_14px_28px_rgba(28,21,10,0.13)]",
+                    "shadow-[0_3px_12px_rgba(28,21,10,0.06)] transition-all duration-200",
+                    "hover:-translate-y-px hover:bg-parchment-warm hover:shadow-[0_6px_16px_rgba(28,21,10,0.1)]",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/45 focus-visible:ring-offset-2 focus-visible:ring-offset-parchment",
                     dragActive &&
-                      "border-gold/45 bg-gold/14 shadow-[0_0_0_2px_rgba(201,168,76,0.30),0_14px_28px_rgba(28,21,10,0.1)]"
+                      "border-gold/45 bg-gold/14 shadow-[0_0_0_2px_rgba(201,168,76,0.30),0_6px_16px_rgba(28,21,10,0.1)]"
                   )}
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(event) => {
@@ -393,10 +393,10 @@ export default function ImportManuscriptPage() {
                     </span>
 
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[1rem] sm:text-[1.03rem] leading-tight font-medium text-ink">
+                      <span className="block text-sm leading-tight font-medium text-ink">
                         Upload your manuscript
                       </span>
-                      <span className="block text-xs sm:text-[12.5px] text-ink-muted/95 mt-1">
+                      <span className="block text-xs text-ink-muted/95 mt-1">
                         Drag and drop or choose a file (.docx, .txt, .pdf)
                       </span>
                     </span>
@@ -417,7 +417,7 @@ export default function ImportManuscriptPage() {
 
                 <Link
                   href="/books/new"
-                  className="inline-flex mt-3.5 text-[13px] text-ink-faint hover:text-ink-muted underline-offset-4 hover:underline"
+                  className="inline-flex mt-3.5 text-xs text-ink-faint hover:text-ink-muted underline-offset-4 hover:underline"
                 >
                   Prefer to start fresh? Create a blank manuscript -&gt;
                 </Link>
@@ -430,14 +430,14 @@ export default function ImportManuscriptPage() {
           )}
 
           {stage === "processing" && (
-            <div className="animate-fade-in max-w-2xl rounded-2xl border border-parchment-deep bg-white p-7 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+            <div className="animate-fade-in max-w-2xl rounded-2xl border border-parchment-deep bg-parchment p-6 shadow-[0_4px_14px_rgba(0,0,0,0.06)]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-parchment-warm border border-parchment-deep flex items-center justify-center">
                   <Loader2 className="w-4.5 h-4.5 text-ink-muted animate-spin" />
                 </div>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.17em] text-ink-faint font-medium mb-1">Importing</p>
-                  <h2 className="font-serif text-2xl font-semibold text-ink">Structuring your manuscript...</h2>
+                  <h2 className="font-serif text-xl font-semibold text-ink">Structuring your manuscript...</h2>
                 </div>
               </div>
               <p className="text-sm text-ink-muted mb-4">{PROCESSING_MESSAGES[processingIndex]}</p>
@@ -446,12 +446,12 @@ export default function ImportManuscriptPage() {
           )}
 
           {stage === "importing" && (
-            <div className="animate-fade-in max-w-2xl rounded-2xl border border-parchment-deep bg-white p-7 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+            <div className="animate-fade-in max-w-2xl rounded-2xl border border-parchment-deep bg-parchment p-6 shadow-[0_4px_14px_rgba(0,0,0,0.06)]">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-parchment-warm border border-parchment-deep flex items-center justify-center">
                   <Loader2 className="w-4.5 h-4.5 text-ink-muted animate-spin" />
                 </div>
-                <h2 className="font-serif text-2xl font-semibold text-ink">Building your writing studio...</h2>
+                <h2 className="font-serif text-xl font-semibold text-ink">Building your writing studio...</h2>
               </div>
               <p className="text-sm text-ink-muted leading-relaxed">
                 We are creating your book, attaching chapter content, and opening your manuscript in the editor.
@@ -461,13 +461,13 @@ export default function ImportManuscriptPage() {
 
           {stage === "review" && detected && (
             <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
-              <div className="rounded-2xl border border-parchment-deep bg-white p-5 md:p-6">
+              <div className="rounded-2xl border border-parchment-deep bg-parchment p-5 md:p-6">
                 <div className="flex items-center justify-between gap-3 mb-5">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.17em] text-amber-label font-semibold mb-1">
                       Review structure
                     </p>
-                    <h2 className="font-serif text-2xl font-semibold text-ink leading-tight">
+                    <h2 className="font-serif text-xl font-semibold text-ink leading-tight">
                       Confirm chapters before import
                     </h2>
                   </div>
@@ -523,13 +523,13 @@ export default function ImportManuscriptPage() {
                           </Badge>
                         </div>
 
-                        <div className="bg-white/95 px-3 py-3.5">
+                        <div className="bg-parchment px-3 py-3.5">
                           <div className="flex-1 min-w-0">
                             <Input
                               value={chapter.title}
                               onChange={(event) => renameChapter(index, event.target.value)}
                               aria-label={`Chapter ${index + 1} title`}
-                              className="font-serif h-10 mb-2 bg-white border-parchment-deep/95 shadow-[inset_0_1px_2px_rgba(26,20,8,0.06)] hover:border-ink-faint/80 focus-visible:border-gold/70 focus-visible:ring-2 focus-visible:ring-gold/35"
+                              className="font-serif h-10 mb-2 bg-parchment-warm border-parchment-deep/95 shadow-[inset_0_1px_2px_rgba(26,20,8,0.04)] hover:border-ink-faint/80 focus-visible:border-gold/70 focus-visible:ring-2 focus-visible:ring-gold/35"
                             />
                             <p className="text-xs text-ink-muted leading-relaxed line-clamp-1">
                               {chapterSnippet(chapter.content)}
@@ -540,7 +540,7 @@ export default function ImportManuscriptPage() {
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-7 text-xs bg-white"
+                              className="h-7 text-xs bg-parchment"
                               disabled={index === 0}
                               onClick={() => mergeWithPrevious(index)}
                             >
@@ -551,7 +551,7 @@ export default function ImportManuscriptPage() {
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-7 text-xs bg-white"
+                              className="h-7 text-xs bg-parchment"
                               disabled={!splitAvailable}
                               onClick={() => splitChapter(index)}
                             >
@@ -566,24 +566,24 @@ export default function ImportManuscriptPage() {
                 </div>
               </div>
 
-              <aside className="rounded-2xl border border-parchment-deep bg-white p-4 md:p-5 sticky top-6">
+              <aside className="rounded-2xl border border-parchment-deep bg-parchment p-4 md:p-5 sticky top-6">
                 <p className="text-[11px] uppercase tracking-[0.17em] text-ink-faint font-medium mb-1.5">
                   Import summary
                 </p>
-                <h3 className="font-serif text-xl font-semibold text-ink mb-3 leading-tight">
+                <h3 className="font-serif text-lg font-semibold text-ink mb-3 leading-tight">
                   {bookTitle || "Imported manuscript"}
                 </h3>
 
                 <div className="space-y-2.5 mb-4">
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-ink-muted">Detected sections</span>
                     <span className="font-medium text-ink">{chapters.length}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-ink-muted">Total words</span>
                     <span className="font-medium text-ink">{totalWords.toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-ink-muted">Source file</span>
                     <span className="font-medium text-ink uppercase">{detected.sourceType}</span>
                   </div>
