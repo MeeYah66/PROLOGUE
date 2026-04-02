@@ -3,12 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/context";
-import { BrandLogo, BrandMark } from "@/components/brand/BrandLogo";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
-// ─── Google icon (inline SVG — no external dep) ───────────────────────────
 function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
@@ -20,18 +19,17 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-// Shared input style — warm tint bg, softened border, gold focus glow
 const INPUT =
-  "w-full h-12 px-4 rounded-xl border border-parchment-deep/70 bg-parchment/50 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-gold/40 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
+  "w-full h-11 px-3.5 rounded-[12px] border border-ink/12 bg-[#f6f3ec]/92 text-[15px] text-ink placeholder:text-ink-faint/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] focus:outline-none focus:border-gold/65 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
 
 export default function SignInPage() {
   const { signIn, signInWithGoogle } = useAuth();
-  const router                        = useRouter();
-  const [email, setEmail]            = useState("");
-  const [password, setPassword]      = useState("");
-  const [showPass, setShowPass]      = useState(false);
-  const [error, setError]            = useState("");
-  const [loading, setLoading]        = useState(false);
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,7 +51,6 @@ export default function SignInPage() {
     setGoogleLoading(true);
     try {
       await signInWithGoogle();
-      // Page will redirect via OAuth
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setGoogleLoading(false);
@@ -61,199 +58,326 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-parchment">
+    <div className="relative min-h-screen overflow-hidden bg-[#f2efe8]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(232,201,122,0.16),transparent_38%),radial-gradient(circle_at_84%_82%,rgba(201,168,76,0.13),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.46] bg-[repeating-linear-gradient(to_bottom,rgba(56,45,30,0.085)_0px,rgba(56,45,30,0.085)_1px,transparent_1px,transparent_30px)]" />
+      <div className="pointer-events-none absolute inset-y-0 left-7 w-[1.5px] bg-gradient-to-b from-transparent via-[#b08f4f]/62 to-transparent sm:left-[8.5%]" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage: "radial-gradient(rgba(78,62,38,0.6) 0.55px, transparent 0.55px)",
+          backgroundSize: "2.8px 2.8px",
+        }}
+      />
+      <div className="pointer-events-none absolute inset-0 opacity-45 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.44)_0%,rgba(243,236,224,0.22)_45%,rgba(232,223,206,0.28)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.5),transparent_58%)]" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden quill-motion">
+        <svg
+          className="absolute inset-0 h-full w-full opacity-60"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="signinInk" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(144,111,43,0.18)" />
+              <stop offset="52%" stopColor="rgba(168,132,52,0.45)" />
+              <stop offset="100%" stopColor="rgba(132,103,38,0.2)" />
+            </linearGradient>
+          </defs>
 
-      {/* ── LEFT — auth area ──────────────────────────────────────────────── */}
-      <div className="flex-1 md:flex-none md:w-[46%] flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-16 min-h-screen md:min-h-0 bg-parchment">
-        <div className="w-full max-w-[360px] mx-auto">
+          <path
+            d="M130 248 C 420 246, 860 250, 1240 247"
+            fill="none"
+            stroke="url(#signinInk)"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            className="writing-line writing-line-a"
+          />
+          <path
+            d="M140 380 C 430 378, 850 382, 1220 380"
+            fill="none"
+            stroke="url(#signinInk)"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            className="writing-line writing-line-b"
+          />
+          <path
+            d="M150 512 C 440 510, 830 513, 1180 510"
+            fill="none"
+            stroke="url(#signinInk)"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            className="writing-line writing-line-c"
+          />
 
-          {/* Logo */}
-          <BrandLogo className="mb-12 gap-2" />
-
-          {/* Headline */}
-          <div className="mb-9">
-            <h1 className="font-serif text-[2rem] font-semibold text-ink leading-[1.18] tracking-tight mb-3">
-              Welcome back.
-            </h1>
-            <p className="text-sm text-ink-muted leading-relaxed">
-              Your manuscripts are waiting.<br className="hidden sm:block" /> Sign in to continue your story.
-            </p>
-          </div>
-
-          {/* Google SSO */}
-          <div className="space-y-2.5 mb-6">
-            <button
-              type="button"
-              onClick={handleGoogle}
-              disabled={googleLoading}
-              className={cn(
-                "w-full flex items-center justify-center gap-3 h-12 rounded-xl border border-parchment-deep/70 bg-parchment/50 text-ink text-sm font-medium transition-all duration-200",
-                "hover:bg-parchment-warm hover:border-ink/20 active:scale-[0.99]",
-                "disabled:opacity-50 disabled:cursor-not-allowed"
-              )}
-            >
-              {googleLoading ? (
-                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                </svg>
-              ) : (
-                <GoogleIcon className="w-4 h-4 shrink-0" />
-              )}
-              Continue with Google
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-parchment-deep/60" />
-            <span className="text-[11px] text-ink-faint font-sans tracking-wider uppercase">sign in</span>
-            <div className="flex-1 h-px bg-parchment-deep/60" />
-          </div>
-
-          {/* Sign in form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoFocus
-              className={INPUT}
+          <g className="animate-quill-write">
+            <path
+              d="M2 10 C 2 4 7 1 12 1 C 16 1 18 3 19 7 C 20 10 19 13 16 16 L9 23 L2 10 Z"
+              fill="rgba(45,36,23,0.88)"
             />
-            <div className="relative">
-              <input
-                type={showPass ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className={cn(INPUT, "pr-10")}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink transition-colors duration-200"
-                tabIndex={-1}
-              >
-                {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+            <path
+              d="M10 21 L15 26 L8 27 Z"
+              fill="rgba(151,118,47,0.95)"
+            />
+          </g>
+        </svg>
+      </div>
+
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-7 sm:px-8">
+        <header className="flex items-center justify-between">
+          <BrandLogo className="gap-2.5" />
+          <span className="hidden rounded-full border border-ink/10 bg-white/70 px-4 py-1.5 text-xs font-medium text-ink-muted backdrop-blur-sm sm:inline-flex">
+            Novel Writing Studio
+          </span>
+        </header>
+
+        <main className="mx-auto my-auto w-full max-w-[500px]">
+          <section className="rounded-[26px] border border-white/75 bg-white/56 px-6 py-7 shadow-[0_34px_66px_-34px_rgba(26,20,8,0.46)] backdrop-blur-xl sm:px-8 sm:py-8">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-[10px] border border-gold/35 bg-[#f6f2e8]/88 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-label shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+                <Sparkles className="h-3 w-3 text-gold/90" />
+                Resume Writing Session
+              </div>
+              <h1 className="font-serif text-[2.1rem] font-semibold leading-[1.08] tracking-tight text-ink sm:text-[2.35rem]">
+                Welcome back to Prologue
+              </h1>
+              <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-ink-muted">
+                Sign in to continue shaping your manuscript, one clean page at a time.
+              </p>
+              <p className="mx-auto mt-2 max-w-sm font-serif text-[13px] italic leading-relaxed text-[#6e614d]">
+                Your story has been waiting for you.
+              </p>
             </div>
 
-            {error && (
-              <p className="text-xs text-red-500 px-1">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !email.trim() || !password}
-              className={cn(
-                "w-full h-11 rounded-xl bg-ink text-parchment text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200",
-                "hover:bg-ink-soft active:scale-[0.99]",
-                "disabled:opacity-40 disabled:cursor-not-allowed"
-              )}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={googleLoading}
+                className={cn(
+                  "inline-flex h-11 w-full items-center justify-center gap-2 rounded-[12px] border border-ink/12 bg-[#f6f3ec]/92 px-4 text-sm font-medium text-ink transition-all duration-200",
+                  "hover:border-ink/20 hover:bg-[#f8f4ec] active:scale-[0.995]",
+                  "disabled:cursor-not-allowed disabled:opacity-50"
+                )}
+              >
+                {googleLoading ? (
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
-                  Signing in…
-                </span>
-              ) : (
-                <>
-                  Continue to Studio
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </>
-              )}
-            </button>
-          </form>
+                ) : (
+                  <GoogleIcon className="h-4 w-4 shrink-0" />
+                )}
+                Continue with Google
+              </button>
+            </div>
 
-          {/* Sign up link */}
-          <p className="mt-6 text-center text-xs text-ink-faint">
-            New to Prologue?{" "}
-            <Link href="/signup" className="text-ink-muted underline-offset-2 hover:underline hover:text-ink transition-colors duration-200">
-              Create an account
-            </Link>
-          </p>
-        </div>
-      </div>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-ink/10" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-faint">or sign in with email</span>
+              <div className="h-px flex-1 bg-ink/10" />
+            </div>
 
-      {/* ── RIGHT — immersive visual panel ─────────────────────────────────── */}
-      <div className="hidden md:flex flex-1 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVl1eegQCwkzrn7F1r8u6mfYfX86Pi6gRTrMLaQx-H6wZwTkT7v2DXWkshAIbQsBfH6SpwIKxbTIQFhvr1G_N9GwHrABAwI0edq9Lco95VQ9GDzPke7dwa9lGy3eRn7zpo_zeSF994FmD5OZ1_uRbyMccHl-5f2JCpO_vtEcrK9IfaZRKOtDsFSkzIgRYk1nJ1hXFJA0C61DzvxO9bT0pxg73RMQBSRUll3fVrQuxyWjFgAyQrBZfQiVaGJNL2-Wj3DCMJ6ajMFEUb"
-            alt="Quiet library atmosphere"
-            className="w-full h-full object-cover"
-          />
-          {/* Ambient tint */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to top right, rgba(45,52,51,0.72) 0%, rgba(45,52,51,0.22) 50%, transparent 100%)",
-            }}
-          />
-          {/* Bottom gradient — anchors the quote text against any image variation */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to top, rgba(8,10,10,0.68) 0%, rgba(8,10,10,0.28) 38%, transparent 62%)",
-            }}
-          />
-        </div>
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+                className={INPUT}
+              />
 
-        {/* Quote — bottom */}
-        <div className="relative z-10 h-full flex flex-col justify-end p-16 pointer-events-none">
-          <div className="max-w-xl space-y-5">
-            <div className="w-12 h-px bg-white/30" />
-            <blockquote className="font-serif italic text-4xl lg:text-5xl leading-tight font-light text-white/88">
-              "The page remembers every word you left on it."
-            </blockquote>
-            <p className="font-sans text-sm uppercase tracking-[0.2em] text-white/50">
-              Prologue Studio
+              <div className="relative">
+                <input
+                  type={showPass ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className={cn(INPUT, "pr-11")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint transition-colors hover:text-ink"
+                  tabIndex={-1}
+                >
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+
+              {error && <p className="px-1 text-xs text-red-500">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading || !email.trim() || !password}
+                className={cn(
+                  "mt-1 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[12px] bg-ink px-4 text-sm font-medium text-parchment transition-all duration-200",
+                  "hover:bg-ink-soft active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-45"
+                )}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Signing in...
+                  </span>
+                ) : (
+                  <>
+                    Continue to Studio
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="mt-5 text-center text-[12px] text-ink-faint">
+              New to Prologue?{" "}
+              <Link href="/signup" className="font-medium text-ink-muted underline-offset-2 transition-colors hover:text-ink hover:underline">
+                Create an account
+              </Link>
             </p>
-          </div>
-        </div>
-
-        {/* Glass chip — top right */}
-        <div
-          className="absolute top-10 right-10 z-10 px-5 py-2.5 rounded-full flex items-center gap-2.5 border border-white/10"
-          style={{
-            background: "rgba(255,255,255,0.82)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}
-        >
-          <span className="w-2 h-2 rounded-full bg-[#4d635f]" />
-          <span className="font-sans text-[0.62rem] uppercase tracking-widest text-[#5a6060] font-medium">
-            Your Studio Awaits
-          </span>
-        </div>
+          </section>
+        </main>
       </div>
 
-      {/* ── MOBILE header ─────────────────────────────────────────────────── */}
-      <div
-        className="md:hidden w-full h-48 relative overflow-hidden order-first"
-        style={{ backgroundColor: "#100e0c" }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            background: "radial-gradient(ellipse 100% 80% at 50% 60%, rgba(60,42,24,0.7) 0%, transparent 70%)",
-          }}
-        />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <BrandMark className="h-7 w-6 opacity-75" />
-          <p className="font-serif italic text-sm text-parchment/60 tracking-wide">
-            Welcome back to your story.
-          </p>
-        </div>
-      </div>
+      <style jsx>{`
+        .writing-line {
+          stroke-dasharray: 1300;
+          stroke-dashoffset: 1300;
+          opacity: 0;
+        }
 
+        .writing-line-a {
+          animation: signinWriteLineA 18s linear infinite;
+        }
+
+        .writing-line-b {
+          animation: signinWriteLineB 18s linear infinite;
+        }
+
+        .writing-line-c {
+          animation: signinWriteLineC 18s linear infinite;
+        }
+
+        .animate-quill-write {
+          animation: signinQuillWrite 18s linear infinite;
+          transform-origin: center;
+        }
+
+        @keyframes signinWriteLineA {
+          0% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+          2% {
+            opacity: 0.42;
+          }
+          30% {
+            stroke-dashoffset: 0;
+            opacity: 0.38;
+          }
+          92% {
+            stroke-dashoffset: 0;
+            opacity: 0.08;
+          }
+          100% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+        }
+
+        @keyframes signinWriteLineB {
+          0%,
+          32% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+          35% {
+            opacity: 0.4;
+          }
+          62% {
+            stroke-dashoffset: 0;
+            opacity: 0.36;
+          }
+          92% {
+            stroke-dashoffset: 0;
+            opacity: 0.08;
+          }
+          100% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+        }
+
+        @keyframes signinWriteLineC {
+          0%,
+          66% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+          70% {
+            opacity: 0.38;
+          }
+          96% {
+            stroke-dashoffset: 0;
+            opacity: 0.34;
+          }
+          100% {
+            stroke-dashoffset: 1300;
+            opacity: 0;
+          }
+        }
+
+        @keyframes signinQuillWrite {
+          0% {
+            transform: translate(130px, 248px) rotate(11deg);
+          }
+          28% {
+            transform: translate(1240px, 248px) rotate(-5deg);
+          }
+          33% {
+            transform: translate(1260px, 228px) rotate(-11deg);
+          }
+          38% {
+            transform: translate(140px, 382px) rotate(10deg);
+          }
+          62% {
+            transform: translate(1220px, 382px) rotate(-5deg);
+          }
+          67% {
+            transform: translate(1240px, 362px) rotate(-10deg);
+          }
+          72% {
+            transform: translate(150px, 512px) rotate(10deg);
+          }
+          96% {
+            transform: translate(1180px, 512px) rotate(-4deg);
+          }
+          100% {
+            transform: translate(1205px, 496px) rotate(-9deg);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .writing-line-a,
+          .writing-line-b,
+          .writing-line-c,
+          .animate-quill-write {
+            animation: none !important;
+          }
+
+          .quill-motion {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
+
