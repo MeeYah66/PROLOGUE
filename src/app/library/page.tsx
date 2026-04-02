@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Search, Menu, Bell, Moon, Sun, X, PenLine, BookOpen, Feather } from "lucide-react";
+import { Plus, Search, Menu, Bell, Moon, Sun, X, PenLine, BookOpen, Feather, Download } from "lucide-react";
 import { getBooks, deleteBook } from "@/lib/store";
 import type { Book } from "@/lib/types";
 import { totalWordCount } from "@/lib/utils";
@@ -260,12 +260,20 @@ export default function LibraryPage() {
             </div>
 
             {books.length > 0 && (
-              <Link href="/books/new" className="shrink-0">
-                <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors duration-200 shadow-sm whitespace-nowrap">
-                  <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                  New Manuscript
-                </button>
-              </Link>
+              <div className="shrink-0 flex items-center gap-2">
+                <Link href="/export">
+                  <button className="flex items-center gap-1.5 bg-parchment text-ink px-4 py-2 rounded-lg border border-parchment-deep font-sans font-medium text-sm hover:bg-parchment-warm transition-colors duration-200 whitespace-nowrap">
+                    <Download className="w-3.5 h-3.5" strokeWidth={2.2} />
+                    Export Manuscript
+                  </button>
+                </Link>
+                <Link href="/books/new">
+                  <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors duration-200 shadow-sm whitespace-nowrap">
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                    New Manuscript
+                  </button>
+                </Link>
+              </div>
             )}
           </div>
 
