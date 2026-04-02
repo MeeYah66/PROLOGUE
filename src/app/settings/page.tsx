@@ -154,14 +154,6 @@ export default function SettingsPage() {
 
         <div className="max-w-2xl mx-auto px-8 py-8 space-y-8">
           <section>
-            <h2 className="font-serif text-base font-semibold text-ink mb-1">Export & Share</h2>
-            <p className="text-xs text-ink-faint mb-4">
-              You can export from here, and also from Library for a faster workflow.
-            </p>
-            <ExportCenter />
-          </section>
-
-          <section>
             <h2 className="font-serif text-base font-semibold text-ink mb-1">Editor Preferences</h2>
             <p className="text-xs text-ink-faint mb-4">
               Customise your writing environment.
@@ -221,6 +213,14 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-base font-semibold text-ink mb-1">Export & Share</h2>
+            <p className="text-xs text-ink-faint mb-4">
+              You can export from here, and also from Library for a faster workflow.
+            </p>
+            <ExportCenter />
           </section>
 
           <section>

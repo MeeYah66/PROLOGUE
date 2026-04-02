@@ -120,7 +120,7 @@ export function ExportCenter({ className }: { className?: string }) {
           if (current && items.some((book) => book.id === current)) {
             return current;
           }
-          return items[0]?.id ?? "";
+          return "";
         });
       })
       .finally(() => {
@@ -373,11 +373,14 @@ export function ExportCenter({ className }: { className?: string }) {
         <p className="text-[10px] uppercase tracking-[0.17em] font-semibold text-amber-label mb-2">
           Selected manuscript
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_300px] gap-3 items-end">
           <div>
-            <Select value={selectedBookId} onValueChange={setSelectedBookId}>
-              <SelectTrigger className="bg-parchment-warm">
-                <SelectValue placeholder="Choose manuscript" />
+            <Select
+              value={selectedBookId || undefined}
+              onValueChange={setSelectedBookId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select manuscript to export..." />
               </SelectTrigger>
               <SelectContent>
                 {books.map((book) => (
@@ -388,14 +391,18 @@ export function ExportCenter({ className }: { className?: string }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="rounded-lg border border-parchment-deep bg-parchment-warm px-3 py-2">
-            <div className="flex items-center justify-between text-xs">
+          <div className="h-10 rounded-lg border border-parchment-deep bg-parchment px-3.5 flex items-center justify-between gap-5">
+            <div className="flex items-center gap-1.5 text-xs">
               <span className="text-ink-muted">Chapters</span>
-              <span className="font-medium text-ink">{selectedBookChapters}</span>
+              <span className="font-medium text-ink">
+                {selectedBook ? selectedBookChapters : "—"}
+              </span>
             </div>
-            <div className="mt-1 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5 text-xs">
               <span className="text-ink-muted">Words</span>
-              <span className="font-medium text-ink">{selectedBookWords.toLocaleString()}</span>
+              <span className="font-medium text-ink">
+                {selectedBook ? selectedBookWords.toLocaleString() : "—"}
+              </span>
             </div>
           </div>
         </div>
