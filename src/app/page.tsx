@@ -31,6 +31,7 @@ import { AmbientButton } from "@/components/ambient/AmbientButton";
 import { NewManuscriptDialog } from "@/components/dashboard/NewManuscriptDialog";
 import { cn } from "@/lib/utils";
 import { LinenBookThumbnail } from "@/components/cover/LinenBookThumbnail";
+import { useWritingSettings } from "@/lib/writing-settings";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -408,7 +409,7 @@ function QuickCapture() {
 
 // ─── Daily Goal ───────────────────────────────────────────────────────────────
 
-function DailyGoal({ wordsToday }: { wordsToday: number }) {
+function DailyGoal({ wordsToday, enabled }: { wordsToday: number; enabled: boolean }) {
   const [goal, setGoal]       = useState(0);
   const [hasGoal, setHasGoal] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -436,6 +437,26 @@ function DailyGoal({ wordsToday }: { wordsToday: number }) {
 
   const pct = hasGoal ? Math.min(Math.round((wordsToday / goal) * 100), 100) : 0;
   const met = hasGoal && wordsToday >= goal;
+
+  if (!enabled) {
+    return (
+      <div className="rounded-xl border border-parchment-deep/60 bg-white p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Target className="h-3.5 w-3.5 text-ink-faint" strokeWidth={1.5} />
+          <h3 className="font-serif text-sm font-semibold text-ink">Daily Goal</h3>
+        </div>
+        <p className="text-[12px] leading-relaxed text-ink-muted">
+          Daily goal tracking is turned off in Settings.
+        </p>
+        <Link
+          href="/settings"
+          className="mt-3 inline-flex text-[11px] font-medium text-ink-muted underline-offset-2 transition-colors hover:text-ink hover:underline"
+        >
+          Enable it in Writing Tools
+        </Link>
+      </div>
+    );
+  }
 
   // ── No goal set yet ─────────────────────────────────────────────────────────
   if (!hasGoal && !editing) {
@@ -695,6 +716,7 @@ function RecentManuscripts({ books }: { books: Book[] }) {
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
+  const { settings: writingSettings } = useWritingSettings(user?.id);
   const [books, setBooks]           = useState<Book[]>([]);
   const [booksReady, setBooksReady] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -799,7 +821,7 @@ export default function DashboardPage() {
 
             {/* Right — Daily Goal + Activity + Snapshot in a shared frame */}
             <div className="rounded-2xl border border-parchment-deep/60 bg-white p-3 flex flex-col gap-3">
-              <DailyGoal wordsToday={wordsToday} />
+              <DailyGoal wordsToday={wordsToday} enabled={writingSettings.dailyWordGoalEnabled} />
               <WeeklyActivity books={books} />
               <WriterSnapshot books={books} />
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
@@ -25,6 +25,8 @@ import {
   Quote,
   List,
   ListOrdered,
+  Save,
+  Timer,
 } from "lucide-react";
 import type { Chapter } from "@/lib/types";
 import { countWords, estimateReadingTime } from "@/lib/utils";
@@ -38,6 +40,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/lib/auth/context";
+import { useWritingSettings } from "@/lib/writing-settings";
 
 interface WritingEditorProps {
   chapter: Chapter;
@@ -46,9 +50,8 @@ interface WritingEditorProps {
   onToggleFocusMode: () => void;
 }
 
-// ── Toolbar primitives ────────────────────────────────────────────────────────
 function ToolbarDivider() {
-  return <div className="w-px h-4 bg-parchment-deep mx-0.5 shrink-0" />;
+  return <div className="mx-0.5 h-4 w-px shrink-0 bg-parchment-deep" />;
 }
 
 function ToolbarBtn({
@@ -67,51 +70,41 @@ function ToolbarBtn({
       <TooltipTrigger asChild>
         <button
           type="button"
-          // preventDefault keeps editor focus while clicking toolbar
-          onMouseDown={(e) => { e.preventDefault(); onClick(); }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            onClick();
+          }}
           className={cn(
-            "w-7 h-7 flex items-center justify-center rounded transition-colors",
-            active
-              ? "bg-ink/10 text-ink"
-              : "text-ink-faint hover:text-ink hover:bg-parchment-warm"
+            "flex h-7 w-7 items-center justify-center rounded transition-colors",
+            active ? "bg-ink/10 text-ink" : "text-ink-faint hover:bg-parchment-warm hover:text-ink"
           )}
         >
           {children}
         </button>
       </TooltipTrigger>
-      <TooltipContent side="bottom" className="text-xs">{title}</TooltipContent>
+      <TooltipContent side="bottom" className="text-xs">
+        {title}
+      </TooltipContent>
     </Tooltip>
   );
 }
 
-// ── Style preserver ───────────────────────────────────────────────────────────
-// Adds `style` + `class` attributes to all block node types and extends
-// TextStyle so inline CSS from pasted HTML (ChatGPT, Google Docs, etc.) is
-// retained in the schema and not stripped on paste.
 const StylePreserver = Extension.create({
   name: "stylePreserver",
   addGlobalAttributes() {
     return [
       {
-        types: [
-          "paragraph",
-          "heading",
-          "bulletList",
-          "orderedList",
-          "listItem",
-          "blockquote",
-          "codeBlock",
-        ],
+        types: ["paragraph", "heading", "bulletList", "orderedList", "listItem", "blockquote", "codeBlock"],
         attributes: {
           style: {
             default: null,
             parseHTML: (el) => el.getAttribute("style") || null,
-            renderHTML: (attrs) => attrs.style ? { style: attrs.style } : {},
+            renderHTML: (attrs) => (attrs.style ? { style: attrs.style } : {}),
           },
           class: {
             default: null,
             parseHTML: (el) => el.getAttribute("class") || null,
-            renderHTML: (attrs) => attrs.class ? { class: attrs.class } : {},
+            renderHTML: (attrs) => (attrs.class ? { class: attrs.class } : {}),
           },
         },
       },
@@ -119,7 +112,6 @@ const StylePreserver = Extension.create({
   },
 });
 
-// Extend TextStyle mark so inline `style` on <span> tags survives paste too
 const InlineStylePreserver = TextStyle.extend({
   addAttributes() {
     return {
@@ -127,70 +119,107 @@ const InlineStylePreserver = TextStyle.extend({
       style: {
         default: null,
         parseHTML: (el) => el.getAttribute("style") || null,
-        renderHTML: (attrs) => attrs.style ? { style: attrs.style } : {},
+        renderHTML: (attrs) => (attrs.style ? { style: attrs.style } : {}),
       },
     };
   },
 });
 
-// ── Block type options ────────────────────────────────────────────────────────
 const BLOCK_TYPES = [
   { value: "paragraph", label: "Paragraph" },
-  { value: "h1",        label: "Heading 1" },
-  { value: "h2",        label: "Heading 2" },
-  { value: "h3",        label: "Heading 3" },
-  { value: "blockquote",label: "Blockquote" },
+  { value: "h1", label: "Heading 1" },
+  { value: "h2", label: "Heading 2" },
+  { value: "h3", label: "Heading 3" },
+  { value: "blockquote", label: "Blockquote" },
 ];
 
 const FONTS = [
-  { value: "lora",     label: "Lora",        css: "var(--font-lora)" },
-  { value: "garamond", label: "EB Garamond",  css: "'EB Garamond', Georgia, serif" },
-  { value: "georgia",  label: "Georgia",      css: "Georgia, serif" },
-  { value: "inter",    label: "Inter",        css: "var(--font-inter)" },
+  { value: "lora", label: "Lora", css: "var(--font-lora)" },
+  { value: "garamond", label: "EB Garamond", css: "'EB Garamond', Georgia, serif" },
+  { value: "georgia", label: "Georgia", css: "Georgia, serif" },
+  { value: "inter", label: "Inter", css: "var(--font-inter)" },
 ];
 
-// ── Component ─────────────────────────────────────────────────────────────────
+const FONT_SIZE_MAP = {
+  small: "0.98rem",
+  medium: "1.0625rem",
+  large: "1.16rem",
+} as const;
+
+const TITLE_SIZE_MAP = {
+  small: "2rem",
+  medium: "2.2rem",
+  large: "2.4rem",
+} as const;
+
+function formatSessionTime(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 export function WritingEditor({
   chapter,
   onChange,
   focusMode,
   onToggleFocusMode,
 }: WritingEditorProps) {
-  const [localTitle, setLocalTitle]   = useState(chapter.title);
-  const [saved, setSaved]             = useState(true);
-  const [activeFont, setActiveFont]   = useState("lora");
-  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { user } = useAuth();
+  const { settings } = useWritingSettings(user?.id);
 
-  // ── Tiptap editor ──────────────────────────────────────────────────────────
+  const [localTitle, setLocalTitle] = useState(chapter.title);
+  const [saved, setSaved] = useState(true);
+  const [activeFont, setActiveFont] = useState("lora");
+  const [sessionSeconds, setSessionSeconds] = useState(0);
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settingsRef = useRef(settings);
+  const localTitleRef = useRef(localTitle);
+  const prevAutoSaveRef = useRef(settings.autoSave);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
+  useEffect(() => {
+    localTitleRef.current = localTitle;
+  }, [localTitle]);
+
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
-      }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       UnderlineExt,
-      InlineStylePreserver,   // TextStyle extended to preserve inline CSS
+      InlineStylePreserver,
       FontFamily,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Typography,
-      StylePreserver,          // Preserves style/class on all block nodes
+      StylePreserver,
       Placeholder.configure({
-        placeholder: "Begin your chapter here. The cursor is yours…",
+        placeholder: "Begin your chapter here. The cursor is yours...",
       }),
     ],
     content: chapter.content || "",
     editorProps: {
       attributes: {
         class: "tiptap-editor focus:outline-none",
-        spellcheck: "true",
+        spellcheck: String(settings.spellcheck),
+        style: `font-size:${FONT_SIZE_MAP[settings.editorFontSize]};`,
       },
     },
     onUpdate: ({ editor: e }) => {
       const html = e.getHTML();
       setSaved(false);
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
+
+      if (!settingsRef.current.autoSave) return;
+
       saveTimeout.current = setTimeout(() => {
         onChange({
-          content:   html,
+          title: localTitleRef.current,
+          content: html,
           wordCount: countWords(html),
         });
         setSaved(true);
@@ -199,45 +228,108 @@ export function WritingEditor({
     immediatelyRender: false,
   });
 
-  // Sync content + title when chapter switches
+  const saveNow = useCallback(() => {
+    if (!editor) return;
+    const html = editor.getHTML();
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    onChange({
+      title: localTitleRef.current,
+      content: html,
+      wordCount: countWords(html),
+    });
+    setSaved(true);
+  }, [editor, onChange]);
+
   useEffect(() => {
     if (editor) {
       editor.commands.setContent(chapter.content || "");
     }
     setLocalTitle(chapter.title);
     setSaved(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    setSessionSeconds(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapter.id]);
 
-  // ── Derived state ──────────────────────────────────────────────────────────
-  const wordCount  = countWords(editor?.getHTML() ?? "");
-  const readingTime = estimateReadingTime(wordCount);
+  useEffect(() => {
+    if (!editor) return;
+    editor.setOptions({
+      editorProps: {
+        attributes: {
+          class: "tiptap-editor focus:outline-none",
+          spellcheck: String(settings.spellcheck),
+          style: `font-size:${FONT_SIZE_MAP[settings.editorFontSize]};`,
+        },
+      },
+    });
+  }, [editor, settings.spellcheck, settings.editorFontSize]);
 
-  function scheduleAutoSavTitle(title: string) {
+  useEffect(() => {
+    if (settings.autoSave && !prevAutoSaveRef.current && !saved) {
+      saveNow();
+    }
+    prevAutoSaveRef.current = settings.autoSave;
+  }, [settings.autoSave, saved, saveNow]);
+
+  useEffect(() => {
+    if (!settings.sessionTimer) return;
+    const timerId = window.setInterval(() => {
+      setSessionSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => window.clearInterval(timerId);
+  }, [settings.sessionTimer, chapter.id]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey)) return;
+      if (event.key.toLowerCase() !== "s") return;
+      event.preventDefault();
+      saveNow();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [saveNow]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    };
+  }, []);
+
+  const wordCount = countWords(editor?.getHTML() ?? "");
+  const readingTime = estimateReadingTime(wordCount);
+  const sessionLabel = formatSessionTime(sessionSeconds);
+
+  function scheduleAutoSaveTitle(title: string) {
     setSaved(false);
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    if (!settings.autoSave) return;
+
     saveTimeout.current = setTimeout(() => {
-      onChange({ title, wordCount: countWords(editor?.getHTML() ?? "") });
+      const html = editor?.getHTML() ?? chapter.content;
+      onChange({
+        title,
+        content: html,
+        wordCount: countWords(html),
+      });
       setSaved(true);
     }, 800);
   }
 
-  // ── Block type helpers ─────────────────────────────────────────────────────
   function getActiveBlock(): string {
     if (!editor) return "paragraph";
     if (editor.isActive("heading", { level: 1 })) return "h1";
     if (editor.isActive("heading", { level: 2 })) return "h2";
     if (editor.isActive("heading", { level: 3 })) return "h3";
-    if (editor.isActive("blockquote"))             return "blockquote";
+    if (editor.isActive("blockquote")) return "blockquote";
     return "paragraph";
   }
 
   function setBlock(value: string) {
     if (!editor) return;
     editor.chain().focus();
-    if (value === "h1")        editor.chain().toggleHeading({ level: 1 }).run();
-    else if (value === "h2")   editor.chain().toggleHeading({ level: 2 }).run();
-    else if (value === "h3")   editor.chain().toggleHeading({ level: 3 }).run();
+    if (value === "h1") editor.chain().toggleHeading({ level: 1 }).run();
+    else if (value === "h2") editor.chain().toggleHeading({ level: 2 }).run();
+    else if (value === "h3") editor.chain().toggleHeading({ level: 3 }).run();
     else if (value === "blockquote") editor.chain().toggleBlockquote().run();
     else editor.chain().setParagraph().run();
   }
@@ -249,23 +341,17 @@ export function WritingEditor({
     editor.chain().focus().selectAll().setFontFamily(font.css).run();
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full bg-parchment">
-
-      {/* ── Status / meta bar ─────────────────────────────────────────── */}
+    <div className="flex h-full flex-col bg-parchment">
       <div
         className={cn(
-          "flex items-center justify-between px-6 py-2.5 border-b border-parchment-deep/50 transition-opacity",
+          "flex items-center justify-between border-b border-parchment-deep/50 px-6 py-2.5 transition-opacity",
           focusMode && "opacity-0 hover:opacity-100"
         )}
       >
         <div className="flex items-center gap-3">
-          <Select
-            value={chapter.status}
-            onValueChange={(v) => onChange({ status: v as Chapter["status"] })}
-          >
-            <SelectTrigger className="h-7 w-28 text-xs border-none bg-transparent p-0 focus:ring-0 shadow-none">
+          <Select value={chapter.status} onValueChange={(v) => onChange({ status: v as Chapter["status"] })}>
+            <SelectTrigger className="h-7 w-28 border-none bg-transparent p-0 text-xs shadow-none focus:ring-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -279,24 +365,53 @@ export function WritingEditor({
 
           <div className="flex items-center gap-3 text-xs text-ink-faint">
             <span className="flex items-center gap-1">
-              <AlignLeft className="w-3.5 h-3.5" />
+              <AlignLeft className="h-3.5 w-3.5" />
               {wordCount.toLocaleString()} words
             </span>
             <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="h-3.5 w-3.5" />
               {readingTime} read
             </span>
+            {settings.sessionTimer && (
+              <span className="flex items-center gap-1">
+                <Timer className="h-3.5 w-3.5" />
+                {sessionLabel}
+              </span>
+            )}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          {!settings.autoSave && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1.5 text-xs"
+              onClick={saveNow}
+              disabled={saved}
+            >
+              <Save className="h-3 w-3" />
+              Save now
+            </Button>
+          )}
+
           <span
             className={cn(
               "flex items-center gap-1 text-xs transition-all",
-              saved ? "text-emerald-500" : "text-ink-faint"
+              saved ? "text-emerald-500" : settings.autoSave ? "text-ink-faint" : "text-amber-label"
             )}
           >
-            {saved ? <><Check className="w-3 h-3" />Saved</> : "Saving…"}
+            {saved ? (
+              <>
+                <Check className="h-3 w-3" />
+                Saved
+              </>
+            ) : settings.autoSave ? (
+              "Saving..."
+            ) : (
+              "Unsaved changes"
+            )}
           </span>
 
           <Tooltip>
@@ -307,7 +422,7 @@ export function WritingEditor({
                 onClick={onToggleFocusMode}
                 className="text-ink-faint hover:text-ink"
               >
-                {focusMode ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                {focusMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>{focusMode ? "Exit Focus Mode" : "Focus Mode"}</TooltipContent>
@@ -315,17 +430,15 @@ export function WritingEditor({
         </div>
       </div>
 
-      {/* ── Formatting toolbar ────────────────────────────────────────── */}
       <div
         className={cn(
-          "flex items-center gap-1 px-5 py-1.5 border-b border-parchment-deep/40 bg-parchment/50 flex-wrap transition-opacity",
+          "flex flex-wrap items-center gap-1 border-b border-parchment-deep/40 bg-parchment/50 px-5 py-1.5 transition-opacity",
           focusMode && "opacity-0 hover:opacity-100"
         )}
       >
-        {/* Block type */}
         <Select value={getActiveBlock()} onValueChange={setBlock}>
           <SelectTrigger
-            className="h-7 w-32 text-xs border border-parchment-deep bg-transparent focus:ring-0 shadow-none rounded px-2"
+            className="h-7 w-32 rounded border border-parchment-deep bg-transparent px-2 text-xs shadow-none focus:ring-0"
             onMouseDown={(e) => e.preventDefault()}
           >
             <SelectValue />
@@ -339,10 +452,9 @@ export function WritingEditor({
           </SelectContent>
         </Select>
 
-        {/* Font family */}
         <Select value={activeFont} onValueChange={setFont}>
           <SelectTrigger
-            className="h-7 w-32 text-xs border border-parchment-deep bg-transparent focus:ring-0 shadow-none rounded px-2 ml-1"
+            className="ml-1 h-7 w-32 rounded border border-parchment-deep bg-transparent px-2 text-xs shadow-none focus:ring-0"
             onMouseDown={(e) => e.preventDefault()}
           >
             <SelectValue />
@@ -358,111 +470,104 @@ export function WritingEditor({
 
         <ToolbarDivider />
 
-        {/* Inline formatting */}
-        <ToolbarBtn active={editor?.isActive("bold")}      onClick={() => editor?.chain().focus().toggleBold().run()}      title="Bold (⌘B)">
-          <Bold className="w-3.5 h-3.5" />
+        <ToolbarBtn active={editor?.isActive("bold")} onClick={() => editor?.chain().focus().toggleBold().run()} title="Bold (Ctrl/Cmd+B)">
+          <Bold className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn active={editor?.isActive("italic")}    onClick={() => editor?.chain().focus().toggleItalic().run()}    title="Italic (⌘I)">
-          <Italic className="w-3.5 h-3.5" />
+        <ToolbarBtn active={editor?.isActive("italic")} onClick={() => editor?.chain().focus().toggleItalic().run()} title="Italic (Ctrl/Cmd+I)">
+          <Italic className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn active={editor?.isActive("underline")} onClick={() => editor?.chain().focus().toggleUnderline().run()} title="Underline (⌘U)">
-          <Underline className="w-3.5 h-3.5" />
+        <ToolbarBtn active={editor?.isActive("underline")} onClick={() => editor?.chain().focus().toggleUnderline().run()} title="Underline (Ctrl/Cmd+U)">
+          <Underline className="h-3.5 w-3.5" />
         </ToolbarBtn>
 
         <ToolbarDivider />
 
-        {/* Text alignment */}
-        <ToolbarBtn active={editor?.isActive({ textAlign: "left" })}    onClick={() => editor?.chain().focus().setTextAlign("left").run()}    title="Align left">
-          <AlignLeft className="w-3.5 h-3.5" />
+        <ToolbarBtn active={editor?.isActive({ textAlign: "left" })} onClick={() => editor?.chain().focus().setTextAlign("left").run()} title="Align left">
+          <AlignLeft className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn active={editor?.isActive({ textAlign: "center" })}  onClick={() => editor?.chain().focus().setTextAlign("center").run()}  title="Align center">
-          <AlignCenter className="w-3.5 h-3.5" />
+        <ToolbarBtn active={editor?.isActive({ textAlign: "center" })} onClick={() => editor?.chain().focus().setTextAlign("center").run()} title="Align center">
+          <AlignCenter className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn active={editor?.isActive({ textAlign: "right" })}   onClick={() => editor?.chain().focus().setTextAlign("right").run()}   title="Align right">
-          <AlignRight className="w-3.5 h-3.5" />
+        <ToolbarBtn active={editor?.isActive({ textAlign: "right" })} onClick={() => editor?.chain().focus().setTextAlign("right").run()} title="Align right">
+          <AlignRight className="h-3.5 w-3.5" />
         </ToolbarBtn>
         <ToolbarBtn active={editor?.isActive({ textAlign: "justify" })} onClick={() => editor?.chain().focus().setTextAlign("justify").run()} title="Justify">
-          <AlignJustify className="w-3.5 h-3.5" />
+          <AlignJustify className="h-3.5 w-3.5" />
         </ToolbarBtn>
 
         <ToolbarDivider />
 
-        {/* Block elements */}
         <ToolbarBtn active={editor?.isActive("blockquote")} onClick={() => editor?.chain().focus().toggleBlockquote().run()} title="Blockquote">
-          <Quote className="w-3.5 h-3.5" />
+          <Quote className="h-3.5 w-3.5" />
         </ToolbarBtn>
         <ToolbarBtn active={editor?.isActive("bulletList")} onClick={() => editor?.chain().focus().toggleBulletList().run()} title="Bullet list">
-          <List className="w-3.5 h-3.5" />
+          <List className="h-3.5 w-3.5" />
         </ToolbarBtn>
         <ToolbarBtn active={editor?.isActive("orderedList")} onClick={() => editor?.chain().focus().toggleOrderedList().run()} title="Numbered list">
-          <ListOrdered className="w-3.5 h-3.5" />
+          <ListOrdered className="h-3.5 w-3.5" />
         </ToolbarBtn>
 
         <ToolbarDivider />
 
-        {/* Scene break */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               type="button"
-              onMouseDown={(e) => { e.preventDefault(); editor?.chain().focus().setHorizontalRule().run(); }}
-              className="h-7 px-2 flex items-center justify-center rounded text-xs text-ink-faint hover:text-ink hover:bg-parchment-warm transition-colors font-serif tracking-widest"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                editor?.chain().focus().setHorizontalRule().run();
+              }}
+              className="flex h-7 items-center justify-center rounded px-2 font-serif text-xs tracking-widest text-ink-faint transition-colors hover:bg-parchment-warm hover:text-ink"
               title="Scene break"
             >
-              ⁂
+              ***
             </button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">Scene break</TooltipContent>
+          <TooltipContent side="bottom" className="text-xs">
+            Scene break
+          </TooltipContent>
         </Tooltip>
       </div>
 
-      {/* ── Editor area ───────────────────────────────────────────────── */}
       <div className={cn("flex-1 overflow-y-auto", focusMode ? "py-14" : "py-8")}>
         <div className={cn("mx-auto px-6", focusMode ? "max-w-[720px]" : "max-w-[800px]")}>
-
-          {/* Paper sheet */}
-          <div className="paper-canvas bg-white rounded-2xl shadow-[0px_4px_32px_rgba(0,0,0,0.07)] px-14 py-12 min-h-[70vh]">
-
-            {/* Chapter label */}
-            <p className="text-[10px] font-sans uppercase tracking-[0.22em] font-semibold text-amber-label mb-5">
+          <div className="paper-canvas min-h-[70vh] rounded-2xl bg-white px-14 py-12 shadow-[0px_4px_32px_rgba(0,0,0,0.07)]">
+            <p className="mb-5 font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-label">
               Chapter {chapter.number}
             </p>
 
-            {/* Chapter title */}
             <input
               type="text"
               value={localTitle}
               onChange={(e) => {
                 setLocalTitle(e.target.value);
-                scheduleAutoSavTitle(e.target.value);
+                scheduleAutoSaveTitle(e.target.value);
               }}
               placeholder="Chapter title"
-              className="w-full bg-transparent border-none outline-none text-ink font-serif text-[2.2rem] font-semibold placeholder:text-ink-faint/30 mb-10 leading-tight focus:ring-0 tracking-tight"
-              style={{ fontFamily: "var(--font-lora)" }}
+              className="mb-10 w-full border-none bg-transparent font-serif font-semibold leading-tight tracking-tight text-ink placeholder:text-ink-faint/30 outline-none focus:ring-0"
+              style={{ fontFamily: "var(--font-lora)", fontSize: TITLE_SIZE_MAP[settings.editorFontSize] }}
+              spellCheck={settings.spellcheck}
             />
 
-            {/* Rich text editor */}
             <EditorContent
               editor={editor}
               className="tiptap-editor"
               style={{ fontFamily: FONTS.find((f) => f.value === activeFont)?.css ?? "var(--font-lora)" }}
             />
 
-            {/* End of chapter indicator */}
             {wordCount > 100 && (
-              <div className="flex items-center gap-4 mt-14 pt-6 border-t border-parchment-deep/60">
-                <span className="text-[10px] uppercase tracking-[0.18em] text-ink-faint/60 font-sans">End of chapter</span>
-                <div className="flex-1 h-px bg-parchment-deep/40" />
-                <span className="text-[10px] uppercase tracking-[0.18em] text-ink-faint/60 font-sans">{wordCount.toLocaleString()} words</span>
+              <div className="mt-14 flex items-center gap-4 border-t border-parchment-deep/60 pt-6">
+                <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-ink-faint/60">End of chapter</span>
+                <div className="h-px flex-1 bg-parchment-deep/40" />
+                <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-ink-faint/60">{wordCount.toLocaleString()} words</span>
               </div>
             )}
-
           </div>
 
-          {/* Bottom breathing room */}
           <div className="h-16" />
         </div>
       </div>
     </div>
   );
 }
+

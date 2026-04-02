@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import {
-  ArrowLeft,
   Download,
   FileText,
   Share2,
@@ -15,16 +13,13 @@ import {
   Clock,
   Target,
   Sparkles,
-  ChevronRight,
-  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { AppNav } from "@/components/layout/AppNav";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { useTheme } from "@/lib/theme";
+import { useAuth } from "@/lib/auth/context";
+import { useWritingSettings } from "@/lib/writing-settings";
 
 function SettingRow({
   icon: Icon,
@@ -66,20 +61,15 @@ function ToggleSetting({
   icon: Icon,
   title,
   description,
-  defaultOn = false,
   checked,
   onToggle,
 }: {
   icon: React.ElementType;
   title: string;
   description: string;
-  defaultOn?: boolean;
-  checked?: boolean;
-  onToggle?: () => void;
+  checked: boolean;
+  onToggle: () => void;
 }) {
-  const [localOn, setLocalOn] = useState(defaultOn);
-  const on = checked !== undefined ? checked : localOn;
-  const handleToggle = onToggle ?? (() => setLocalOn((v) => !v));
   return (
     <div className="flex items-center justify-between py-4 gap-4">
       <div className="flex items-center gap-3 min-w-0">
@@ -92,17 +82,19 @@ function ToggleSetting({
         </div>
       </div>
       <button
-        onClick={handleToggle}
+        type="button"
+        onClick={onToggle}
+        aria-pressed={checked}
         className={cn(
           "rounded-full relative transition-colors shrink-0",
-          on ? "bg-gold" : "bg-parchment-deep"
+          checked ? "bg-gold" : "bg-parchment-deep"
         )}
         style={{ height: "22px", minWidth: "40px" }}
       >
         <div
           className={cn(
             "toggle-knob absolute top-0.5 w-4 h-4 rounded-full shadow-sm transition-transform",
-            on ? "translate-x-5" : "translate-x-0.5"
+            checked ? "translate-x-5" : "translate-x-0.5"
           )}
         />
       </button>
@@ -111,7 +103,8 @@ function ToggleSetting({
 }
 
 export default function SettingsPage() {
-  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">("medium");
+  const { user } = useAuth();
+  const { settings, updateSettings } = useWritingSettings(user?.id);
   const { theme, toggle: toggleTheme } = useTheme();
 
   return (
@@ -208,10 +201,10 @@ export default function SettingsPage() {
                   {(["small", "medium", "large"] as const).map((size) => (
                     <button
                       key={size}
-                      onClick={() => setFontSize(size)}
+                      onClick={() => updateSettings({ editorFontSize: size })}
                       className={cn(
                         "px-2.5 py-1 rounded-md text-xs transition-all capitalize",
-                        fontSize === size ? "bg-parchment text-ink shadow-sm font-medium" : "text-ink-muted hover:text-ink"
+                        settings.editorFontSize === size ? "bg-parchment text-ink shadow-sm font-medium" : "text-ink-muted hover:text-ink"
                       )}
                     >
                       {size}
@@ -225,7 +218,8 @@ export default function SettingsPage() {
                   icon={Feather}
                   title="Auto-save"
                   description="Automatically save your writing every few seconds"
-                  defaultOn
+                  checked={settings.autoSave}
+                  onToggle={() => updateSettings({ autoSave: !settings.autoSave })}
                 />
               </div>
               <div className="px-4">
@@ -242,7 +236,8 @@ export default function SettingsPage() {
                   icon={Sparkles}
                   title="Spellcheck"
                   description="Highlight misspelled words as you type"
-                  defaultOn
+                  checked={settings.spellcheck}
+                  onToggle={() => updateSettings({ spellcheck: !settings.spellcheck })}
                 />
               </div>
             </div>
@@ -259,8 +254,11 @@ export default function SettingsPage() {
                 <ToggleSetting
                   icon={Target}
                   title="Daily Word Goal"
-                  description="Set a daily writing target to build a consistent habit"
-                  defaultOn
+                  description="Show or hide daily goal tracking on your dashboard"
+                  checked={settings.dailyWordGoalEnabled}
+                  onToggle={() =>
+                    updateSettings({ dailyWordGoalEnabled: !settings.dailyWordGoalEnabled })
+                  }
                 />
               </div>
               <div className="px-4">
@@ -268,6 +266,8 @@ export default function SettingsPage() {
                   icon={Clock}
                   title="Session Timer"
                   description="Show a timer to track how long you write each session"
+                  checked={settings.sessionTimer}
+                  onToggle={() => updateSettings({ sessionTimer: !settings.sessionTimer })}
                 />
               </div>
             </div>
