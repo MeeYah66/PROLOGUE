@@ -119,11 +119,11 @@ function StepPanel({
   return (
     <section
       className={cn(
-        "rounded-[22px] border border-parchment-deep/80 bg-[#ede9df] p-4 sm:p-5",
+        "overflow-hidden rounded-[22px] border border-parchment-deep/75 bg-[#e9e5dc] pt-6 px-0 pb-0",
         className
       )}
     >
-      <div className="mb-3 flex items-start justify-between gap-4">
+      <div className="mb-0 flex items-start justify-between gap-4 px-6 pb-5 sm:px-8">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
             {eyebrow}
@@ -133,7 +133,7 @@ function StepPanel({
         </div>
         {action}
       </div>
-      <div className="rounded-[18px] border border-parchment-deep/80 bg-white p-4 shadow-[0_18px_40px_-34px_rgba(26,20,16,0.62)] sm:p-6">
+      <div className="rounded-t-[18px] border border-parchment-deep/75 bg-white p-4 shadow-[0_1px_2px_rgba(26,20,16,0.06)] sm:p-6">
         {children}
       </div>
     </section>
@@ -195,59 +195,56 @@ export default function NewBookPage() {
     <div className="flex min-h-screen bg-[#efede7]">
       <AppNav />
       <main className="flex-1 md:ml-48">
-        <div className="mx-auto max-w-5xl px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
-          <div className="overflow-hidden rounded-[26px] border border-parchment-deep/80 bg-[#f8f6f1] shadow-[0_36px_94px_-72px_rgba(26,20,16,0.72)]">
-            <div className="border-b border-parchment-deep/75 px-4 py-3 sm:px-6">
-              <div className="flex items-center justify-between gap-3">
-                <Link href="/">
-                  <Button variant="ghost" size="sm" className="gap-1.5 rounded-full px-4">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                  </Button>
-                </Link>
-
-                <div className="hidden items-center gap-2.5 md:flex">
-                  {STEP_META.map((item, index) => {
-                    const isComplete = step > item.id;
-                    const isActive = step === item.id;
-                    return (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold",
-                            isComplete
-                              ? "bg-ink text-parchment"
-                              : isActive
-                                ? "bg-ink text-parchment"
-                                : "border border-parchment-deep bg-white text-ink-faint"
-                          )}
-                        >
-                          {isComplete ? <Check className="h-3 w-3" /> : item.id}
-                        </span>
-                        <span className={cn("text-[13px]", isActive ? "font-medium text-ink" : "text-ink-faint")}>
-                          {item.title}
-                        </span>
-                        {index < STEP_META.length - 1 && <span className="mx-1 h-px w-6 bg-parchment-deep" />}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="rounded-full border border-parchment-deep/80 bg-white px-3 py-1 text-xs text-ink-muted md:hidden">
-                    Step {step}/{STEP_META.length}
-                  </div>
-                  <Link href="/library">
-                    <Button size="sm" variant="outline" className="rounded-full px-4">
-                      Save & Exit
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+        <header className="sticky top-0 z-30 h-12 border-b border-parchment-deep bg-parchment/95 backdrop-blur-sm">
+          <div className="mx-auto grid h-full max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6 lg:px-8">
+            <div className="justify-self-start">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="gap-1.5 rounded-full px-3.5 text-ink-muted">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              </Link>
             </div>
 
-            <div className="p-4 sm:p-5 lg:p-7">
-              {step === 1 && (
+            <div className="hidden items-center gap-2.5 md:flex">
+              {STEP_META.map((item, index) => {
+                const isComplete = step > item.id;
+                const isActive = step === item.id;
+                return (
+                  <div key={item.id} className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold",
+                        isComplete
+                          ? "bg-ink text-parchment"
+                          : isActive
+                            ? "bg-ink text-parchment"
+                            : "border border-parchment-deep bg-white text-ink-faint"
+                      )}
+                    >
+                      {isComplete ? <Check className="h-3 w-3" /> : item.id}
+                    </span>
+                    <span className={cn("text-[13px]", isActive ? "font-medium text-ink" : "text-ink-faint")}>
+                      {item.title}
+                    </span>
+                    {index < STEP_META.length - 1 && <span className="mx-1 h-px w-6 bg-parchment-deep" />}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="justify-self-end">
+              <Link href="/library">
+                <Button size="sm" variant="outline" className="rounded-full px-4">
+                  Save & Exit
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
+          {step === 1 && (
                 <StepPanel
                   eyebrow={STEP_COPY[1].eyebrow}
                   title={STEP_COPY[1].title}
@@ -365,9 +362,9 @@ export default function NewBookPage() {
                     </div>
                   </div>
                 </StepPanel>
-              )}
+          )}
 
-              {step === 2 && (
+          {step === 2 && (
                 <StepPanel
                   eyebrow={STEP_COPY[2].eyebrow}
                   title={STEP_COPY[2].title}
@@ -421,9 +418,9 @@ export default function NewBookPage() {
                     })}
                   </div>
                 </StepPanel>
-              )}
+          )}
 
-              {step === 3 && (
+          {step === 3 && (
                 <StepPanel
                   eyebrow={STEP_COPY[3].eyebrow}
                   title={STEP_COPY[3].title}
@@ -467,53 +464,51 @@ export default function NewBookPage() {
                     )}
                   </div>
                 </StepPanel>
-              )}
+          )}
 
-              {/* Navigation */}
-              <div className="mt-7 flex items-center justify-between border-t border-parchment-deep/75 pt-5">
-                {step > 1 ? (
-                  <Button type="button" variant="ghost" onClick={() => setStep((current) => current - 1)}>
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                  </Button>
-                ) : (
-                  <div />
-                )}
+          {/* Navigation */}
+          <div className="mt-7 flex items-center justify-between border-t border-parchment-deep/75 pt-5">
+            {step > 1 ? (
+              <Button type="button" variant="ghost" onClick={() => setStep((current) => current - 1)}>
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            ) : (
+              <div />
+            )}
 
-                {step < STEP_META.length ? (
-                  <Button
-                    type="button"
-                    onClick={() => setStep((current) => current + 1)}
-                    disabled={!canProceed}
-                    size="lg"
-                    className="rounded-xl px-6"
-                  >
-                    Continue
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+            {step < STEP_META.length ? (
+              <Button
+                type="button"
+                onClick={() => setStep((current) => current + 1)}
+                disabled={!canProceed}
+                size="lg"
+                className="rounded-xl px-6"
+              >
+                Continue
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleCreate}
+                size="lg"
+                disabled={isCreating}
+                className="rounded-xl px-6"
+              >
+                {isCreating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Creating workspace...
+                  </>
                 ) : (
-                  <Button
-                    type="button"
-                    onClick={handleCreate}
-                    size="lg"
-                    disabled={isCreating}
-                    className="rounded-xl px-6"
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Creating workspace...
-                      </>
-                    ) : (
-                      <>
-                        <Feather className="h-4 w-4" />
-                        Create & Start Writing
-                      </>
-                    )}
-                  </Button>
+                  <>
+                    <Feather className="h-4 w-4" />
+                    Create & Start Writing
+                  </>
                 )}
-              </div>
-            </div>
+              </Button>
+            )}
           </div>
         </div>
       </main>
