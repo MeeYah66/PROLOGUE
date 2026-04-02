@@ -5,15 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
-  BookOpen,
   Check,
   ChevronRight,
   Feather,
-  Flame,
   Heart,
   Layers,
   Loader2,
-  Moon,
   Sparkles,
 } from "lucide-react";
 import { GENRES } from "@/lib/data/mockData";
@@ -34,38 +31,55 @@ import {
 import { cn } from "@/lib/utils";
 import { AppNav } from "@/components/layout/AppNav";
 
-const COVER_STYLES: { id: CoverStyle; label: string; description: string; icon: React.ReactNode; bg: string; accent: string }[] = [
+const COVER_STYLES: {
+  id: CoverStyle;
+  label: string;
+  description: string;
+  bg: string;
+  accent: string;
+  foil: string;
+  spine: string;
+  vignette: string;
+}[] = [
   {
     id: "minimal",
-    label: "Minimal",
-    description: "Clean, typographic",
-    icon: <Feather className="w-5 h-5" />,
-    bg: "#f0ece6",
-    accent: "#2d2d2d",
+    label: "Ivory Linen",
+    description: "Warm parchment cloth with soft bronze foil.",
+    bg: "#e7dfcc",
+    accent: "#5a4c34",
+    foil: "#9f8758",
+    spine: "#d7cab0",
+    vignette: "rgba(90,76,52,0.2)",
   },
   {
     id: "classic",
-    label: "Classic",
-    description: "Timeless, editorial",
-    icon: <BookOpen className="w-5 h-5" />,
-    bg: "#1a3a52",
-    accent: "#c9e4f0",
+    label: "Midnight Linen",
+    description: "Deep blue cloth with champagne foil trim.",
+    bg: "#2c3548",
+    accent: "#f3ebd7",
+    foil: "#c4a974",
+    spine: "#232b3c",
+    vignette: "rgba(10,14,24,0.38)",
   },
   {
     id: "ethereal",
-    label: "Ethereal",
-    description: "Atmospheric, moody",
-    icon: <Moon className="w-5 h-5" />,
-    bg: "#1a1410",
-    accent: "#c9a84c",
+    label: "Forest Cloth",
+    description: "Muted evergreen with antique gold accents.",
+    bg: "#324b45",
+    accent: "#f0e8d2",
+    foil: "#bea169",
+    spine: "#273c37",
+    vignette: "rgba(18,33,29,0.34)",
   },
   {
     id: "bold",
-    label: "Bold",
-    description: "Dramatic, striking",
-    icon: <Flame className="w-5 h-5" />,
-    bg: "#2d1a1a",
-    accent: "#e87c5a",
+    label: "Merlot Cloth",
+    description: "Rich burgundy with warm metallic detailing.",
+    bg: "#5d333b",
+    accent: "#f5eddf",
+    foil: "#d0ae78",
+    spine: "#4b282f",
+    vignette: "rgba(38,12,19,0.34)",
   },
 ];
 
@@ -124,6 +138,61 @@ function StepPanel({
         {children}
       </div>
     </section>
+  );
+}
+
+function BookCoverPreview({
+  title,
+  style,
+}: {
+  title: string;
+  style: (typeof COVER_STYLES)[number];
+}) {
+  const displayTitle = title.trim() || "Untitled Manuscript";
+
+  return (
+    <div className="relative mx-auto w-[148px] sm:w-[160px]">
+      <div className="absolute -bottom-3 left-6 right-1 h-4 rounded-full bg-black/35 blur-md opacity-35" />
+      <div className="relative flex h-[206px] sm:h-[220px]">
+        <div
+          className="absolute inset-y-[8px] left-0 w-[8px] rounded-l-[6px] border border-black/15"
+          style={{
+            background: `linear-gradient(180deg, ${style.spine} 0%, ${style.bg} 45%, ${style.spine} 100%)`,
+          }}
+        />
+        <div
+          className="relative ml-[7px] w-full overflow-hidden rounded-[8px] border border-black/15 shadow-[0_20px_28px_-18px_rgba(0,0,0,0.75)]"
+          style={{ backgroundColor: style.bg }}
+        >
+          <div
+            className="absolute inset-0 opacity-35"
+            style={{
+              backgroundImage: "radial-gradient(rgba(255,255,255,0.22) 0.8px, transparent 0.8px)",
+              backgroundSize: "3px 3px",
+            }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.28), inset 0 -42px 70px ${style.vignette}` }}
+          />
+          <div className="absolute inset-3 rounded-[6px] border" style={{ borderColor: style.foil, opacity: 0.86 }} />
+          <div className="absolute inset-5 rounded-[4px] border" style={{ borderColor: style.foil, opacity: 0.48 }} />
+          <div
+            className="absolute left-1/2 top-5 h-12 w-[74%] -translate-x-1/2 rounded-t-full border-x border-t"
+            style={{ borderColor: style.foil, opacity: 0.66 }}
+          />
+          <div className="absolute left-1/2 top-[39%] h-px w-[68%] -translate-x-1/2" style={{ backgroundColor: style.foil, opacity: 0.55 }} />
+          <div className="absolute inset-x-6 top-[43%]">
+            <p
+              className="line-clamp-3 text-center font-serif text-[14px] font-medium uppercase leading-[1.22] tracking-[0.05em]"
+              style={{ color: style.accent }}
+            >
+              {displayTitle}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -379,6 +448,9 @@ export default function NewBookPage() {
 
                   <StepPanel sectionTitle="Cover Direction">
                     <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
+                      <p className="mb-4 text-xs text-ink-muted">
+                        Your manuscript title from Step 1 is previewed live on each cover.
+                      </p>
                       <div className="grid gap-4 sm:grid-cols-2">
                         {COVER_STYLES.map((style) => {
                           const selected = form.coverStyle === style.id;
@@ -388,31 +460,26 @@ export default function NewBookPage() {
                               type="button"
                               onClick={() => update("coverStyle", style.id)}
                               className={cn(
-                                "group overflow-hidden rounded-lg border text-left transition-all",
+                                "group rounded-xl border bg-white p-4 text-left transition-all",
                                 selected
-                                  ? "border-gold/70 bg-parchment/40 shadow-[0_14px_30px_-20px_rgba(201,168,76,0.75)]"
-                                  : "border-parchment-deep hover:border-gold/35 hover:bg-white"
+                                  ? "border-gold/65 shadow-[0_16px_34px_-24px_rgba(201,168,76,0.82)]"
+                                  : "border-parchment-deep/90 hover:border-gold/40 hover:shadow-[0_16px_32px_-26px_rgba(26,20,14,0.5)]"
                               )}
                             >
-                              <div className="h-40 px-4 py-4" style={{ backgroundColor: style.bg }}>
-                                <p className="font-serif text-base font-semibold text-parchment">
-                                  {form.title || "Book title"}
-                                </p>
-                                <p className="mt-1 text-xs" style={{ color: style.accent }}>
-                                  {form.authorName || "Author name"}
-                                </p>
+                              <div className="rounded-lg border border-parchment-deep/65 bg-parchment-warm/30 px-4 py-5">
+                                <BookCoverPreview title={form.title} style={style} />
                               </div>
-                              <div className="flex items-center justify-between gap-3 border-t border-parchment-deep/85 bg-white/92 px-3 py-2.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-ink-muted">{style.icon}</span>
-                                  <div>
-                                    <p className="text-sm font-medium text-ink">{style.label}</p>
-                                    <p className="text-xs text-ink-faint">{style.description}</p>
-                                  </div>
+
+                              <div className="mt-3 flex items-start justify-between gap-3 px-0.5">
+                                <div>
+                                  <p className="text-sm font-medium text-ink">{style.label}</p>
+                                  <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
+                                    {style.description}
+                                  </p>
                                 </div>
                                 <span
                                   className={cn(
-                                    "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
+                                    "mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
                                     selected
                                       ? "border-gold bg-gold text-parchment"
                                       : "border-parchment-deep text-transparent group-hover:text-ink-faint"
