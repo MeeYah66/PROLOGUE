@@ -30,58 +30,10 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { AppNav } from "@/components/layout/AppNav";
-
-const COVER_STYLES: {
-  id: CoverStyle;
-  label: string;
-  description: string;
-  bg: string;
-  accent: string;
-  foil: string;
-  spine: string;
-  vignette: string;
-}[] = [
-  {
-    id: "minimal",
-    label: "Ivory Linen",
-    description: "Warm parchment cloth with soft bronze foil.",
-    bg: "#e7dfcc",
-    accent: "#5a4c34",
-    foil: "#9f8758",
-    spine: "#d7cab0",
-    vignette: "rgba(90,76,52,0.2)",
-  },
-  {
-    id: "classic",
-    label: "Midnight Linen",
-    description: "Deep blue cloth with champagne foil trim.",
-    bg: "#2c3548",
-    accent: "#f3ebd7",
-    foil: "#c4a974",
-    spine: "#232b3c",
-    vignette: "rgba(10,14,24,0.38)",
-  },
-  {
-    id: "ethereal",
-    label: "Forest Cloth",
-    description: "Muted evergreen with antique gold accents.",
-    bg: "#324b45",
-    accent: "#f0e8d2",
-    foil: "#bea169",
-    spine: "#273c37",
-    vignette: "rgba(18,33,29,0.34)",
-  },
-  {
-    id: "bold",
-    label: "Merlot Cloth",
-    description: "Rich burgundy with warm metallic detailing.",
-    bg: "#5d333b",
-    accent: "#f5eddf",
-    foil: "#d0ae78",
-    spine: "#4b282f",
-    vignette: "rgba(38,12,19,0.34)",
-  },
-];
+import {
+  LINEN_COVER_OPTIONS,
+  type LinenCoverOption,
+} from "@/components/cover/LinenBookThumbnail";
 
 const GENRE_ICONS: Record<string, React.ReactNode> = {
   Fantasy: <Sparkles className="w-3.5 h-3.5" />,
@@ -146,7 +98,7 @@ function BookCoverPreview({
   style,
 }: {
   title: string;
-  style: (typeof COVER_STYLES)[number];
+  style: LinenCoverOption;
 }) {
   const displayTitle = title.trim() || "Untitled Manuscript";
 
@@ -216,7 +168,7 @@ export default function NewBookPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const canProceed = step === 1 ? form.title.trim().length > 0 && form.genre.length > 0 : true;
-  const selectedStyle = COVER_STYLES.find((style) => style.id === form.coverStyle) ?? COVER_STYLES[0];
+  const selectedStyle = LINEN_COVER_OPTIONS.find((style) => style.id === form.coverStyle) ?? LINEN_COVER_OPTIONS[0];
   const fieldClassName =
     "h-10 rounded-lg border-parchment-deep/80 bg-white text-[0.95rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] focus:border-gold/50 focus:ring-gold/15";
 
@@ -452,7 +404,7 @@ export default function NewBookPage() {
                         Your manuscript title from Step 1 is previewed live on each cover.
                       </p>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        {COVER_STYLES.map((style) => {
+                        {LINEN_COVER_OPTIONS.map((style) => {
                           const selected = form.coverStyle === style.id;
                           return (
                             <button
@@ -513,33 +465,54 @@ export default function NewBookPage() {
 
                   <StepPanel sectionTitle="Review">
                     <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
-                      <div className="space-y-4">
-                        <div className="overflow-hidden rounded-lg border border-parchment-deep/80">
-                          <div className="h-32 px-5 py-4" style={{ backgroundColor: selectedStyle.bg }}>
-                            <p className="font-serif text-xl font-semibold leading-tight text-parchment">{form.title}</p>
-                            <p className="mt-1 text-sm" style={{ color: selectedStyle.accent }}>
-                              {form.authorName || "Author"}
-                            </p>
-                          </div>
-                          <dl className="divide-y divide-parchment-deep/80 bg-white">
-                            <div className="flex items-center justify-between px-4 py-3 text-sm">
-                              <dt className="text-ink-faint">Genre</dt>
-                              <dd className="font-medium text-ink">{form.genre}</dd>
+                      <p className="mb-4 text-xs text-ink-muted">
+                        Final check before creating your manuscript workspace.
+                      </p>
+                      <div className="grid gap-4 md:grid-cols-[200px_minmax(0,1fr)] md:items-start">
+                        <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/28 p-4">
+                          <BookCoverPreview title={form.title} style={selectedStyle} />
+                          <p className="mt-3 text-[10px] uppercase tracking-[0.15em] text-amber-label">
+                            Selected Cover
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-ink">{selectedStyle.label}</p>
+                          <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
+                            {selectedStyle.description}
+                          </p>
+                        </div>
+
+                        <div className="overflow-hidden rounded-lg border border-parchment-deep/80 bg-white">
+                          <dl className="divide-y divide-parchment-deep/80">
+                            <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Title</dt>
+                              <dd className="max-w-[65%] truncate font-medium text-ink">{form.title}</dd>
                             </div>
-                            <div className="flex items-center justify-between px-4 py-3 text-sm">
+                            <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Subtitle</dt>
+                              <dd className="max-w-[65%] truncate font-medium text-ink">
+                                {form.subtitle.trim() || "None"}
+                              </dd>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Author</dt>
+                              <dd className="max-w-[65%] truncate font-medium text-ink">
+                                {form.authorName.trim() || "Author"}
+                              </dd>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Genre</dt>
+                              <dd className="max-w-[65%] truncate font-medium text-ink">{form.genre}</dd>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
                               <dt className="text-ink-faint">Status</dt>
                               <dd className="font-medium capitalize text-ink">{form.status}</dd>
                             </div>
-                            <div className="flex items-center justify-between px-4 py-3 text-sm">
-                              <dt className="text-ink-faint">Target word count</dt>
+                            <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                              <dt className="text-ink-faint">Target words</dt>
                               <dd className="font-medium text-ink">{form.targetWordCount.toLocaleString()} words</dd>
-                            </div>
-                            <div className="flex items-center justify-between px-4 py-3 text-sm">
-                              <dt className="text-ink-faint">Cover style</dt>
-                              <dd className="font-medium text-ink">{selectedStyle.label}</dd>
                             </div>
                           </dl>
                         </div>
+                      </div>
 
                         {form.blurb.trim().length > 0 && (
                           <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 px-4 py-3">
@@ -547,7 +520,6 @@ export default function NewBookPage() {
                             <p className="mt-1 text-sm leading-relaxed text-ink-muted">{form.blurb}</p>
                           </div>
                         )}
-                      </div>
                     </div>
                   </StepPanel>
                 </div>

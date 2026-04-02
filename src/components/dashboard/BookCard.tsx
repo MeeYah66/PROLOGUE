@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { MoreHorizontal, Trash2, Pencil, Copy, ArrowRight, Plus } from "lucide-react";
 import type { Book } from "@/lib/types";
 import { cn, totalWordCount, progressPercent } from "@/lib/utils";
+import { LinenBookThumbnail } from "@/components/cover/LinenBookThumbnail";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,72 +39,31 @@ const STATUS: Record<string, { dot: string; label: string }> = {
 
 // ─── 3-D Book Cover ───────────────────────────────────────────────────────────
 function BookCover({ book, hovered }: { book: Book; hovered: boolean }) {
-  const bg = book.cover.backgroundColor ?? "#2d2d2d";
-
   return (
     <div className="shrink-0" style={{ width: 76 }}>
       <div
-        className="relative rounded-[3px] overflow-hidden"
+        className="relative"
         style={{
           width: 76,
           height: 114,
-          backgroundColor: bg,
           transform: hovered
             ? "perspective(500px) rotateY(14deg)"
             : "perspective(500px) rotateY(5deg)",
           transformOrigin: "left center",
           transition: "transform 0.35s ease",
-          boxShadow: [
-            "2px 2px 0 rgba(240,234,220,0.90)",
-            "4px 4px 0 rgba(225,218,205,0.70)",
-            "6px 6px 0 rgba(210,202,185,0.50)",
-            "0 10px 28px rgba(0,0,0,0.28)",
-          ].join(", "),
         }}
       >
-        {/* Cover image */}
-        {book.cover.imageUrl && (
-          <Image
-            src={book.cover.imageUrl}
-            alt={book.title}
-            fill
-            className="object-cover"
-          />
-        )}
-
-        {/* Spine shadow — crease inward from left edge */}
-        <div
-          className="absolute left-0 top-0 bottom-0 z-10 pointer-events-none"
-          style={{
-            width: 18,
-            background:
-              "linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)",
-          }}
+        <LinenBookThumbnail
+          title={book.title}
+          style={book.cover.style}
+          imageUrl={book.cover.imageUrl}
+          variant="card"
+          className="h-[114px] w-[76px]"
         />
-
-        {/* Diagonal dust-jacket sheen */}
-        <div
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 45%, transparent 70%)",
-          }}
-        />
-
-        {/* Title text */}
-        <div className="absolute inset-0 z-20 flex flex-col justify-end p-2 pointer-events-none">
-          <p
-            className="font-serif text-[9.5px] font-semibold leading-tight line-clamp-3 drop-shadow-sm"
-            style={{ color: book.cover.titleColor }}
-          >
-            {book.title}
-          </p>
-        </div>
       </div>
     </div>
   );
 }
-
 // ─── Book Card ────────────────────────────────────────────────────────────────
 export function BookCard({ book, onDelete }: BookCardProps) {
   const router    = useRouter();
@@ -257,3 +216,4 @@ export function AddBookCard() {
     </Link>
   );
 }
+

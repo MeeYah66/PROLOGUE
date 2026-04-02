@@ -30,6 +30,7 @@ import { useTheme } from "@/lib/theme";
 import { AmbientButton } from "@/components/ambient/AmbientButton";
 import { NewManuscriptDialog } from "@/components/dashboard/NewManuscriptDialog";
 import { cn } from "@/lib/utils";
+import { LinenBookThumbnail } from "@/components/cover/LinenBookThumbnail";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -209,24 +210,13 @@ function extractSnippet(html: string, maxChars = 200): string {
 
 function MiniCover({ book }: { book: Book }) {
   return (
-    <div
-      className="w-[56px] h-[90px] shrink-0 rounded-lg relative overflow-hidden"
-      style={{ backgroundColor: book.cover.backgroundColor }}
-    >
-      {book.cover.imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={book.cover.imageUrl}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      )}
-      <div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55))" }}
-      />
-    </div>
+    <LinenBookThumbnail
+      title={book.title}
+      style={book.cover.style}
+      imageUrl={book.cover.imageUrl}
+      variant="mini"
+      className="w-[56px] h-[90px] shrink-0"
+    />
   );
 }
 
