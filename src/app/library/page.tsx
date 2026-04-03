@@ -32,6 +32,7 @@ import { useTheme } from "@/lib/theme";
 import { AmbientButton } from "@/components/ambient/AmbientButton";
 import { useToast } from "@/lib/toast/context";
 import { LinenBookThumbnail } from "@/components/cover/LinenBookThumbnail";
+import { NewManuscriptDialog } from "@/components/dashboard/NewManuscriptDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,7 +131,7 @@ function TopBar({
   );
 }
 
-function EmptyLibrary() {
+function EmptyLibrary({ onCreateNew }: { onCreateNew: () => void }) {
   const steps = [
     { n: "01", text: "Give your story a name" },
     { n: "02", text: "Write your first chapter" },
@@ -173,12 +174,14 @@ function EmptyLibrary() {
         ))}
       </div>
 
-      <Link href="/books/new">
-        <button className="inline-flex items-center gap-2 bg-ink text-parchment px-7 py-3 rounded-xl font-sans font-medium text-sm hover:bg-ink-soft transition-all duration-200 shadow-sm">
-          <PenLine className="w-3.5 h-3.5" strokeWidth={2} />
-          Start your first manuscript
-        </button>
-      </Link>
+      <button
+        type="button"
+        onClick={onCreateNew}
+        className="inline-flex items-center gap-2 bg-ink text-parchment px-7 py-3 rounded-xl font-sans font-medium text-sm hover:bg-ink-soft transition-all duration-200 shadow-sm"
+      >
+        <PenLine className="w-3.5 h-3.5" strokeWidth={2} />
+        Start your first manuscript
+      </button>
 
       <p className="mt-6 text-[11px] text-ink-faint/60 font-serif italic">
         No pressure. No word count. Just you and a blank page.
@@ -406,6 +409,7 @@ function KanbanColumn({
   onCardDragStart,
   onCardDragEnd,
   showCreateNew,
+  onCreateNew,
 }: {
   status: BookStatus;
   books: Book[];
@@ -427,6 +431,7 @@ function KanbanColumn({
   onCardDragStart: (bookId: string) => void;
   onCardDragEnd: () => void;
   showCreateNew: boolean;
+  onCreateNew: () => void;
 }) {
   const meta = COLUMN_META.find((column) => column.status === status)!;
 
@@ -513,13 +518,14 @@ function KanbanColumn({
           <div className="kanban-empty rounded-xl border border-dashed border-parchment-deep/80 bg-parchment/55 px-3 py-8 text-center">
             <p className="text-xs text-ink-faint">Drop a manuscript here</p>
             {showCreateNew && (
-              <Link
-                href="/books/new"
+              <button
+                type="button"
+                onClick={onCreateNew}
                 className="inline-flex items-center gap-1.5 mt-2 text-[11px] text-ink-muted hover:text-ink transition-colors"
               >
                 <Plus className="w-3 h-3" />
                 New manuscript
-              </Link>
+              </button>
             )}
           </div>
         )}
@@ -546,6 +552,7 @@ export default function LibraryPage() {
   const [draggingColumnStatus, setDraggingColumnStatus] = useState<BookStatus | null>(null);
   const [columnDropStatus, setColumnDropStatus] = useState<BookStatus | null>(null);
   const [statusSavingBookId, setStatusSavingBookId] = useState<string | null>(null);
+  const [showNewManuscriptDialog, setShowNewManuscriptDialog] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -855,18 +862,20 @@ export default function LibraryPage() {
                     Export Manuscript
                   </button>
                 </Link>
-                <Link href="/books/new">
-                  <button className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg bg-ink text-parchment text-sm font-medium hover:bg-ink-soft transition-colors">
-                    <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
-                    New Manuscript
-                  </button>
-                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowNewManuscriptDialog(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg bg-ink text-parchment text-sm font-medium hover:bg-ink-soft transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
+                  New Manuscript
+                </button>
               </div>
             )}
           </div>
 
           {books.length === 0 ? (
-            <EmptyLibrary />
+            <EmptyLibrary onCreateNew={() => setShowNewManuscriptDialog(true)} />
           ) : filtered.length > 0 ? (
             <section>
               {query && (
@@ -935,6 +944,7 @@ export default function LibraryPage() {
                             onCardDragStart={handleCardDragStart}
                             onCardDragEnd={handleCardDragEnd}
                             showCreateNew={!query && status === "draft"}
+                            onCreateNew={() => setShowNewManuscriptDialog(true)}
                           />
                         ))}
                       </div>
@@ -955,6 +965,10 @@ export default function LibraryPage() {
           )}
         </div>
       </main>
+      <NewManuscriptDialog
+        open={showNewManuscriptDialog}
+        onOpenChange={setShowNewManuscriptDialog}
+      />
     </div>
   );
 }
