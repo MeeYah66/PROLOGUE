@@ -584,7 +584,6 @@ export default function LibraryPage() {
 
   const totalWords = books.reduce((sum, book) => sum + totalWordCount(book.chapters), 0);
   const totalChapters = books.reduce((sum, book) => sum + book.chapters.length, 0);
-  const inProgress = books.filter((book) => book.status === "ongoing").length;
 
   async function handleDelete(id: string) {
     if (!user) return;
@@ -840,19 +839,13 @@ export default function LibraryPage() {
               </h1>
               {books.length > 0 && (
                 <p className="text-[11px] font-sans uppercase tracking-[0.18em] text-ink-faint">
-                  {books.length} manuscript{books.length !== 1 ? "s" : ""}
-                  <span className="mx-2 opacity-40">&middot;</span>
-                  {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
-                  <span className="mx-2 opacity-40">&middot;</span>
-                  {totalWords.toLocaleString()} words
-                  {inProgress > 0 && (
-                    <>
-                      <span className="mx-2 opacity-40">&middot;</span>
-                      <span className="text-sage">{inProgress} in progress</span>
-                    </>
-                  )}
-                </p>
-              )}
+                {books.length} manuscript{books.length !== 1 ? "s" : ""}
+                <span className="mx-2 opacity-40">&middot;</span>
+                {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
+                <span className="mx-2 opacity-40">&middot;</span>
+                {totalWords.toLocaleString()} words
+              </p>
+            )}
             </div>
             {books.length > 0 && (
               <div className="shrink-0 flex items-center gap-2">

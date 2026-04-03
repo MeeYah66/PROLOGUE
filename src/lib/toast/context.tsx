@@ -55,7 +55,7 @@ function iconFor(variant: ToastVariant) {
 function toastClasses(variant: ToastVariant): string {
   switch (variant) {
     case "success":
-      return "border-gold/45 bg-parchment-warm/95 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]";
+      return "border-gold/45 bg-parchment-warm text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]";
     case "error":
       return "border-red-500/35 bg-parchment text-ink";
     default:
@@ -193,7 +193,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               role="status"
               aria-live="polite"
               className={cn(
-                "toast-surface pointer-events-auto relative overflow-hidden rounded-xl border px-3.5 py-3 backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px]",
+                "toast-surface pointer-events-auto relative overflow-hidden rounded-xl border px-3.5 py-3 transition-all duration-200 hover:-translate-y-[1px]",
                 item.phase === "enter" && "toast-enter",
                 item.phase === "open" && "toast-open",
                 item.phase === "exit" && "toast-exit",
