@@ -96,6 +96,28 @@ function computeWeeklyActivity(books: Book[]): { label: string; words: number; i
   });
 }
 
+function computePreviousWeekTotal(books: Book[]): number {
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - 6);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const previousWeekStart = new Date(weekStart);
+  previousWeekStart.setDate(previousWeekStart.getDate() - 7);
+
+  let total = 0;
+  for (const book of books) {
+    for (const ch of book.chapters) {
+      const updated = new Date(ch.updatedAt);
+      if (updated >= previousWeekStart && updated < weekStart) {
+        total += ch.wordCount;
+      }
+    }
+  }
+
+  return total;
+}
+
 // ─── Section Frame ────────────────────────────────────────────────────────────
 
 function SectionFrame({
@@ -581,52 +603,121 @@ function DailyGoal({ wordsToday, enabled }: { wordsToday: number; enabled: boole
 // ─── Weekly Activity ──────────────────────────────────────────────────────────
 
 function WeeklyActivity({ books }: { books: Book[] }) {
-  const activity    = computeWeeklyActivity(books);
-  const maxWords    = Math.max(...activity.map((d) => d.words), 1);
+  const activity = computeWeeklyActivity(books);
+  const maxWords = Math.max(...activity.map((d) => d.words), 1);
   const totalThisWeek = activity.reduce((s, d) => s + d.words, 0);
+  const previousWeekTotal = computePreviousWeekTotal(books);
+  const activeDays = activity.filter((d) => d.words > 0).length;
+  const bestDay = activity.reduce((best, day) => (day.words > best.words ? day : best), activity[0]);
+  const avgDaily = Math.round(totalThisWeek / 7);
+  const weekDelta =
+    previousWeekTotal > 0
+      ? Math.round(((totalThisWeek - previousWeekTotal) / previousWeekTotal) * 100)
+      : totalThisWeek > 0
+        ? 100
+        : 0;
+  const trendLabel =
+    previousWeekTotal === 0
+      ? totalThisWeek > 0
+        ? "First active week"
+        : "No writing yet"
+      : weekDelta >= 0
+        ? `+${weekDelta}% vs last week`
+        : `${weekDelta}% vs last week`;
+  const lineLabels = [100, 66, 33].map((n) => Math.round((maxWords * n) / 100));
 
   return (
     <div className="rounded-xl border border-parchment-deep/60 bg-white p-4">
-      <div className="flex items-baseline justify-between mb-5">
+      <div className="flex items-baseline justify-between gap-3 mb-3">
         <h3 className="font-serif text-sm font-semibold text-ink">This Week</h3>
         <span className="text-[11px] text-ink-muted">{totalThisWeek.toLocaleString()} words</span>
       </div>
 
-      {/* Bars */}
-      <div className="flex items-end justify-between gap-1 h-12 mb-2.5">
-        {activity.map(({ label, words, isToday }) => {
-          const heightPct = Math.max((words / maxWords) * 100, words > 0 ? 8 : 4);
-          return (
-            <div key={label} className="flex-1 flex flex-col items-center gap-1" title={`${words.toLocaleString()} words`}>
-              <div
-                className="w-full rounded-t-sm transition-all duration-300"
-                style={{
-                  height: `${heightPct}%`,
-                  backgroundColor: isToday
-                    ? "rgb(var(--color-bar-today))"
-                    : words > 0
-                    ? "rgb(var(--color-gold))"
-                    : "rgb(var(--color-bar-empty))",
-                }}
-              />
-            </div>
-          );
-        })}
+      <div className="mb-3 rounded-lg border border-parchment-deep/80 bg-parchment-warm/35 px-2.5 py-2">
+        <p className="text-[10px] uppercase tracking-[0.14em] text-amber-label font-semibold mb-1">
+          Weekly Insight
+        </p>
+        <p className="text-[11px] text-ink-muted">
+          {trendLabel} · {activeDays}/7 active days
+        </p>
       </div>
 
-      {/* Day labels */}
-      <div className="flex justify-between">
-        {activity.map(({ label, isToday }) => (
-          <div key={label} className="flex-1 text-center">
-            {/* isToday: #1a1408 on white → 14:1 ✓   inactive: rgba(26,20,14,0.38) → 3.6:1 (decorative label) */}
-            <span className={cn(
-              "text-[10px]",
-              isToday ? "font-semibold text-ink" : "text-ink-faint"
-            )}>
-              {label}
-            </span>
+      <div className="relative rounded-lg border border-parchment-deep/70 bg-parchment-warm/20 px-2 pt-2.5 pb-2">
+        <div className="absolute left-2 right-2 top-2.5 bottom-7 pointer-events-none">
+          <div className="h-full grid grid-rows-4">
+            <div className="border-t border-parchment-deep/55" />
+            <div className="border-t border-parchment-deep/45" />
+            <div className="border-t border-parchment-deep/40" />
+            <div className="border-t border-parchment-deep/35" />
           </div>
-        ))}
+        </div>
+
+        <div className="h-[110px] relative flex items-end gap-1.5">
+          {activity.map(({ label, words, isToday }) => {
+            const heightPct = words > 0 ? Math.max((words / maxWords) * 100, 12) : 6;
+            return (
+              <div key={label} className="flex-1 h-full flex flex-col justify-end items-center gap-1" title={`${words.toLocaleString()} words`}>
+                <div className="w-full flex justify-center">
+                  {words > 0 && (
+                    <span className={cn(
+                      "text-[9px] leading-none px-1 py-0.5 rounded border",
+                      isToday
+                        ? "border-gold/40 bg-gold/15 text-gold-dark"
+                        : "border-parchment-deep text-ink-faint"
+                    )}>
+                      {words >= 1000 ? `${(words / 1000).toFixed(1)}k` : words}
+                    </span>
+                  )}
+                </div>
+                <div
+                  className="w-full rounded-t-md transition-all duration-300"
+                  style={{
+                    height: `${heightPct}%`,
+                    background: isToday
+                      ? "linear-gradient(180deg, rgba(var(--color-gold-light),0.95) 0%, rgba(var(--color-gold),0.88) 100%)"
+                      : words > 0
+                        ? "linear-gradient(180deg, rgba(var(--color-bar-today),0.85) 0%, rgba(var(--color-bar-today),0.65) 100%)"
+                        : "rgb(var(--color-bar-empty))",
+                  }}
+                />
+                <span className={cn(
+                  "text-[10px]",
+                  isToday ? "font-semibold text-ink" : "text-ink-faint"
+                )}>
+                  {label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-1.5 flex items-center justify-between text-[10px] text-ink-faint">
+          <span>Peak {lineLabels[0].toLocaleString()}w</span>
+          <span>Avg {avgDaily.toLocaleString()}w/day</span>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="rounded-md border border-parchment-deep/70 bg-parchment-warm/25 px-2 py-1.5">
+          <p className="text-[9px] uppercase tracking-[0.12em] text-ink-faint">Best day</p>
+          <p className="text-[11px] font-medium text-ink mt-0.5">
+            {bestDay.words > 0 ? `${bestDay.label} · ${bestDay.words.toLocaleString()}w` : "No peak yet"}
+          </p>
+        </div>
+        <div className="rounded-md border border-parchment-deep/70 bg-parchment-warm/25 px-2 py-1.5">
+          <p className="text-[9px] uppercase tracking-[0.12em] text-ink-faint">Active days</p>
+          <p className="text-[11px] font-medium text-ink mt-0.5">{activeDays}/7</p>
+        </div>
+        <div className="rounded-md border border-parchment-deep/70 bg-parchment-warm/25 px-2 py-1.5">
+          <p className="text-[9px] uppercase tracking-[0.12em] text-ink-faint">Momentum</p>
+          <p className={cn(
+            "text-[11px] font-medium mt-0.5",
+            weekDelta >= 0 ? "text-sage-dark" : "text-ink-muted"
+          )}>
+            {weekDelta >= 0 ? "+" : ""}
+            {weekDelta}%
+          </p>
+        </div>
       </div>
     </div>
   );
