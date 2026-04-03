@@ -275,10 +275,10 @@ function KanbanCard({
   const progress = progressPercent(wordCount, book.targetWordCount);
   const statusBadgeClass =
     book.status === "draft"
-      ? "bg-parchment-deep text-ink-muted"
+      ? "bg-parchment-deep text-ink-muted kanban-status-draft"
       : book.status === "ongoing"
-        ? "bg-gold/25 text-gold-dark"
-        : "bg-sage/25 text-sage-dark";
+        ? "bg-gold/25 text-gold-dark kanban-status-ongoing"
+        : "bg-sage/25 text-sage-dark kanban-status-completed";
 
   return (
     <article
@@ -290,11 +290,11 @@ function KanbanCard({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "rounded-xl border border-parchment-deep/75 bg-white overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
+        "kanban-card rounded-xl border border-parchment-deep/75 bg-white overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
         "hover:border-gold/35 hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)]"
       )}
     >
-      <div className="h-9 px-3 flex items-center justify-between border-b border-parchment-deep/70">
+      <div className="kanban-card-head h-9 px-3 flex items-center justify-between border-b border-parchment-deep/70">
         <div className="flex items-center gap-2 min-w-0">
           <p className="text-xs font-medium text-ink truncate">{book.title}</p>
         </div>
@@ -364,7 +364,7 @@ function KanbanCard({
         </div>
 
         <div className="flex items-center justify-between text-[11px] text-ink-faint pt-1">
-          <span className={cn("inline-flex items-center h-6 px-2.5 rounded-md text-[10px] font-semibold tracking-[0.02em]", statusBadgeClass)}>
+          <span className={cn("kanban-status-badge inline-flex items-center h-6 px-2.5 rounded-md text-[10px] font-semibold tracking-[0.02em]", statusBadgeClass)}>
             {statusLabel(book.status)}
           </span>
           <Link
@@ -433,11 +433,11 @@ function KanbanColumn({
   return (
     <section
       className={cn(
-        "rounded-2xl border p-3 transition-colors",
+        "kanban-lane rounded-2xl border p-3 transition-colors",
         meta.laneTone,
-        isColumnDropTarget ? "ring-2 ring-ink/15 border-ink/25" : "",
+        isColumnDropTarget ? "kanban-lane-column-drop ring-2 ring-ink/15 border-ink/25" : "",
         isActiveDrop
-          ? "border-gold/45 ring-2 ring-gold/20"
+          ? "kanban-lane-card-drop border-gold/45 ring-2 ring-gold/20"
           : "border-parchment-deep/70"
       )}
       onDragOver={(event) => {
@@ -465,7 +465,7 @@ function KanbanColumn({
         onDrop(status, event);
       }}
     >
-      <div className="flex items-center justify-between mb-3 px-0.5">
+      <div className="kanban-lane-head flex items-center justify-between mb-3 px-0.5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className={cn("w-2 h-2 rounded-full", meta.dot)} />
@@ -474,7 +474,7 @@ function KanbanColumn({
           <p className="text-[11px] text-ink-faint mt-1">{meta.hint}</p>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full border border-parchment-deep bg-parchment-warm text-[11px] font-medium text-ink">
+          <span className="kanban-count-badge inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full border border-parchment-deep bg-parchment-warm text-[11px] font-medium text-ink">
             {books.length}
           </span>
           <button
@@ -485,7 +485,7 @@ function KanbanColumn({
               onColumnDragStart(status);
             }}
             onDragEnd={onColumnDragEnd}
-            className="w-6 h-6 rounded-md border border-parchment-deep/90 bg-parchment/75 text-ink-faint hover:text-ink transition-colors flex items-center justify-center cursor-move"
+            className="kanban-move-handle w-6 h-6 rounded-md border border-parchment-deep/90 bg-parchment/75 text-ink-faint hover:text-ink transition-colors flex items-center justify-center cursor-move"
             aria-label={`Reorder ${meta.title} column`}
             title="Drag to reorder column"
           >
@@ -510,7 +510,7 @@ function KanbanColumn({
             />
           ))
         ) : (
-          <div className="rounded-xl border border-dashed border-parchment-deep/80 bg-parchment/55 px-3 py-8 text-center">
+          <div className="kanban-empty rounded-xl border border-dashed border-parchment-deep/80 bg-parchment/55 px-3 py-8 text-center">
             <p className="text-xs text-ink-faint">Drop a manuscript here</p>
             {showCreateNew && (
               <Link
@@ -879,13 +879,13 @@ export default function LibraryPage() {
               )}
 
               <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="flex items-center gap-1 bg-parchment-warm border border-parchment-deep rounded-lg p-1">
+                <div className="kanban-view-toggle flex items-center gap-1 bg-parchment-warm border border-parchment-deep rounded-lg p-1">
                   <button
                     onClick={() => setViewMode("board")}
                     className={cn(
-                      "px-3 py-1 rounded-md text-xs transition-colors",
+                      "kanban-view-btn px-3 py-1 rounded-md text-xs transition-colors",
                       viewMode === "board"
-                        ? "bg-parchment text-ink shadow-sm font-medium"
+                        ? "kanban-view-btn-active bg-parchment text-ink shadow-sm font-medium"
                         : "text-ink-muted hover:text-ink"
                     )}
                   >
@@ -894,9 +894,9 @@ export default function LibraryPage() {
                   <button
                     onClick={() => setViewMode("grid")}
                     className={cn(
-                      "px-3 py-1 rounded-md text-xs transition-colors",
+                      "kanban-view-btn px-3 py-1 rounded-md text-xs transition-colors",
                       viewMode === "grid"
-                        ? "bg-parchment text-ink shadow-sm font-medium"
+                        ? "kanban-view-btn-active bg-parchment text-ink shadow-sm font-medium"
                         : "text-ink-muted hover:text-ink"
                     )}
                   >
@@ -906,7 +906,7 @@ export default function LibraryPage() {
               </div>
 
               {viewMode === "board" ? (
-                <div className="rounded-[22px] border border-parchment-deep/85 bg-parchment/82 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-hidden mb-8">
+                <div className="kanban-shell rounded-[22px] border border-parchment-deep/85 bg-parchment/82 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-hidden mb-8">
                   <div className="p-2.5 md:p-3">
                     <div className="overflow-x-auto">
                       <div className="min-w-[790px] grid grid-cols-3 gap-3">
