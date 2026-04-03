@@ -71,6 +71,94 @@ const STEP_COPY: Record<number, { eyebrow: string; title: string; description: s
   },
 };
 
+const COVER_TITLE_SWATCHES = [
+  "#9d8a5d",
+  "#5f6f86",
+  "#6f7e6f",
+  "#8a6b58",
+  "#1f2937",
+  "#ece5d6",
+];
+
+const COVER_AUTHOR_SWATCHES = [
+  "#4b463f",
+  "#353b45",
+  "#424a43",
+  "#463e39",
+  "#8b8f98",
+  "#f3eee3",
+];
+
+const COVER_BG_SWATCHES = [
+  "#f4f2ed",
+  "#eceff3",
+  "#edf1eb",
+  "#f2ece8",
+  "#111827",
+  "#efe5d0",
+];
+
+function normalizeHex(value: string): string {
+  const raw = value.trim();
+  if (!raw) return "#";
+  return raw.startsWith("#") ? raw.slice(0, 7) : `#${raw.slice(0, 6)}`;
+}
+
+function ColorSwatchField({
+  label,
+  value,
+  palette,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  palette: string[];
+  onChange: (value: string) => void;
+}) {
+  const normalizedValue = value.toLowerCase();
+
+  return (
+    <div className="space-y-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+          {label}
+        </Label>
+        <span className="text-[11px] font-mono text-ink-muted">{value.toUpperCase()}</span>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {palette.map((color) => (
+          <button
+            key={color}
+            type="button"
+            onClick={() => onChange(color)}
+            className={cn(
+              "h-7 w-7 rounded-full border-2 transition-all",
+              normalizedValue === color.toLowerCase()
+                ? "border-ink ring-2 ring-gold/35 ring-offset-2 ring-offset-parchment"
+                : "border-white/80 hover:scale-105 hover:border-parchment-deep"
+            )}
+            style={{ backgroundColor: color }}
+            aria-label={`Set ${label.toLowerCase()} to ${color}`}
+          />
+        ))}
+      </div>
+
+      <div className="relative">
+        <span
+          className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border border-parchment-deep/80"
+          style={{ backgroundColor: value }}
+        />
+        <Input
+          value={value}
+          onChange={(event) => onChange(normalizeHex(event.target.value))}
+          className="h-9 rounded-md border-parchment-deep bg-white pl-8 pr-2 font-mono text-xs"
+        />
+      </div>
+    </div>
+  );
+}
+
 interface StepPanelProps {
   sectionTitle: string;
   children: React.ReactNode;
@@ -424,69 +512,96 @@ export default function NewBookPage() {
                     </p>
                   </div>
 
-                  <StepPanel sectionTitle="Cover Direction">
-                    <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
-                      <p className="mb-4 text-xs text-ink-muted">
-                        Choose a style, upload a cover image, and fine-tune text placement now.
-                      </p>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {LINEN_COVER_OPTIONS.map((style) => {
-                          const selected = form.coverStyle === style.id;
-                          return (
-                            <button
-                              key={style.id}
-                              type="button"
-                              onClick={() => applyCoverStyle(style.id)}
-                              className={cn(
-                                "group rounded-xl border bg-white p-4 text-left transition-all",
-                                selected
-                                  ? "border-gold/65 shadow-[0_16px_34px_-24px_rgba(201,168,76,0.82)]"
-                                  : "border-parchment-deep/90 hover:border-gold/40 hover:shadow-[0_16px_32px_-26px_rgba(26,20,14,0.5)]"
-                              )}
-                            >
-                              <div className="rounded-lg border border-parchment-deep/65 bg-parchment-warm/30 px-4 py-5">
-                                <LinenBookThumbnail
-                                  title={form.title}
-                                  subtitle={form.subtitle}
-                                  author={resolvedAuthorName}
-                                  style={style.id}
-                                  imageUrl={coverImageUrl}
-                                  alignment={form.coverAlignment}
-                                  variant="builder"
-                                  className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
-                                />
-                              </div>
+                  <StepPanel sectionTitle="Cover Studio">
+                    <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white overflow-hidden">
+                      <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
+                        <div className="order-2 lg:order-1 p-5 sm:p-6 space-y-6 border-t border-parchment-deep lg:border-t-0 lg:border-r">
+                          <div className="rounded-xl border border-parchment-deep/80 bg-parchment-warm/35 p-4">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+                              Design Flow
+                            </p>
+                            <p className="mt-1.5 text-sm text-ink-muted leading-relaxed">
+                              Pick a base cover style, upload your own artwork if needed, then fine-tune alignment and colors.
+                            </p>
+                          </div>
 
-                              <div className="mt-3 flex items-start justify-between gap-3 px-0.5">
-                                <div>
-                                  <p className="text-sm font-medium text-ink">{style.label}</p>
-                                  <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
-                                    {style.description}
-                                  </p>
-                                </div>
-                                <span
-                                  className={cn(
-                                    "mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
-                                    selected
-                                      ? "border-gold bg-gold text-parchment"
-                                      : "border-parchment-deep text-transparent group-hover:text-ink-faint"
-                                  )}
-                                >
-                                  <Check className="h-3 w-3" />
-                                </span>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
+                          <section className="space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <h3 className="font-serif text-base font-semibold text-ink">Base Styles</h3>
+                              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+                                4 Included
+                              </span>
+                            </div>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              {LINEN_COVER_OPTIONS.map((style) => {
+                                const selected = form.coverStyle === style.id;
+                                return (
+                                  <button
+                                    key={style.id}
+                                    type="button"
+                                    onClick={() => applyCoverStyle(style.id)}
+                                    className={cn(
+                                      "group rounded-xl border bg-white p-3 text-left transition-all",
+                                      selected
+                                        ? "border-gold/65 shadow-[0_16px_30px_-24px_rgba(201,168,76,0.85)]"
+                                        : "border-parchment-deep/90 hover:border-gold/45 hover:shadow-[0_16px_26px_-24px_rgba(26,20,14,0.42)]"
+                                    )}
+                                  >
+                                    <div className="rounded-lg border border-parchment-deep/65 bg-parchment-warm/25 px-3 py-3">
+                                      <LinenBookThumbnail
+                                        title={form.title}
+                                        subtitle={form.subtitle}
+                                        author={resolvedAuthorName}
+                                        style={style.id}
+                                        imageUrl={coverImageUrl}
+                                        alignment={form.coverAlignment}
+                                        titleColor={style.titleColor}
+                                        subtitleColor={style.subtitleColor}
+                                        authorColor={style.authorColor}
+                                        variant="builder"
+                                        className="mx-auto h-[170px] w-[122px]"
+                                      />
+                                    </div>
+                                    <div className="mt-2.5 flex items-start justify-between gap-2">
+                                      <div>
+                                        <p className="text-sm font-medium text-ink">{style.label}</p>
+                                        <p className="text-xs text-ink-faint mt-0.5">{style.description}</p>
+                                      </div>
+                                      <span
+                                        className={cn(
+                                          "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
+                                          selected
+                                            ? "border-gold bg-gold text-parchment"
+                                            : "border-parchment-deep text-transparent group-hover:text-ink-faint"
+                                        )}
+                                      >
+                                        <Check className="h-3 w-3" />
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </section>
 
-                      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-                        <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/30 p-4 space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs">Cover Image</Label>
+                          <section className="space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <h3 className="font-serif text-base font-semibold text-ink">Artwork</h3>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => coverFileRef.current?.click()}
+                                className="h-8 text-xs"
+                              >
+                                <Upload className="h-3.5 w-3.5" />
+                                {coverImageUrl ? "Replace Image" : "Upload Image"}
+                              </Button>
+                            </div>
+
                             {coverImageUrl ? (
-                              <div className="flex items-center gap-3 rounded-md border border-parchment-deep bg-white p-2">
-                                <div className="relative h-16 w-12 overflow-hidden rounded border border-parchment-deep/80">
+                              <div className="rounded-xl border border-parchment-deep bg-white p-3 flex items-center gap-3">
+                                <div className="h-20 w-14 shrink-0 rounded-md border border-parchment-deep/80 overflow-hidden">
                                   <LinenBookThumbnail
                                     title={form.title}
                                     subtitle={form.subtitle}
@@ -501,10 +616,17 @@ export default function NewBookPage() {
                                     variant="mini"
                                   />
                                 </div>
-                                <div className="flex-1 text-xs text-ink-muted">
-                                  Image selected
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-medium text-ink">Image ready</p>
+                                  <p className="text-xs text-ink-muted">Your uploaded art is shown clearly on the live preview.</p>
                                 </div>
-                                <Button type="button" variant="ghost" size="sm" onClick={clearCoverImage} className="h-8 px-2 text-ink-faint">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={clearCoverImage}
+                                  className="h-8 px-2 text-ink-faint hover:text-ink"
+                                >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
@@ -512,24 +634,16 @@ export default function NewBookPage() {
                               <button
                                 type="button"
                                 onClick={() => coverFileRef.current?.click()}
-                                className="w-full rounded-md border border-dashed border-parchment-deep bg-white px-3 py-2.5 text-xs text-ink-muted hover:border-gold/40 hover:text-ink transition-colors inline-flex items-center justify-center gap-2"
+                                className="w-full rounded-xl border border-dashed border-parchment-deep bg-parchment-warm/20 px-4 py-5 text-left hover:border-gold/45 hover:bg-parchment-warm/35 transition-colors"
                               >
-                                <Upload className="h-3.5 w-3.5" />
-                                Upload cover image
+                                <div className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-parchment-deep bg-white text-ink-faint">
+                                  <Upload className="h-3.5 w-3.5" />
+                                </div>
+                                <p className="mt-3 text-sm font-medium text-ink">Upload custom cover art</p>
+                                <p className="mt-1 text-xs text-ink-muted">PNG, JPG, WEBP. Keep your style and text controls while using your own image.</p>
                               </button>
                             )}
-                            {coverImageUrl && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => coverFileRef.current?.click()}
-                                className="h-8 text-xs"
-                              >
-                                <Upload className="h-3.5 w-3.5" />
-                                Replace image
-                              </Button>
-                            )}
+
                             <input
                               ref={coverFileRef}
                               type="file"
@@ -537,89 +651,99 @@ export default function NewBookPage() {
                               onChange={handleCoverUpload}
                               className="hidden"
                             />
-                          </div>
+                          </section>
 
-                          <div className="space-y-2">
-                            <Label className="text-xs">Text Alignment</Label>
-                            <div className="flex items-center gap-1 rounded-md border border-parchment-deep bg-white p-1">
-                              {([
-                                { value: "left", icon: AlignLeft },
-                                { value: "center", icon: AlignCenter },
-                                { value: "right", icon: AlignRight },
-                              ] as { value: CoverAlignment; icon: React.ElementType }[]).map(({ value, icon: Icon }) => (
-                                <button
-                                  key={value}
-                                  type="button"
-                                  onClick={() => update("coverAlignment", value)}
-                                  className={cn(
-                                    "flex-1 h-8 rounded-sm inline-flex items-center justify-center transition-colors",
-                                    form.coverAlignment === value
-                                      ? "bg-parchment-warm text-ink"
-                                      : "text-ink-muted hover:text-ink"
-                                  )}
-                                >
-                                  <Icon className="h-3.5 w-3.5" />
-                                </button>
-                              ))}
+                          <section className="space-y-4">
+                            <h3 className="font-serif text-base font-semibold text-ink">Typography & Tone</h3>
+
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+                                Text Alignment
+                              </Label>
+                              <div className="flex items-center gap-1 rounded-lg border border-parchment-deep bg-white p-1">
+                                {([
+                                  { value: "left", icon: AlignLeft },
+                                  { value: "center", icon: AlignCenter },
+                                  { value: "right", icon: AlignRight },
+                                ] as { value: CoverAlignment; icon: React.ElementType }[]).map(({ value, icon: Icon }) => (
+                                  <button
+                                    key={value}
+                                    type="button"
+                                    onClick={() => update("coverAlignment", value)}
+                                    className={cn(
+                                      "flex-1 h-8 rounded-md inline-flex items-center justify-center transition-colors",
+                                      form.coverAlignment === value
+                                        ? "bg-parchment-warm text-ink shadow-sm"
+                                        : "text-ink-muted hover:text-ink"
+                                    )}
+                                  >
+                                    <Icon className="h-3.5 w-3.5" />
+                                  </button>
+                                ))}
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="grid gap-3 sm:grid-cols-3">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">Title</Label>
-                              <input
-                                type="color"
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <ColorSwatchField
+                                label="Title Color"
                                 value={form.coverTitleColor}
-                                onChange={(e) => update("coverTitleColor", e.target.value)}
-                                className="h-9 w-full rounded border border-parchment-deep bg-white p-1 cursor-pointer"
+                                palette={COVER_TITLE_SWATCHES}
+                                onChange={(value) => update("coverTitleColor", value)}
                               />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">Author</Label>
-                              <input
-                                type="color"
+                              <ColorSwatchField
+                                label="Author Color"
                                 value={form.coverAuthorColor}
-                                onChange={(e) => update("coverAuthorColor", e.target.value)}
-                                className="h-9 w-full rounded border border-parchment-deep bg-white p-1 cursor-pointer"
+                                palette={COVER_AUTHOR_SWATCHES}
+                                onChange={(value) => update("coverAuthorColor", value)}
                               />
                             </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">Background</Label>
-                              <input
-                                type="color"
-                                value={form.coverBackgroundColor}
-                                onChange={(e) => update("coverBackgroundColor", e.target.value)}
-                                className="h-9 w-full rounded border border-parchment-deep bg-white p-1 cursor-pointer"
-                              />
-                            </div>
-                          </div>
 
-                        </div>
-
-                        <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/30 p-4">
-                          <p className="text-[10px] uppercase tracking-[0.14em] text-amber-label mb-2">Live Preview</p>
-                          <div
-                            className="rounded-md border border-parchment-deep/70 bg-white px-4 py-5"
-                            style={{ backgroundColor: form.coverBackgroundColor }}
-                          >
-                            <LinenBookThumbnail
-                              title={form.title}
-                              subtitle={form.subtitle}
-                              author={resolvedAuthorName}
-                              style={form.coverStyle}
-                              imageUrl={coverImageUrl}
-                              alignment={form.coverAlignment}
-                              titleColor={form.coverTitleColor}
-                              subtitleColor={form.coverAuthorColor}
-                              authorColor={form.coverAuthorColor}
-                              variant="builder"
-                              className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
+                            <ColorSwatchField
+                              label="Background Color"
+                              value={form.coverBackgroundColor}
+                              palette={COVER_BG_SWATCHES}
+                              onChange={(value) => update("coverBackgroundColor", value)}
                             />
-                          </div>
-                          <p className="mt-2 text-[11px] text-ink-faint">
-                            Same controls continue in Cover inside the writing studio.
-                          </p>
+                          </section>
                         </div>
+
+                        <aside className="order-1 lg:order-2 bg-parchment-warm/35 p-5 sm:p-6 border-b border-parchment-deep lg:border-b-0">
+                          <div className="lg:sticky lg:top-5 space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
+                                Live Preview
+                              </p>
+                              <span className="inline-flex h-6 items-center rounded-full border border-parchment-deep bg-white px-2.5 text-[10px] font-medium text-ink-muted">
+                                {selectedStyle.label}
+                              </span>
+                            </div>
+
+                            <div
+                              className="rounded-xl border border-parchment-deep/80 bg-white p-4 sm:p-5 shadow-[0_16px_28px_-24px_rgba(26,20,14,0.45)]"
+                              style={{ backgroundColor: form.coverBackgroundColor }}
+                            >
+                              <LinenBookThumbnail
+                                title={form.title}
+                                subtitle={form.subtitle}
+                                author={resolvedAuthorName}
+                                style={form.coverStyle}
+                                imageUrl={coverImageUrl}
+                                alignment={form.coverAlignment}
+                                titleColor={form.coverTitleColor}
+                                subtitleColor={form.coverAuthorColor}
+                                authorColor={form.coverAuthorColor}
+                                variant="builder"
+                                className="mx-auto h-[230px] w-[164px] sm:h-[250px] sm:w-[176px]"
+                              />
+                            </div>
+
+                            <div className="rounded-lg border border-parchment-deep/80 bg-white/80 p-3">
+                              <p className="text-[11px] text-ink-muted leading-relaxed">
+                                This same setup continues in the writing workspace Cover tab. You can refine it anytime.
+                              </p>
+                            </div>
+                          </div>
+                        </aside>
                       </div>
                     </div>
                   </StepPanel>
