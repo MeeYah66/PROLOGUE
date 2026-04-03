@@ -216,14 +216,6 @@ export default function SettingsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-base font-semibold text-ink mb-1">Export & Share</h2>
-            <p className="text-xs text-ink-faint mb-4">
-              You can export from here, and also from Library for a faster workflow.
-            </p>
-            <ExportCenter />
-          </section>
-
-          <section>
             <h2 className="font-serif text-base font-semibold text-ink mb-1">Writing Tools</h2>
             <p className="text-xs text-ink-faint mb-4">
               Track your writing habits and progress.
@@ -248,6 +240,14 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-base font-semibold text-ink mb-1">Export & Share</h2>
+            <p className="text-xs text-ink-faint mb-4">
+              You can export from here, and also from Library for a faster workflow.
+            </p>
+            <ExportCenter />
           </section>
 
           <section>
