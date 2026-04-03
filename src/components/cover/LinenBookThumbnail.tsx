@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { CoverStyle } from "@/lib/types";
+import type { CoverAlignment, CoverStyle } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export type LinenCoverOption = {
@@ -78,6 +78,11 @@ type LinenBookThumbnailProps = {
   subtitle?: string;
   author?: string;
   imageUrl?: string;
+  alignment?: CoverAlignment;
+  titleColor?: string;
+  subtitleColor?: string;
+  authorColor?: string;
+  imageOpacity?: number;
   className?: string;
   variant?: CoverVariant;
 };
@@ -88,6 +93,11 @@ export function LinenBookThumbnail({
   subtitle,
   author,
   imageUrl,
+  alignment = "center",
+  titleColor,
+  subtitleColor,
+  authorColor,
+  imageOpacity = 0.12,
   className,
   variant = "card",
 }: LinenBookThumbnailProps) {
@@ -107,6 +117,8 @@ export function LinenBookThumbnail({
     variant === "builder" ? "text-[8px] leading-[1.2]" : "text-[5.6px] leading-[1.2]";
   const authorClassName =
     variant === "builder" ? "text-[8.6px] tracking-[0.13em]" : "text-[5.8px] tracking-[0.12em]";
+  const textAlignClass =
+    alignment === "left" ? "text-left" : alignment === "right" ? "text-right" : "text-center";
 
   return (
     <div className={cn("relative overflow-visible", className)}>
@@ -129,7 +141,8 @@ export function LinenBookThumbnail({
               src={imageUrl}
               alt={displayTitle}
               fill
-              className="object-cover opacity-12 mix-blend-multiply"
+              className="object-cover mix-blend-multiply"
+              style={{ opacity: imageOpacity }}
             />
           )}
           <div
@@ -147,16 +160,19 @@ export function LinenBookThumbnail({
             }}
           />
 
-          <div className="absolute inset-x-[10%] top-[29%] text-center">
-            <p className={cn("line-clamp-3 font-serif font-medium", titleClassName)} style={{ color: palette.titleColor }}>
+          <div className={cn("absolute inset-x-[10%] top-[29%]", textAlignClass)}>
+            <p
+              className={cn("line-clamp-3 font-serif font-medium", titleClassName)}
+              style={{ color: titleColor ?? palette.titleColor }}
+            >
               {displayTitle}
             </p>
           </div>
 
           {(variant === "builder" || variant === "card") && displaySubtitle && (
             <p
-              className={cn("absolute inset-x-[12%] top-[66%] text-center font-sans", subtitleClassName)}
-              style={{ color: palette.subtitleColor }}
+              className={cn("absolute inset-x-[12%] top-[66%] font-sans", subtitleClassName, textAlignClass)}
+              style={{ color: subtitleColor ?? palette.subtitleColor }}
             >
               {displaySubtitle}
             </p>
@@ -165,10 +181,11 @@ export function LinenBookThumbnail({
           {(variant === "builder" || variant === "card") && displayAuthor && (
             <p
               className={cn(
-                "absolute inset-x-[10%] bottom-[9%] truncate text-center font-sans font-medium uppercase",
-                authorClassName
+                "absolute inset-x-[10%] bottom-[9%] truncate font-sans font-medium uppercase",
+                authorClassName,
+                textAlignClass
               )}
-              style={{ color: palette.authorColor }}
+              style={{ color: authorColor ?? palette.authorColor }}
             >
               {displayAuthor}
             </p>

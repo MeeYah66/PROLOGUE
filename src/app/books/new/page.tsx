@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,12 +11,17 @@ import {
   Heart,
   Layers,
   Loader2,
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   Sparkles,
+  Trash2,
+  Upload,
 } from "lucide-react";
 import { GENRES } from "@/lib/data/mockData";
-import { createBook } from "@/lib/store";
+import { createBook, saveBook } from "@/lib/store";
 import { useAuth } from "@/lib/auth/context";
-import type { BookStatus, CoverStyle } from "@/lib/types";
+import type { BookStatus, CoverAlignment, CoverStyle } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +39,7 @@ import {
   LINEN_COVER_OPTIONS,
   LinenBookThumbnail,
 } from "@/components/cover/LinenBookThumbnail";
+import { uploadCoverImage } from "@/lib/supabase/storage";
 
 const GENRE_ICONS: Record<string, React.ReactNode> = {
   Fantasy: <Sparkles className="w-3.5 h-3.5" />,
@@ -97,8 +103,12 @@ export default function NewBookPage() {
   const router = useRouter();
   const { user } = useAuth();
   const penName = user?.name?.trim() || "";
+  const defaultCover = LINEN_COVER_OPTIONS[0];
+  const coverFileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
+  const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(undefined);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
@@ -107,7 +117,12 @@ export default function NewBookPage() {
     authorName: penName,
     status: "draft" as BookStatus,
     targetWordCount: 80000,
-    coverStyle: "minimal" as CoverStyle,
+    coverStyle: defaultCover.id as CoverStyle,
+    coverTitleColor: defaultCover.titleColor,
+    coverAuthorColor: defaultCover.authorColor,
+    coverBackgroundColor: defaultCover.bg,
+    coverAlignment: "left" as CoverAlignment,
+    coverOverlayOpacity: 0.5,
   });
 
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
@@ -122,11 +137,51 @@ export default function NewBookPage() {
     ));
   }, [penName]);
 
+  useEffect(() => {
+    return () => {
+      if (coverImageUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(coverImageUrl);
+      }
+    };
+  }, [coverImageUrl]);
+
   const canProceed = step === 1 ? form.title.trim().length > 0 && form.genre.length > 0 : true;
   const selectedStyle = LINEN_COVER_OPTIONS.find((style) => style.id === form.coverStyle) ?? LINEN_COVER_OPTIONS[0];
   const resolvedAuthorName = form.authorName.trim() || penName;
   const fieldClassName =
     "h-10 rounded-lg border-parchment-deep/85 bg-white text-[0.95rem] shadow-none focus:border-parchment-deep/85 focus:ring-0 dark:border-parchment-deep dark:bg-parchment/60 dark:focus:border-parchment-deep";
+
+  function applyCoverStyle(styleId: CoverStyle) {
+    const style = LINEN_COVER_OPTIONS.find((item) => item.id === styleId);
+    if (!style) return;
+    setForm((prev) => ({
+      ...prev,
+      coverStyle: style.id,
+      coverTitleColor: style.titleColor,
+      coverAuthorColor: style.authorColor,
+      coverBackgroundColor: style.bg,
+    }));
+  }
+
+  function handleCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (coverImageUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(coverImageUrl);
+    }
+    const nextUrl = URL.createObjectURL(file);
+    setCoverImageFile(file);
+    setCoverImageUrl(nextUrl);
+  }
+
+  function clearCoverImage() {
+    if (coverImageUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(coverImageUrl);
+    }
+    setCoverImageFile(null);
+    setCoverImageUrl(undefined);
+    if (coverFileRef.current) coverFileRef.current.value = "";
+  }
 
   async function handleCreate() {
     if (!user || isCreating) return;
@@ -142,13 +197,29 @@ export default function NewBookPage() {
         targetWordCount: form.targetWordCount,
         cover: {
           style: form.coverStyle,
-          titleColor: selectedStyle.titleColor,
-          authorColor: selectedStyle.authorColor,
-          alignment: "left",
-          backgroundColor: selectedStyle.bg,
-          overlayOpacity: 0.5,
+          titleColor: form.coverTitleColor,
+          authorColor: form.coverAuthorColor,
+          alignment: form.coverAlignment,
+          backgroundColor: form.coverBackgroundColor,
+          overlayOpacity: form.coverOverlayOpacity,
         },
       });
+
+      if (coverImageFile) {
+        try {
+          const imageUrl = await uploadCoverImage(book.id, coverImageFile);
+          await saveBook(user.id, {
+            ...book,
+            cover: {
+              ...book.cover,
+              imageUrl,
+            },
+          });
+        } catch (error) {
+          console.error("Unable to upload cover image during creation:", error);
+        }
+      }
+
       router.push(`/books/${book.id}`);
     } finally {
       setIsCreating(false);
@@ -357,7 +428,7 @@ export default function NewBookPage() {
                   <StepPanel sectionTitle="Cover Direction">
                     <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
                       <p className="mb-4 text-xs text-ink-muted">
-                        Your manuscript title from Step 1 is previewed live on each cover.
+                        Choose a style, upload a cover image, and fine-tune text placement now.
                       </p>
                       <div className="grid gap-4 sm:grid-cols-2">
                         {LINEN_COVER_OPTIONS.map((style) => {
@@ -366,7 +437,7 @@ export default function NewBookPage() {
                             <button
                               key={style.id}
                               type="button"
-                              onClick={() => update("coverStyle", style.id)}
+                              onClick={() => applyCoverStyle(style.id)}
                               className={cn(
                                 "group rounded-xl border bg-white p-4 text-left transition-all",
                                 selected
@@ -380,6 +451,8 @@ export default function NewBookPage() {
                                   subtitle={form.subtitle}
                                   author={resolvedAuthorName}
                                   style={style.id}
+                                  imageUrl={coverImageUrl}
+                                  alignment={form.coverAlignment}
                                   variant="builder"
                                   className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
                                 />
@@ -406,6 +479,164 @@ export default function NewBookPage() {
                             </button>
                           );
                         })}
+                      </div>
+
+                      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+                        <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/30 p-4 space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Cover Image</Label>
+                            {coverImageUrl ? (
+                              <div className="flex items-center gap-3 rounded-md border border-parchment-deep bg-white p-2">
+                                <div className="relative h-16 w-12 overflow-hidden rounded border border-parchment-deep/80">
+                                  <LinenBookThumbnail
+                                    title={form.title}
+                                    subtitle={form.subtitle}
+                                    author={resolvedAuthorName}
+                                    style={form.coverStyle}
+                                    imageUrl={coverImageUrl}
+                                    alignment={form.coverAlignment}
+                                    titleColor={form.coverTitleColor}
+                                    subtitleColor={form.coverAuthorColor}
+                                    authorColor={form.coverAuthorColor}
+                                    imageOpacity={form.coverOverlayOpacity * 0.28}
+                                    className="h-full w-full"
+                                    variant="mini"
+                                  />
+                                </div>
+                                <div className="flex-1 text-xs text-ink-muted">
+                                  Image selected
+                                </div>
+                                <Button type="button" variant="ghost" size="sm" onClick={clearCoverImage} className="h-8 px-2 text-ink-faint">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => coverFileRef.current?.click()}
+                                className="w-full rounded-md border border-dashed border-parchment-deep bg-white px-3 py-2.5 text-xs text-ink-muted hover:border-gold/40 hover:text-ink transition-colors inline-flex items-center justify-center gap-2"
+                              >
+                                <Upload className="h-3.5 w-3.5" />
+                                Upload cover image
+                              </button>
+                            )}
+                            {coverImageUrl && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => coverFileRef.current?.click()}
+                                className="h-8 text-xs"
+                              >
+                                <Upload className="h-3.5 w-3.5" />
+                                Replace image
+                              </Button>
+                            )}
+                            <input
+                              ref={coverFileRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleCoverUpload}
+                              className="hidden"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs">Text Alignment</Label>
+                            <div className="flex items-center gap-1 rounded-md border border-parchment-deep bg-white p-1">
+                              {([
+                                { value: "left", icon: AlignLeft },
+                                { value: "center", icon: AlignCenter },
+                                { value: "right", icon: AlignRight },
+                              ] as { value: CoverAlignment; icon: React.ElementType }[]).map(({ value, icon: Icon }) => (
+                                <button
+                                  key={value}
+                                  type="button"
+                                  onClick={() => update("coverAlignment", value)}
+                                  className={cn(
+                                    "flex-1 h-8 rounded-sm inline-flex items-center justify-center transition-colors",
+                                    form.coverAlignment === value
+                                      ? "bg-parchment-warm text-ink"
+                                      : "text-ink-muted hover:text-ink"
+                                  )}
+                                >
+                                  <Icon className="h-3.5 w-3.5" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-3">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Title</Label>
+                              <input
+                                type="color"
+                                value={form.coverTitleColor}
+                                onChange={(e) => update("coverTitleColor", e.target.value)}
+                                className="h-9 w-full rounded border border-parchment-deep bg-white p-1 cursor-pointer"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Author</Label>
+                              <input
+                                type="color"
+                                value={form.coverAuthorColor}
+                                onChange={(e) => update("coverAuthorColor", e.target.value)}
+                                className="h-9 w-full rounded border border-parchment-deep bg-white p-1 cursor-pointer"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Background</Label>
+                              <input
+                                type="color"
+                                value={form.coverBackgroundColor}
+                                onChange={(e) => update("coverBackgroundColor", e.target.value)}
+                                className="h-9 w-full rounded border border-parchment-deep bg-white p-1 cursor-pointer"
+                              />
+                            </div>
+                          </div>
+
+                          {coverImageUrl && (
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Overlay Darkness · {Math.round(form.coverOverlayOpacity * 100)}%</Label>
+                              <input
+                                type="range"
+                                min={0}
+                                max={0.9}
+                                step={0.05}
+                                value={form.coverOverlayOpacity}
+                                onChange={(e) => update("coverOverlayOpacity", Number(e.target.value))}
+                                className="w-full accent-gold"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/30 p-4">
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-amber-label mb-2">Live Preview</p>
+                          <div
+                            className="rounded-md border border-parchment-deep/70 bg-white px-4 py-5"
+                            style={{ backgroundColor: form.coverBackgroundColor }}
+                          >
+                            <LinenBookThumbnail
+                              title={form.title}
+                              subtitle={form.subtitle}
+                              author={resolvedAuthorName}
+                              style={form.coverStyle}
+                              imageUrl={coverImageUrl}
+                              alignment={form.coverAlignment}
+                              titleColor={form.coverTitleColor}
+                              subtitleColor={form.coverAuthorColor}
+                              authorColor={form.coverAuthorColor}
+                              imageOpacity={form.coverOverlayOpacity * 0.28}
+                              variant="builder"
+                              className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
+                            />
+                          </div>
+                          <p className="mt-2 text-[11px] text-ink-faint">
+                            Same controls continue in Cover inside the writing studio.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </StepPanel>
@@ -438,6 +669,12 @@ export default function NewBookPage() {
                             subtitle={form.subtitle}
                             author={resolvedAuthorName}
                             style={selectedStyle.id}
+                            imageUrl={coverImageUrl}
+                            alignment={form.coverAlignment}
+                            titleColor={form.coverTitleColor}
+                            subtitleColor={form.coverAuthorColor}
+                            authorColor={form.coverAuthorColor}
+                            imageOpacity={form.coverOverlayOpacity * 0.28}
                             variant="builder"
                             className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
                           />
