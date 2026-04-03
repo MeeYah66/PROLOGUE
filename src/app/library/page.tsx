@@ -871,33 +871,35 @@ export default function LibraryPage() {
                 </div>
               )}
 
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <div className="flex items-center gap-1 bg-parchment-warm border border-parchment-deep rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode("board")}
+                    className={cn(
+                      "px-3 py-1 rounded-md text-xs transition-colors",
+                      viewMode === "board"
+                        ? "bg-parchment text-ink shadow-sm font-medium"
+                        : "text-ink-muted hover:text-ink"
+                    )}
+                  >
+                    Board
+                  </button>
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={cn(
+                      "px-3 py-1 rounded-md text-xs transition-colors",
+                      viewMode === "grid"
+                        ? "bg-parchment text-ink shadow-sm font-medium"
+                        : "text-ink-muted hover:text-ink"
+                    )}
+                  >
+                    Grid
+                  </button>
+                </div>
+              </div>
+
               {viewMode === "board" ? (
                 <div className="rounded-[22px] border border-parchment-deep/85 bg-parchment/82 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-hidden mb-8">
-                  <div className="flex flex-wrap items-center justify-between gap-2 px-3 md:px-4 py-2.5 border-b border-parchment-deep/80 bg-parchment-warm/60">
-                    <div className="flex items-center gap-2">
-                      <button className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs font-medium text-ink">
-                        Manuscript Pipeline
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="hidden sm:flex items-center gap-1 bg-parchment border border-parchment-deep rounded-lg p-1">
-                        <button
-                          onClick={() => setViewMode("board")}
-                          className="px-3 py-1 rounded-md text-xs transition-colors bg-parchment-warm text-ink shadow-sm font-medium"
-                        >
-                          Board
-                        </button>
-                        <button
-                          onClick={() => setViewMode("grid")}
-                          className="px-3 py-1 rounded-md text-xs transition-colors text-ink-muted hover:text-ink"
-                        >
-                          Grid
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="p-2.5 md:p-3">
                     <div className="overflow-x-auto">
                       <div className="min-w-[790px] grid grid-cols-3 gap-3">
@@ -933,30 +935,11 @@ export default function LibraryPage() {
                   </div>
                 </div>
               ) : (
-                <div className="pb-8">
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <div className="flex items-center gap-1 bg-parchment-warm border border-parchment-deep rounded-lg p-1">
-                      <button
-                        onClick={() => setViewMode("board")}
-                        className="px-3 py-1 rounded-md text-xs transition-colors text-ink-muted hover:text-ink"
-                      >
-                        Board
-                      </button>
-                      <button
-                        onClick={() => setViewMode("grid")}
-                        className="px-3 py-1 rounded-md text-xs transition-colors bg-parchment text-ink shadow-sm font-medium"
-                      >
-                        Grid
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {filtered.map((book) => (
-                      <BookCard key={book.id} book={book} onDelete={handleDelete} />
-                    ))}
-                    {!query && <AddBookCard />}
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pb-8">
+                  {filtered.map((book) => (
+                    <BookCard key={book.id} book={book} onDelete={handleDelete} />
+                  ))}
+                  {!query && <AddBookCard />}
                 </div>
               )}
             </section>
