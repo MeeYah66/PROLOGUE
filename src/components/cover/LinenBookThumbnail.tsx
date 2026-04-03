@@ -97,7 +97,7 @@ export function LinenBookThumbnail({
   titleColor,
   subtitleColor,
   authorColor,
-  imageOpacity = 0.12,
+  imageOpacity = 1,
   className,
   variant = "card",
 }: LinenBookThumbnailProps) {
@@ -141,22 +141,25 @@ export function LinenBookThumbnail({
               src={imageUrl}
               alt={displayTitle}
               fill
-              className="object-cover mix-blend-multiply"
+              className="object-cover"
               style={{ opacity: imageOpacity }}
             />
           )}
-          <div
-            className="absolute inset-0 opacity-40"
-            style={{
-              backgroundImage: "radial-gradient(rgba(110,100,90,0.12) 0.7px, transparent 0.7px)",
-              backgroundSize: "4px 4px",
-            }}
-          />
+          {!imageUrl && (
+            <div
+              className="absolute inset-0 opacity-40"
+              style={{
+                backgroundImage: "radial-gradient(rgba(110,100,90,0.12) 0.7px, transparent 0.7px)",
+                backgroundSize: "4px 4px",
+              }}
+            />
+          )}
           <div
             className="absolute inset-0"
             style={{
-              boxShadow:
-                "inset 0 0 0 1px rgba(255,255,255,0.42), inset 0 -24px 38px rgba(0,0,0,0.07)",
+              boxShadow: imageUrl
+                ? "inset 0 0 0 1px rgba(255,255,255,0.28)"
+                : "inset 0 0 0 1px rgba(255,255,255,0.42), inset 0 -24px 38px rgba(0,0,0,0.07)",
             }}
           />
 

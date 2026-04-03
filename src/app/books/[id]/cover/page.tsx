@@ -116,7 +116,7 @@ export default function CoverDesignPage() {
     setUploading(true);
     try {
       const url = await uploadCoverImage(book.id, file);
-      await update({ imageUrl: url });
+      await update({ imageUrl: url, overlayOpacity: 0 });
     } catch (err) {
       console.error("Cover upload error:", err);
     } finally {
@@ -332,26 +332,6 @@ export default function CoverDesignPage() {
                 </div>
               </div>
 
-              {/* Overlay opacity */}
-              {cover.imageUrl && (
-                <div className="space-y-2">
-                  <Label className="text-xs">
-                    Overlay Darkness
-                    <span className="ml-2 text-ink-faint font-normal">
-                      {Math.round(cover.overlayOpacity * 100)}%
-                    </span>
-                  </Label>
-                  <input
-                    type="range"
-                    min={0}
-                    max={0.9}
-                    step={0.05}
-                    value={cover.overlayOpacity}
-                    onChange={(e) => update({ overlayOpacity: Number(e.target.value) })}
-                    className="w-full accent-gold"
-                  />
-                </div>
-              )}
             </div>
           </ScrollArea>
         </div>
@@ -368,15 +348,7 @@ export default function CoverDesignPage() {
             }}
           >
             {cover.imageUrl && (
-              <>
-                <Image src={cover.imageUrl} alt="Cover" fill className="object-cover" />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `linear-gradient(to bottom, transparent 0%, rgba(0,0,0,${cover.overlayOpacity}) 100%)`,
-                  }}
-                />
-              </>
+              <Image src={cover.imageUrl} alt="Cover" fill className="object-cover" />
             )}
 
             <div

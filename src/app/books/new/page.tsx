@@ -122,7 +122,6 @@ export default function NewBookPage() {
     coverAuthorColor: defaultCover.authorColor,
     coverBackgroundColor: defaultCover.bg,
     coverAlignment: "left" as CoverAlignment,
-    coverOverlayOpacity: 0.5,
   });
 
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
@@ -201,7 +200,7 @@ export default function NewBookPage() {
           authorColor: form.coverAuthorColor,
           alignment: form.coverAlignment,
           backgroundColor: form.coverBackgroundColor,
-          overlayOpacity: form.coverOverlayOpacity,
+          overlayOpacity: 0,
         },
       });
 
@@ -498,7 +497,6 @@ export default function NewBookPage() {
                                     titleColor={form.coverTitleColor}
                                     subtitleColor={form.coverAuthorColor}
                                     authorColor={form.coverAuthorColor}
-                                    imageOpacity={form.coverOverlayOpacity * 0.28}
                                     className="h-full w-full"
                                     variant="mini"
                                   />
@@ -596,20 +594,6 @@ export default function NewBookPage() {
                             </div>
                           </div>
 
-                          {coverImageUrl && (
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">Overlay Darkness · {Math.round(form.coverOverlayOpacity * 100)}%</Label>
-                              <input
-                                type="range"
-                                min={0}
-                                max={0.9}
-                                step={0.05}
-                                value={form.coverOverlayOpacity}
-                                onChange={(e) => update("coverOverlayOpacity", Number(e.target.value))}
-                                className="w-full accent-gold"
-                              />
-                            </div>
-                          )}
                         </div>
 
                         <div className="rounded-lg border border-parchment-deep/80 bg-parchment-warm/30 p-4">
@@ -628,7 +612,6 @@ export default function NewBookPage() {
                               titleColor={form.coverTitleColor}
                               subtitleColor={form.coverAuthorColor}
                               authorColor={form.coverAuthorColor}
-                              imageOpacity={form.coverOverlayOpacity * 0.28}
                               variant="builder"
                               className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
                             />
@@ -674,7 +657,6 @@ export default function NewBookPage() {
                             titleColor={form.coverTitleColor}
                             subtitleColor={form.coverAuthorColor}
                             authorColor={form.coverAuthorColor}
-                            imageOpacity={form.coverOverlayOpacity * 0.28}
                             variant="builder"
                             className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
                           />
