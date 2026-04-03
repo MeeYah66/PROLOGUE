@@ -294,7 +294,6 @@ function KanbanCard({
     >
       <div className="h-8 px-3 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
-          <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", meta.dot)} />
           <p className="text-xs font-medium text-ink truncate">{book.title}</p>
         </div>
         <div onClick={(event) => event.stopPropagation()}>
@@ -438,15 +437,12 @@ function KanbanColumn({
     >
       <div className="flex items-center justify-between mb-3 px-0.5">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={cn("w-2 h-2 rounded-full", meta.dot)} />
-            <h3 className="font-serif text-[15px] font-semibold text-ink truncate">{meta.title}</h3>
-            <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md border border-parchment-deep/80 bg-parchment text-[10px] font-semibold text-ink-muted">
-              {books.length}
-            </span>
-          </div>
+          <h3 className="font-serif text-[15px] font-semibold text-ink truncate">{meta.title}</h3>
           <p className="text-[11px] text-ink-faint mt-1">{meta.hint}</p>
         </div>
+        <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full border border-parchment-deep bg-parchment-warm text-[11px] font-medium text-ink">
+          {books.length}
+        </span>
       </div>
 
       <div className="min-h-[420px] space-y-3">
