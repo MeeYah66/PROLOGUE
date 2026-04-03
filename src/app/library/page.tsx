@@ -292,7 +292,7 @@ function KanbanCard({
         "hover:border-gold/35 hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)]"
       )}
     >
-      <div className="h-8 px-3 flex items-center justify-between">
+      <div className="h-8 px-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <p className="text-xs font-medium text-ink truncate">{book.title}</p>
         </div>
@@ -437,7 +437,10 @@ function KanbanColumn({
     >
       <div className="flex items-center justify-between mb-3 px-0.5">
         <div className="min-w-0">
-          <h3 className="font-serif text-[15px] font-semibold text-ink truncate">{meta.title}</h3>
+          <div className="flex items-center gap-2">
+            <span className={cn("w-2 h-2 rounded-full", meta.dot)} />
+            <h3 className="font-serif text-[15px] font-semibold text-ink truncate">{meta.title}</h3>
+          </div>
           <p className="text-[11px] text-ink-faint mt-1">{meta.hint}</p>
         </div>
         <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full border border-parchment-deep bg-parchment-warm text-[11px] font-medium text-ink">
