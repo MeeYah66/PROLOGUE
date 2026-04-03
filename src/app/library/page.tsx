@@ -10,6 +10,7 @@ import {
   Copy,
   Download,
   Feather,
+  GripVertical,
   MoreHorizontal,
   Menu,
   Moon,
@@ -208,7 +209,6 @@ const COLUMN_META: Array<{
   hint: string;
   dot: string;
   laneTone: string;
-  cardTone: string;
   progressTone: string;
 }> = [
   {
@@ -217,7 +217,6 @@ const COLUMN_META: Array<{
     hint: "Early ideas and first passes",
     dot: "bg-gold",
     laneTone: "bg-parchment-warm/45",
-    cardTone: "bg-parchment-deep/85",
     progressTone: "bg-ink/60",
   },
   {
@@ -226,7 +225,6 @@ const COLUMN_META: Array<{
     hint: "Actively being written",
     dot: "bg-sage",
     laneTone: "bg-parchment-warm/45",
-    cardTone: "bg-parchment-deep/85",
     progressTone: "bg-ink/60",
   },
   {
@@ -235,7 +233,6 @@ const COLUMN_META: Array<{
     hint: "Ready and finished manuscripts",
     dot: "bg-ink-faint",
     laneTone: "bg-parchment-warm/45",
-    cardTone: "bg-parchment-deep/85",
     progressTone: "bg-ink/60",
   },
 ];
@@ -276,6 +273,12 @@ function KanbanCard({
   const meta = COLUMN_META.find((column) => column.status === status)!;
   const wordCount = totalWordCount(book.chapters);
   const progress = progressPercent(wordCount, book.targetWordCount);
+  const statusBadgeClass =
+    book.status === "draft"
+      ? "bg-parchment-deep text-ink-muted"
+      : book.status === "ongoing"
+        ? "bg-gold/25 text-gold-dark"
+        : "bg-sage/25 text-sage-dark";
 
   return (
     <article
@@ -287,12 +290,11 @@ function KanbanCard({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "rounded-xl border border-parchment-deep/75 pt-2 px-0 pb-0 overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
-        meta.cardTone,
+        "rounded-xl border border-parchment-deep/75 bg-white overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
         "hover:border-gold/35 hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)]"
       )}
     >
-      <div className="h-8 px-2.5 flex items-center justify-between">
+      <div className="h-9 px-3 flex items-center justify-between border-b border-parchment-deep/70">
         <div className="flex items-center gap-2 min-w-0">
           <p className="text-xs font-medium text-ink truncate">{book.title}</p>
         </div>
@@ -322,7 +324,7 @@ function KanbanCard({
         </div>
       </div>
 
-      <div className="mt-2 bg-white border border-parchment-deep/80 rounded-t-[14px] rounded-b-none px-3.5 pt-3.5 pb-3">
+      <div className="px-3.5 pt-3.5 pb-3">
         <div className="flex items-start gap-3 mb-3">
           <LinenBookThumbnail
             title={book.title}
@@ -362,7 +364,9 @@ function KanbanCard({
         </div>
 
         <div className="flex items-center justify-between text-[11px] text-ink-faint pt-1">
-          <span>{statusLabel(book.status)}</span>
+          <span className={cn("inline-flex items-center h-6 px-2.5 rounded-md text-[10px] font-semibold tracking-[0.02em]", statusBadgeClass)}>
+            {statusLabel(book.status)}
+          </span>
           <Link
             href={`/books/${book.id}`}
             className="inline-flex items-center gap-1 text-ink-muted hover:text-ink transition-colors"
@@ -386,10 +390,16 @@ function KanbanColumn({
   books,
   isActiveDrop,
   isDragging,
+  isColumnDropTarget,
+  isColumnDragging,
   savingBookId,
   onDragOver,
   onDragLeave,
   onDrop,
+  onColumnDragStart,
+  onColumnDragOver,
+  onColumnDrop,
+  onColumnDragEnd,
   onRenameBook,
   onDuplicateBook,
   onDeleteBook,
@@ -401,10 +411,16 @@ function KanbanColumn({
   books: Book[];
   isActiveDrop: boolean;
   isDragging: boolean;
+  isColumnDropTarget: boolean;
+  isColumnDragging: boolean;
   savingBookId: string | null;
   onDragOver: (status: BookStatus) => void;
   onDragLeave: () => void;
   onDrop: (status: BookStatus, event: React.DragEvent<HTMLElement>) => void;
+  onColumnDragStart: (status: BookStatus) => void;
+  onColumnDragOver: (status: BookStatus) => void;
+  onColumnDrop: (status: BookStatus) => void;
+  onColumnDragEnd: () => void;
   onRenameBook: (book: Book) => void;
   onDuplicateBook: (book: Book) => void;
   onDeleteBook: (book: Book) => void;
@@ -419,21 +435,35 @@ function KanbanColumn({
       className={cn(
         "rounded-2xl border p-3 transition-colors",
         meta.laneTone,
+        isColumnDropTarget ? "ring-2 ring-ink/15 border-ink/25" : "",
         isActiveDrop
           ? "border-gold/45 ring-2 ring-gold/20"
           : "border-parchment-deep/70"
       )}
       onDragOver={(event) => {
+        if (isColumnDragging) {
+          event.preventDefault();
+          onColumnDragOver(status);
+          return;
+        }
         if (!isDragging) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
         onDragOver(status);
       }}
       onDragLeave={() => {
+        if (isColumnDragging) return;
         if (!isDragging) return;
         onDragLeave();
       }}
-      onDrop={(event) => onDrop(status, event)}
+      onDrop={(event) => {
+        if (isColumnDragging) {
+          event.preventDefault();
+          onColumnDrop(status);
+          return;
+        }
+        onDrop(status, event);
+      }}
     >
       <div className="flex items-center justify-between mb-3 px-0.5">
         <div className="min-w-0">
@@ -443,9 +473,25 @@ function KanbanColumn({
           </div>
           <p className="text-[11px] text-ink-faint mt-1">{meta.hint}</p>
         </div>
-        <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full border border-parchment-deep bg-parchment-warm text-[11px] font-medium text-ink">
-          {books.length}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full border border-parchment-deep bg-parchment-warm text-[11px] font-medium text-ink">
+            {books.length}
+          </span>
+          <button
+            type="button"
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "move";
+              onColumnDragStart(status);
+            }}
+            onDragEnd={onColumnDragEnd}
+            className="w-6 h-6 rounded-md border border-parchment-deep/90 bg-parchment/75 text-ink-faint hover:text-ink transition-colors flex items-center justify-center cursor-move"
+            aria-label={`Reorder ${meta.title} column`}
+            title="Drag to reorder column"
+          >
+            <GripVertical className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="min-h-[420px] space-y-3">
@@ -492,6 +538,13 @@ export default function LibraryPage() {
   const [viewMode, setViewMode] = useState<"board" | "grid">("board");
   const [draggingBookId, setDraggingBookId] = useState<string | null>(null);
   const [dropStatus, setDropStatus] = useState<BookStatus | null>(null);
+  const [columnOrder, setColumnOrder] = useState<BookStatus[]>([
+    "draft",
+    "ongoing",
+    "completed",
+  ]);
+  const [draggingColumnStatus, setDraggingColumnStatus] = useState<BookStatus | null>(null);
+  const [columnDropStatus, setColumnDropStatus] = useState<BookStatus | null>(null);
   const [statusSavingBookId, setStatusSavingBookId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -523,7 +576,7 @@ export default function LibraryPage() {
       book.authorName.toLowerCase().includes(query.toLowerCase())
   );
 
-  const grouped = {
+  const grouped: Record<BookStatus, Book[]> = {
     draft: filtered.filter((book) => book.status === "draft"),
     ongoing: filtered.filter((book) => book.status === "ongoing"),
     completed: filtered.filter((book) => book.status === "completed"),
@@ -707,6 +760,46 @@ export default function LibraryPage() {
     setDropStatus(null);
   }
 
+  function handleColumnDragStart(status: BookStatus) {
+    setDraggingColumnStatus(status);
+    setColumnDropStatus(status);
+  }
+
+  function handleColumnDragOver(status: BookStatus) {
+    if (!draggingColumnStatus) return;
+    setColumnDropStatus(status);
+  }
+
+  function handleColumnDragEnd() {
+    setDraggingColumnStatus(null);
+    setColumnDropStatus(null);
+  }
+
+  function handleColumnDrop(targetStatus: BookStatus) {
+    if (!draggingColumnStatus) return;
+    if (draggingColumnStatus === targetStatus) {
+      handleColumnDragEnd();
+      return;
+    }
+
+    setColumnOrder((previous) => {
+      const next = [...previous];
+      const fromIndex = next.indexOf(draggingColumnStatus);
+      const toIndex = next.indexOf(targetStatus);
+      if (fromIndex === -1 || toIndex === -1) return previous;
+      next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, draggingColumnStatus);
+      return next;
+    });
+
+    toast({
+      variant: "success",
+      title: "Board order updated",
+      description: "Your column layout has been rearranged.",
+    });
+    handleColumnDragEnd();
+  }
+
   async function handleDrop(status: BookStatus, event: React.DragEvent<HTMLElement>) {
     event.preventDefault();
     const droppedBookId = draggingBookId || event.dataTransfer.getData("text/plain");
@@ -808,54 +901,33 @@ export default function LibraryPage() {
                   <div className="p-2.5 md:p-3">
                     <div className="overflow-x-auto">
                       <div className="min-w-[790px] grid grid-cols-3 gap-3">
-                        <KanbanColumn
-                          status="draft"
-                          books={grouped.draft}
-                          isActiveDrop={dropStatus === "draft"}
-                          isDragging={Boolean(draggingBookId)}
-                          savingBookId={statusSavingBookId}
-                          onDragOver={setDropStatus}
-                          onDragLeave={() => setDropStatus(null)}
-                          onDrop={handleDrop}
-                          onRenameBook={handleRenameBook}
-                          onDuplicateBook={handleDuplicateBook}
-                          onDeleteBook={handleDeleteBook}
-                          onCardDragStart={handleCardDragStart}
-                          onCardDragEnd={handleCardDragEnd}
-                          showCreateNew={!query}
-                        />
-                        <KanbanColumn
-                          status="ongoing"
-                          books={grouped.ongoing}
-                          isActiveDrop={dropStatus === "ongoing"}
-                          isDragging={Boolean(draggingBookId)}
-                          savingBookId={statusSavingBookId}
-                          onDragOver={setDropStatus}
-                          onDragLeave={() => setDropStatus(null)}
-                          onDrop={handleDrop}
-                          onRenameBook={handleRenameBook}
-                          onDuplicateBook={handleDuplicateBook}
-                          onDeleteBook={handleDeleteBook}
-                          onCardDragStart={handleCardDragStart}
-                          onCardDragEnd={handleCardDragEnd}
-                          showCreateNew={false}
-                        />
-                        <KanbanColumn
-                          status="completed"
-                          books={grouped.completed}
-                          isActiveDrop={dropStatus === "completed"}
-                          isDragging={Boolean(draggingBookId)}
-                          savingBookId={statusSavingBookId}
-                          onDragOver={setDropStatus}
-                          onDragLeave={() => setDropStatus(null)}
-                          onDrop={handleDrop}
-                          onRenameBook={handleRenameBook}
-                          onDuplicateBook={handleDuplicateBook}
-                          onDeleteBook={handleDeleteBook}
-                          onCardDragStart={handleCardDragStart}
-                          onCardDragEnd={handleCardDragEnd}
-                          showCreateNew={false}
-                        />
+                        {columnOrder.map((status) => (
+                          <KanbanColumn
+                            key={status}
+                            status={status}
+                            books={grouped[status]}
+                            isActiveDrop={dropStatus === status}
+                            isDragging={Boolean(draggingBookId)}
+                            isColumnDropTarget={
+                              Boolean(draggingColumnStatus) && columnDropStatus === status
+                            }
+                            isColumnDragging={Boolean(draggingColumnStatus)}
+                            savingBookId={statusSavingBookId}
+                            onDragOver={setDropStatus}
+                            onDragLeave={() => setDropStatus(null)}
+                            onDrop={handleDrop}
+                            onColumnDragStart={handleColumnDragStart}
+                            onColumnDragOver={handleColumnDragOver}
+                            onColumnDrop={handleColumnDrop}
+                            onColumnDragEnd={handleColumnDragEnd}
+                            onRenameBook={handleRenameBook}
+                            onDuplicateBook={handleDuplicateBook}
+                            onDeleteBook={handleDeleteBook}
+                            onCardDragStart={handleCardDragStart}
+                            onCardDragEnd={handleCardDragEnd}
+                            showCreateNew={!query && status === "draft"}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
