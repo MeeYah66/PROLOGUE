@@ -55,7 +55,7 @@ function iconFor(variant: ToastVariant) {
 function toastClasses(variant: ToastVariant): string {
   switch (variant) {
     case "success":
-      return "border-gold/35 bg-parchment text-ink";
+      return "border-gold/45 bg-parchment-warm/95 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]";
     case "error":
       return "border-red-500/35 bg-parchment text-ink";
     default:
@@ -181,7 +181,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast, dismiss }}>
       {children}
-      <div className="pointer-events-none fixed right-3 top-3 z-[120] flex w-[min(92vw,360px)] flex-col gap-2 md:right-5 md:top-5">
+      <div className="pointer-events-none fixed right-3 top-[calc(env(safe-area-inset-top)+3.25rem)] z-[120] flex w-[min(92vw,360px)] flex-col gap-2 md:right-5 md:top-[calc(env(safe-area-inset-top)+3.5rem)]">
         {toasts.map((item) => {
           const Icon = iconFor(item.variant);
           return (

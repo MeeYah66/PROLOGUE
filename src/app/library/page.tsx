@@ -730,11 +730,25 @@ export default function LibraryPage() {
         status: nextStatus,
         updatedAt: nextUpdatedAt,
       });
-      toast({
-        variant: "success",
-        title: "Status updated",
-        description: `"${book.title}" moved to ${statusLabel(nextStatus)}.`,
-      });
+      if (nextStatus === "completed") {
+        toast({
+          variant: "success",
+          title: "Manuscript completed",
+          description: `"${book.title}" is complete. Beautiful work, you just finished a story milestone.`,
+        });
+      } else if (nextStatus === "ongoing") {
+        toast({
+          variant: "success",
+          title: "Back in progress",
+          description: `"${book.title}" is now active. Keep the momentum going.`,
+        });
+      } else {
+        toast({
+          variant: "success",
+          title: "Moved to draft",
+          description: `"${book.title}" is in Draft, ready for fresh ideas and revisions.`,
+        });
+      }
     } catch {
       setBooks((prev) =>
         prev.map((item) =>
