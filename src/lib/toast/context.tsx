@@ -181,7 +181,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast, dismiss }}>
       {children}
-      <div className="pointer-events-none fixed right-3 top-[calc(env(safe-area-inset-top)+3.25rem)] z-[120] flex w-[min(92vw,360px)] flex-col gap-2 md:right-5 md:top-[calc(env(safe-area-inset-top)+3.5rem)]">
+      <div
+        className="pointer-events-none fixed right-3 z-[120] flex w-[min(92vw,360px)] flex-col gap-2 md:right-5"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 3.5rem)" }}
+      >
         {toasts.map((item) => {
           const Icon = iconFor(item.variant);
           return (
