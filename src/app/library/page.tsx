@@ -215,7 +215,7 @@ const COLUMN_META: Array<{
     status: "draft",
     title: "Draft",
     hint: "Early ideas and first passes",
-    dot: "bg-ink-faint",
+    dot: "bg-gold",
     laneTone: "bg-parchment-warm/45",
     cardTone: "bg-parchment-deep/85",
     progressTone: "bg-ink/60",
@@ -224,7 +224,7 @@ const COLUMN_META: Array<{
     status: "ongoing",
     title: "In Progress",
     hint: "Actively being written",
-    dot: "bg-ink-faint",
+    dot: "bg-sage",
     laneTone: "bg-parchment-warm/45",
     cardTone: "bg-parchment-deep/85",
     progressTone: "bg-ink/60",
@@ -294,9 +294,7 @@ function KanbanCard({
       <div className={cn("h-8 px-1.5 flex items-center justify-between rounded-lg", meta.cardTone)}>
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", meta.dot)} />
-          <p className="text-xs font-medium text-ink truncate">
-            {book.title}
-          </p>
+          <p className="text-xs font-medium text-ink truncate">{book.title}</p>
         </div>
         <div onClick={(event) => event.stopPropagation()}>
           <DropdownMenu>
