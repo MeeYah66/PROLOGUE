@@ -7,20 +7,21 @@ import {
   Bell,
   BookOpen,
   Calendar,
+  Copy,
   Download,
   Feather,
-  Filter,
   MoreHorizontal,
   Menu,
   Moon,
+  Pencil,
   PenLine,
   Plus,
   Search,
-  Settings2,
   Sun,
+  Trash2,
   X,
 } from "lucide-react";
-import { getBooks, deleteBook, saveBook } from "@/lib/store";
+import { createBook, deleteBook, getBooks, saveBook, updateChapter } from "@/lib/store";
 import type { Book, BookStatus } from "@/lib/types";
 import { cn, progressPercent, totalWordCount } from "@/lib/utils";
 import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
@@ -29,6 +30,14 @@ import { useAuth } from "@/lib/auth/context";
 import { useTheme } from "@/lib/theme";
 import { AmbientButton } from "@/components/ambient/AmbientButton";
 import { useToast } from "@/lib/toast/context";
+import { LinenBookThumbnail } from "@/components/cover/LinenBookThumbnail";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function TopBar({
   query,
@@ -206,19 +215,19 @@ const COLUMN_META: Array<{
     status: "draft",
     title: "Draft",
     hint: "Early ideas and first passes",
-    dot: "bg-gold",
-    laneTone: "bg-parchment-warm/55",
-    cardTone: "bg-gold/15",
-    progressTone: "bg-gold/70",
+    dot: "bg-ink-faint",
+    laneTone: "bg-parchment-warm/45",
+    cardTone: "bg-parchment-deep/85",
+    progressTone: "bg-ink/60",
   },
   {
     status: "ongoing",
     title: "In Progress",
     hint: "Actively being written",
-    dot: "bg-sage",
-    laneTone: "bg-parchment/75",
-    cardTone: "bg-sage/14",
-    progressTone: "bg-sage",
+    dot: "bg-ink-faint",
+    laneTone: "bg-parchment-warm/45",
+    cardTone: "bg-parchment-deep/85",
+    progressTone: "bg-ink/60",
   },
   {
     status: "completed",
@@ -249,12 +258,18 @@ function KanbanCard({
   book,
   status,
   saving,
+  onRename,
+  onDuplicate,
+  onDelete,
   onDragStart,
   onDragEnd,
 }: {
   book: Book;
   status: BookStatus;
   saving: boolean;
+  onRename: (book: Book) => void;
+  onDuplicate: (book: Book) => void;
+  onDelete: (book: Book) => void;
   onDragStart: (bookId: string) => void;
   onDragEnd: () => void;
 }) {
@@ -272,42 +287,70 @@ function KanbanCard({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "rounded-xl border border-parchment-deep/85 bg-white overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
+        "rounded-xl border border-parchment-deep/75 bg-parchment-warm/70 p-2 pb-0 overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
         "hover:border-gold/35 hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)]"
       )}
     >
-      <div className={cn("h-9 border-b border-parchment-deep/75 px-3 flex items-center justify-between", meta.cardTone)}>
+      <div className={cn("h-8 px-1.5 flex items-center justify-between rounded-lg", meta.cardTone)}>
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", meta.dot)} />
           <p className="text-xs font-medium text-ink truncate">
             {book.title}
           </p>
         </div>
-        <button className="text-ink-faint hover:text-ink transition-colors" aria-label="Card options">
-          <MoreHorizontal className="w-3.5 h-3.5" />
-        </button>
+        <div onClick={(event) => event.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-7 h-7 rounded-md text-ink-faint hover:text-ink hover:bg-parchment transition-colors flex items-center justify-center" aria-label="Card options">
+                <MoreHorizontal className="w-3.5 h-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => onRename(book)}>
+                <Pencil className="w-3.5 h-3.5" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => onDuplicate(book)}>
+                <Copy className="w-3.5 h-3.5" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="gap-2 text-red-500 focus:text-red-500 cursor-pointer" onClick={() => onDelete(book)}>
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <div className="p-3.5">
-        <div className="mb-3">
-          <p className="font-serif text-[15px] leading-tight font-semibold text-ink truncate">
-            {book.subtitle || book.title}
-          </p>
-          <p className="text-[11px] text-ink-muted mt-1 truncate">{book.genre}</p>
+      <div className="mt-2 bg-white border border-parchment-deep/80 rounded-t-[14px] rounded-b-none px-3.5 pt-3.5 pb-3">
+        <div className="flex items-start gap-3 mb-3">
+          <LinenBookThumbnail
+            title={book.title}
+            style={book.cover.style}
+            subtitle={book.subtitle}
+            author={book.authorName}
+            imageUrl={book.cover.imageUrl}
+            variant="card"
+            className="h-[88px] w-[58px] shrink-0"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-ink-muted truncate">{book.genre}</p>
+            <div className="space-y-1.5 mt-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+                <BookOpen className="w-3.5 h-3.5 text-ink-faint" />
+                <span>{wordCount.toLocaleString()} words</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+                <Calendar className="w-3.5 h-3.5 text-ink-faint" />
+                <span>Updated {formatBoardDate(book.updatedAt)}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-1.5 mb-3">
-          <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
-            <BookOpen className="w-3.5 h-3.5 text-ink-faint" />
-            <span>{wordCount.toLocaleString()} words</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
-            <Calendar className="w-3.5 h-3.5 text-ink-faint" />
-            <span>Updated {formatBoardDate(book.updatedAt)}</span>
-          </div>
-        </div>
-
-        <div className="mb-3">
+        <div className="mb-2.5">
           <div className="flex items-center justify-between text-[11px] text-ink-muted mb-1.5">
             <span>{book.chapters.length} chapters</span>
             <span>{progress}%</span>
@@ -320,7 +363,7 @@ function KanbanCard({
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-ink-faint">
+        <div className="flex items-center justify-between text-[11px] text-ink-faint pt-1">
           <span>{statusLabel(book.status)}</span>
           <Link
             href={`/books/${book.id}`}
@@ -349,6 +392,9 @@ function KanbanColumn({
   onDragOver,
   onDragLeave,
   onDrop,
+  onRenameBook,
+  onDuplicateBook,
+  onDeleteBook,
   onCardDragStart,
   onCardDragEnd,
   showCreateNew,
@@ -361,6 +407,9 @@ function KanbanColumn({
   onDragOver: (status: BookStatus) => void;
   onDragLeave: () => void;
   onDrop: (status: BookStatus, event: React.DragEvent<HTMLElement>) => void;
+  onRenameBook: (book: Book) => void;
+  onDuplicateBook: (book: Book) => void;
+  onDeleteBook: (book: Book) => void;
   onCardDragStart: (bookId: string) => void;
   onCardDragEnd: () => void;
   showCreateNew: boolean;
@@ -399,32 +448,6 @@ function KanbanColumn({
           </div>
           <p className="text-[11px] text-ink-faint mt-1">{meta.hint}</p>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {status === "draft" ? (
-            <Link
-              href="/books/new"
-              className="w-7 h-7 rounded-md border border-parchment-deep/80 bg-parchment/85 text-ink-faint hover:text-ink hover:border-gold/35 transition-colors flex items-center justify-center"
-              aria-label="Create manuscript"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className="w-7 h-7 rounded-md border border-parchment-deep/80 bg-parchment/85 text-ink-faint flex items-center justify-center"
-              aria-label="Lane action"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <button
-            type="button"
-            className="w-7 h-7 rounded-md border border-parchment-deep/80 bg-parchment/85 text-ink-faint hover:text-ink transition-colors flex items-center justify-center"
-            aria-label="More lane options"
-          >
-            <MoreHorizontal className="w-3.5 h-3.5" />
-          </button>
-        </div>
       </div>
 
       <div className="min-h-[420px] space-y-3">
@@ -435,6 +458,9 @@ function KanbanColumn({
               book={book}
               status={status}
               saving={savingBookId === book.id}
+              onRename={onRenameBook}
+              onDuplicate={onDuplicateBook}
+              onDelete={onDeleteBook}
               onDragStart={onCardDragStart}
               onDragEnd={onCardDragEnd}
             />
@@ -513,6 +539,112 @@ export default function LibraryPage() {
     if (!user) return;
     await deleteBook(user.id, id);
     setBooks((prev) => prev.filter((book) => book.id !== id));
+  }
+
+  async function handleDeleteBook(book: Book) {
+    const shouldDelete = window.confirm(`Delete "${book.title}"? This cannot be undone.`);
+    if (!shouldDelete) return;
+    await handleDelete(book.id);
+    toast({
+      variant: "success",
+      title: "Manuscript deleted",
+      description: `"${book.title}" has been removed from your library.`,
+    });
+  }
+
+  async function handleRenameBook(book: Book) {
+    if (!user) return;
+    const nextTitle = window.prompt("Rename manuscript", book.title)?.trim();
+    if (!nextTitle || nextTitle === book.title) return;
+
+    const now = new Date().toISOString();
+    const updated: Book = { ...book, title: nextTitle, updatedAt: now };
+
+    setBooks((prev) => prev.map((item) => (item.id === book.id ? updated : item)));
+    try {
+      await saveBook(user.id, updated);
+      toast({
+        variant: "success",
+        title: "Manuscript renamed",
+        description: `"${book.title}" is now "${nextTitle}".`,
+      });
+    } catch {
+      setBooks((prev) => prev.map((item) => (item.id === book.id ? book : item)));
+      toast({
+        variant: "error",
+        title: "Rename failed",
+        description: "Please try renaming this manuscript again.",
+      });
+    }
+  }
+
+  async function handleDuplicateBook(book: Book) {
+    if (!user) return;
+    const userId = user.id;
+    const now = new Date().toISOString();
+    const duplicateTitle = `${book.title} (Copy)`;
+
+    try {
+      const duplicated = await createBook(userId, {
+        title: duplicateTitle,
+        subtitle: book.subtitle,
+        genre: book.genre,
+        blurb: book.blurb,
+        authorName: book.authorName,
+        status: book.status,
+        cover: book.cover,
+        targetWordCount: book.targetWordCount,
+        lastEditedChapterId: undefined,
+      });
+
+      const chapterIdMap = new Map<string, string>();
+      const duplicatedChapters = book.chapters.map((chapter) => {
+        const newId = crypto.randomUUID();
+        chapterIdMap.set(chapter.id, newId);
+        return {
+          ...chapter,
+          id: newId,
+          createdAt: now,
+          updatedAt: now,
+        };
+      });
+
+      await Promise.all(
+        duplicatedChapters.map((chapter) => updateChapter(userId, duplicated.id, chapter))
+      );
+
+      const duplicatedBook: Book = {
+        ...duplicated,
+        title: duplicateTitle,
+        subtitle: book.subtitle,
+        genre: book.genre,
+        blurb: book.blurb,
+        authorName: book.authorName,
+        status: book.status,
+        cover: book.cover,
+        chapters: duplicatedChapters,
+        notes: book.notes,
+        targetWordCount: book.targetWordCount,
+        lastEditedChapterId: book.lastEditedChapterId
+          ? chapterIdMap.get(book.lastEditedChapterId)
+          : undefined,
+        updatedAt: now,
+      };
+
+      await saveBook(userId, duplicatedBook);
+      setBooks((prev) => [duplicatedBook, ...prev]);
+      toast({
+        variant: "success",
+        title: "Manuscript duplicated",
+        description: `"${duplicateTitle}" is ready in your library.`,
+      });
+    } catch {
+      toast({
+        variant: "error",
+        title: "Duplicate failed",
+        description: "Could not duplicate this manuscript right now.",
+      });
+    }
   }
 
   async function moveBookToStatus(bookId: string, nextStatus: BookStatus) {
@@ -596,24 +728,42 @@ export default function LibraryPage() {
         <TopBar query={query} onQuery={setQuery} onOpenNav={() => setMobileNavOpen(true)} />
 
         <div className="px-4 md:px-8 pt-8 pb-0 max-w-5xl mx-auto">
-          <div className="mb-7">
-            <h1 className="font-serif text-[2.25rem] font-semibold text-ink tracking-tight leading-none mb-2">
-              Your Library
-            </h1>
+          <div className="mb-7 flex items-end justify-between gap-4">
+            <div>
+              <h1 className="font-serif text-[2.25rem] font-semibold text-ink tracking-tight leading-none mb-2">
+                Your Library
+              </h1>
+              {books.length > 0 && (
+                <p className="text-[11px] font-sans uppercase tracking-[0.18em] text-ink-faint">
+                  {books.length} manuscript{books.length !== 1 ? "s" : ""}
+                  <span className="mx-2 opacity-40">&middot;</span>
+                  {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
+                  <span className="mx-2 opacity-40">&middot;</span>
+                  {totalWords.toLocaleString()} words
+                  {inProgress > 0 && (
+                    <>
+                      <span className="mx-2 opacity-40">&middot;</span>
+                      <span className="text-sage">{inProgress} in progress</span>
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
             {books.length > 0 && (
-              <p className="text-[11px] font-sans uppercase tracking-[0.18em] text-ink-faint">
-                {books.length} manuscript{books.length !== 1 ? "s" : ""}
-                <span className="mx-2 opacity-40">&middot;</span>
-                {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
-                <span className="mx-2 opacity-40">&middot;</span>
-                {totalWords.toLocaleString()} words
-                {inProgress > 0 && (
-                  <>
-                    <span className="mx-2 opacity-40">&middot;</span>
-                    <span className="text-sage">{inProgress} in progress</span>
-                  </>
-                )}
-              </p>
+              <div className="shrink-0 flex items-center gap-2">
+                <Link href="/export">
+                  <button className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-parchment-deep bg-parchment text-sm font-medium text-ink hover:bg-parchment-warm transition-colors">
+                    <Download className="w-3.5 h-3.5" strokeWidth={2} />
+                    Export Manuscript
+                  </button>
+                </Link>
+                <Link href="/books/new">
+                  <button className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg bg-ink text-parchment text-sm font-medium hover:bg-ink-soft transition-colors">
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
+                    New Manuscript
+                  </button>
+                </Link>
+              </div>
             )}
           </div>
 
@@ -637,10 +787,6 @@ export default function LibraryPage() {
                       <button className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs font-medium text-ink">
                         Manuscript Pipeline
                       </button>
-                      <button className="hidden sm:inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs text-ink-muted hover:text-ink transition-colors">
-                        <Settings2 className="w-3.5 h-3.5" />
-                        View settings
-                      </button>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -658,25 +804,6 @@ export default function LibraryPage() {
                           Grid
                         </button>
                       </div>
-
-                      <button className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs text-ink-muted hover:text-ink transition-colors">
-                        <Filter className="w-3.5 h-3.5" />
-                        Filter
-                      </button>
-
-                      <Link href="/export">
-                        <button className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs font-medium text-ink hover:bg-parchment-warm transition-colors">
-                          <Download className="w-3.5 h-3.5" strokeWidth={2} />
-                          Export
-                        </button>
-                      </Link>
-
-                      <Link href="/books/new">
-                        <button className="inline-flex items-center gap-1.5 px-3.5 h-8 rounded-lg bg-ink text-parchment text-xs font-medium hover:bg-ink-soft transition-colors">
-                          <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
-                          New Manuscript
-                        </button>
-                      </Link>
                     </div>
                   </div>
 
@@ -692,6 +819,9 @@ export default function LibraryPage() {
                           onDragOver={setDropStatus}
                           onDragLeave={() => setDropStatus(null)}
                           onDrop={handleDrop}
+                          onRenameBook={handleRenameBook}
+                          onDuplicateBook={handleDuplicateBook}
+                          onDeleteBook={handleDeleteBook}
                           onCardDragStart={handleCardDragStart}
                           onCardDragEnd={handleCardDragEnd}
                           showCreateNew={!query}
@@ -705,6 +835,9 @@ export default function LibraryPage() {
                           onDragOver={setDropStatus}
                           onDragLeave={() => setDropStatus(null)}
                           onDrop={handleDrop}
+                          onRenameBook={handleRenameBook}
+                          onDuplicateBook={handleDuplicateBook}
+                          onDeleteBook={handleDeleteBook}
                           onCardDragStart={handleCardDragStart}
                           onCardDragEnd={handleCardDragEnd}
                           showCreateNew={false}
@@ -718,6 +851,9 @@ export default function LibraryPage() {
                           onDragOver={setDropStatus}
                           onDragLeave={() => setDropStatus(null)}
                           onDrop={handleDrop}
+                          onRenameBook={handleRenameBook}
+                          onDuplicateBook={handleDuplicateBook}
+                          onDeleteBook={handleDeleteBook}
                           onCardDragStart={handleCardDragStart}
                           onCardDragEnd={handleCardDragEnd}
                           showCreateNew={false}
@@ -743,12 +879,6 @@ export default function LibraryPage() {
                         Grid
                       </button>
                     </div>
-                    <Link href="/books/new">
-                      <button className="inline-flex items-center gap-1.5 px-3.5 h-8 rounded-lg bg-ink text-parchment text-xs font-medium hover:bg-ink-soft transition-colors">
-                        <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
-                        New Manuscript
-                      </button>
-                    </Link>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
