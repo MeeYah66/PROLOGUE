@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,17 +11,12 @@ import {
   Heart,
   Layers,
   Loader2,
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
   Sparkles,
-  Trash2,
-  Upload,
 } from "lucide-react";
 import { GENRES } from "@/lib/data/mockData";
-import { createBook, saveBook } from "@/lib/store";
+import { createBook } from "@/lib/store";
 import { useAuth } from "@/lib/auth/context";
-import type { BookStatus, CoverAlignment, CoverStyle } from "@/lib/types";
+import type { BookStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,7 +34,6 @@ import {
   LINEN_COVER_OPTIONS,
   LinenBookThumbnail,
 } from "@/components/cover/LinenBookThumbnail";
-import { uploadCoverImage } from "@/lib/supabase/storage";
 
 const GENRE_ICONS: Record<string, React.ReactNode> = {
   Fantasy: <Sparkles className="w-3.5 h-3.5" />,
@@ -49,8 +43,7 @@ const GENRE_ICONS: Record<string, React.ReactNode> = {
 
 const STEP_META = [
   { id: 1, title: "Manuscript", note: "Project setup" },
-  { id: 2, title: "Cover", note: "Visual direction" },
-  { id: 3, title: "Review", note: "Ready to create" },
+  { id: 2, title: "Review", note: "Ready to create" },
 ] as const;
 
 const STEP_COPY: Record<number, { eyebrow: string; title: string; description: string }> = {
@@ -61,103 +54,10 @@ const STEP_COPY: Record<number, { eyebrow: string; title: string; description: s
   },
   2: {
     eyebrow: "Step 2",
-    title: "Cover Direction",
-    description: "Choose a visual direction for your manuscript cover before you enter the studio.",
-  },
-  3: {
-    eyebrow: "Step 3",
     title: "Review and Create",
     description: "Review your setup and create your manuscript workspace.",
   },
 };
-
-const COVER_TITLE_SWATCHES = [
-  "#9d8a5d",
-  "#5f6f86",
-  "#6f7e6f",
-  "#8a6b58",
-  "#1f2937",
-  "#ece5d6",
-];
-
-const COVER_AUTHOR_SWATCHES = [
-  "#4b463f",
-  "#353b45",
-  "#424a43",
-  "#463e39",
-  "#8b8f98",
-  "#f3eee3",
-];
-
-const COVER_BG_SWATCHES = [
-  "#f4f2ed",
-  "#eceff3",
-  "#edf1eb",
-  "#f2ece8",
-  "#111827",
-  "#efe5d0",
-];
-
-function normalizeHex(value: string): string {
-  const raw = value.trim();
-  if (!raw) return "#";
-  return raw.startsWith("#") ? raw.slice(0, 7) : `#${raw.slice(0, 6)}`;
-}
-
-function ColorSwatchField({
-  label,
-  value,
-  palette,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  palette: string[];
-  onChange: (value: string) => void;
-}) {
-  const normalizedValue = value.toLowerCase();
-
-  return (
-    <div className="space-y-2.5">
-      <div className="flex items-center justify-between gap-2">
-        <Label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-          {label}
-        </Label>
-        <span className="text-[11px] font-mono text-ink-muted">{value.toUpperCase()}</span>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {palette.map((color) => (
-          <button
-            key={color}
-            type="button"
-            onClick={() => onChange(color)}
-            className={cn(
-              "h-7 w-7 rounded-full border-2 transition-all",
-              normalizedValue === color.toLowerCase()
-                ? "border-ink ring-2 ring-gold/35 ring-offset-2 ring-offset-parchment"
-                : "border-white/80 hover:scale-105 hover:border-parchment-deep"
-            )}
-            style={{ backgroundColor: color }}
-            aria-label={`Set ${label.toLowerCase()} to ${color}`}
-          />
-        ))}
-      </div>
-
-      <div className="relative">
-        <span
-          className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border border-parchment-deep/80"
-          style={{ backgroundColor: value }}
-        />
-        <Input
-          value={value}
-          onChange={(event) => onChange(normalizeHex(event.target.value))}
-          className="h-9 rounded-md border-parchment-deep bg-white pl-8 pr-2 font-mono text-xs"
-        />
-      </div>
-    </div>
-  );
-}
 
 interface StepPanelProps {
   sectionTitle: string;
@@ -192,11 +92,8 @@ export default function NewBookPage() {
   const { user } = useAuth();
   const penName = user?.name?.trim() || "";
   const defaultCover = LINEN_COVER_OPTIONS[0];
-  const coverFileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
-  const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(undefined);
-  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
@@ -205,11 +102,6 @@ export default function NewBookPage() {
     authorName: penName,
     status: "draft" as BookStatus,
     targetWordCount: 80000,
-    coverStyle: defaultCover.id as CoverStyle,
-    coverTitleColor: defaultCover.titleColor,
-    coverAuthorColor: defaultCover.authorColor,
-    coverBackgroundColor: defaultCover.bg,
-    coverAlignment: "left" as CoverAlignment,
   });
 
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
@@ -224,51 +116,11 @@ export default function NewBookPage() {
     ));
   }, [penName]);
 
-  useEffect(() => {
-    return () => {
-      if (coverImageUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(coverImageUrl);
-      }
-    };
-  }, [coverImageUrl]);
-
   const canProceed = step === 1 ? form.title.trim().length > 0 && form.genre.length > 0 : true;
-  const selectedStyle = LINEN_COVER_OPTIONS.find((style) => style.id === form.coverStyle) ?? LINEN_COVER_OPTIONS[0];
+  const selectedStyle = defaultCover;
   const resolvedAuthorName = form.authorName.trim() || penName;
   const fieldClassName =
     "h-10 rounded-lg border-parchment-deep/85 bg-white text-[0.95rem] shadow-none focus:border-parchment-deep/85 focus:ring-0 dark:border-parchment-deep dark:bg-parchment/60 dark:focus:border-parchment-deep";
-
-  function applyCoverStyle(styleId: CoverStyle) {
-    const style = LINEN_COVER_OPTIONS.find((item) => item.id === styleId);
-    if (!style) return;
-    setForm((prev) => ({
-      ...prev,
-      coverStyle: style.id,
-      coverTitleColor: style.titleColor,
-      coverAuthorColor: style.authorColor,
-      coverBackgroundColor: style.bg,
-    }));
-  }
-
-  function handleCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (coverImageUrl?.startsWith("blob:")) {
-      URL.revokeObjectURL(coverImageUrl);
-    }
-    const nextUrl = URL.createObjectURL(file);
-    setCoverImageFile(file);
-    setCoverImageUrl(nextUrl);
-  }
-
-  function clearCoverImage() {
-    if (coverImageUrl?.startsWith("blob:")) {
-      URL.revokeObjectURL(coverImageUrl);
-    }
-    setCoverImageFile(null);
-    setCoverImageUrl(undefined);
-    if (coverFileRef.current) coverFileRef.current.value = "";
-  }
 
   async function handleCreate() {
     if (!user || isCreating) return;
@@ -283,29 +135,14 @@ export default function NewBookPage() {
         status: form.status,
         targetWordCount: form.targetWordCount,
         cover: {
-          style: form.coverStyle,
-          titleColor: form.coverTitleColor,
-          authorColor: form.coverAuthorColor,
-          alignment: form.coverAlignment,
-          backgroundColor: form.coverBackgroundColor,
+          style: selectedStyle.id,
+          titleColor: selectedStyle.titleColor,
+          authorColor: selectedStyle.authorColor,
+          alignment: "left",
+          backgroundColor: selectedStyle.bg,
           overlayOpacity: 0,
         },
       });
-
-      if (coverImageFile) {
-        try {
-          const imageUrl = await uploadCoverImage(book.id, coverImageFile);
-          await saveBook(user.id, {
-            ...book,
-            cover: {
-              ...book.cover,
-              imageUrl,
-            },
-          });
-        } catch (error) {
-          console.error("Unable to upload cover image during creation:", error);
-        }
-      }
 
       router.push(`/books/${book.id}`);
     } finally {
@@ -512,258 +349,6 @@ export default function NewBookPage() {
                     </p>
                   </div>
 
-                  <StepPanel sectionTitle="Cover Studio">
-                    <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white overflow-hidden">
-                      <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
-                        <div className="order-2 lg:order-1 p-5 sm:p-6 space-y-6 border-t border-parchment-deep lg:border-t-0 lg:border-r">
-                          <div className="rounded-xl border border-parchment-deep/80 bg-parchment-warm/35 p-4">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-                              Design Flow
-                            </p>
-                            <p className="mt-1.5 text-sm text-ink-muted leading-relaxed">
-                              Pick a base cover style, upload your own artwork if needed, then fine-tune alignment and colors.
-                            </p>
-                          </div>
-
-                          <section className="space-y-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <h3 className="font-serif text-base font-semibold text-ink">Base Styles</h3>
-                              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-                                4 Included
-                              </span>
-                            </div>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                              {LINEN_COVER_OPTIONS.map((style) => {
-                                const selected = form.coverStyle === style.id;
-                                return (
-                                  <button
-                                    key={style.id}
-                                    type="button"
-                                    onClick={() => applyCoverStyle(style.id)}
-                                    className={cn(
-                                      "group rounded-xl border bg-white p-3 text-left transition-all",
-                                      selected
-                                        ? "border-gold/65 shadow-[0_16px_30px_-24px_rgba(201,168,76,0.85)]"
-                                        : "border-parchment-deep/90 hover:border-gold/45 hover:shadow-[0_16px_26px_-24px_rgba(26,20,14,0.42)]"
-                                    )}
-                                  >
-                                    <div className="rounded-lg border border-parchment-deep/65 bg-parchment-warm/25 px-3 py-3">
-                                      <LinenBookThumbnail
-                                        title={form.title}
-                                        subtitle={form.subtitle}
-                                        author={resolvedAuthorName}
-                                        style={style.id}
-                                        imageUrl={coverImageUrl}
-                                        alignment={form.coverAlignment}
-                                        titleColor={style.titleColor}
-                                        subtitleColor={style.subtitleColor}
-                                        authorColor={style.authorColor}
-                                        variant="builder"
-                                        className="mx-auto h-[170px] w-[122px]"
-                                      />
-                                    </div>
-                                    <div className="mt-2.5 flex items-start justify-between gap-2">
-                                      <div>
-                                        <p className="text-sm font-medium text-ink">{style.label}</p>
-                                        <p className="text-xs text-ink-faint mt-0.5">{style.description}</p>
-                                      </div>
-                                      <span
-                                        className={cn(
-                                          "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] transition-all",
-                                          selected
-                                            ? "border-gold bg-gold text-parchment"
-                                            : "border-parchment-deep text-transparent group-hover:text-ink-faint"
-                                        )}
-                                      >
-                                        <Check className="h-3 w-3" />
-                                      </span>
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </section>
-
-                          <section className="space-y-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <h3 className="font-serif text-base font-semibold text-ink">Artwork</h3>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => coverFileRef.current?.click()}
-                                className="h-8 text-xs"
-                              >
-                                <Upload className="h-3.5 w-3.5" />
-                                {coverImageUrl ? "Replace Image" : "Upload Image"}
-                              </Button>
-                            </div>
-
-                            {coverImageUrl ? (
-                              <div className="rounded-xl border border-parchment-deep bg-white p-3 flex items-center gap-3">
-                                <div className="h-20 w-14 shrink-0 rounded-md border border-parchment-deep/80 overflow-hidden">
-                                  <LinenBookThumbnail
-                                    title={form.title}
-                                    subtitle={form.subtitle}
-                                    author={resolvedAuthorName}
-                                    style={form.coverStyle}
-                                    imageUrl={coverImageUrl}
-                                    alignment={form.coverAlignment}
-                                    titleColor={form.coverTitleColor}
-                                    subtitleColor={form.coverAuthorColor}
-                                    authorColor={form.coverAuthorColor}
-                                    className="h-full w-full"
-                                    variant="mini"
-                                  />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-sm font-medium text-ink">Image ready</p>
-                                  <p className="text-xs text-ink-muted">Your uploaded art is shown clearly on the live preview.</p>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={clearCoverImage}
-                                  className="h-8 px-2 text-ink-faint hover:text-ink"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => coverFileRef.current?.click()}
-                                className="w-full rounded-xl border border-dashed border-parchment-deep bg-parchment-warm/20 px-4 py-5 text-left hover:border-gold/45 hover:bg-parchment-warm/35 transition-colors"
-                              >
-                                <div className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-parchment-deep bg-white text-ink-faint">
-                                  <Upload className="h-3.5 w-3.5" />
-                                </div>
-                                <p className="mt-3 text-sm font-medium text-ink">Upload custom cover art</p>
-                                <p className="mt-1 text-xs text-ink-muted">PNG, JPG, WEBP. Keep your style and text controls while using your own image.</p>
-                              </button>
-                            )}
-
-                            <input
-                              ref={coverFileRef}
-                              type="file"
-                              accept="image/*"
-                              onChange={handleCoverUpload}
-                              className="hidden"
-                            />
-                          </section>
-
-                          <section className="space-y-4">
-                            <h3 className="font-serif text-base font-semibold text-ink">Typography & Tone</h3>
-
-                            <div className="space-y-2">
-                              <Label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-                                Text Alignment
-                              </Label>
-                              <div className="flex items-center gap-1 rounded-lg border border-parchment-deep bg-white p-1">
-                                {([
-                                  { value: "left", icon: AlignLeft },
-                                  { value: "center", icon: AlignCenter },
-                                  { value: "right", icon: AlignRight },
-                                ] as { value: CoverAlignment; icon: React.ElementType }[]).map(({ value, icon: Icon }) => (
-                                  <button
-                                    key={value}
-                                    type="button"
-                                    onClick={() => update("coverAlignment", value)}
-                                    className={cn(
-                                      "flex-1 h-8 rounded-md inline-flex items-center justify-center transition-colors",
-                                      form.coverAlignment === value
-                                        ? "bg-parchment-warm text-ink shadow-sm"
-                                        : "text-ink-muted hover:text-ink"
-                                    )}
-                                  >
-                                    <Icon className="h-3.5 w-3.5" />
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <ColorSwatchField
-                                label="Title Color"
-                                value={form.coverTitleColor}
-                                palette={COVER_TITLE_SWATCHES}
-                                onChange={(value) => update("coverTitleColor", value)}
-                              />
-                              <ColorSwatchField
-                                label="Author Color"
-                                value={form.coverAuthorColor}
-                                palette={COVER_AUTHOR_SWATCHES}
-                                onChange={(value) => update("coverAuthorColor", value)}
-                              />
-                            </div>
-
-                            <ColorSwatchField
-                              label="Background Color"
-                              value={form.coverBackgroundColor}
-                              palette={COVER_BG_SWATCHES}
-                              onChange={(value) => update("coverBackgroundColor", value)}
-                            />
-                          </section>
-                        </div>
-
-                        <aside className="order-1 lg:order-2 bg-parchment-warm/35 p-5 sm:p-6 border-b border-parchment-deep lg:border-b-0">
-                          <div className="lg:sticky lg:top-5 space-y-3">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-                                Live Preview
-                              </p>
-                              <span className="inline-flex h-6 items-center rounded-full border border-parchment-deep bg-white px-2.5 text-[10px] font-medium text-ink-muted">
-                                {selectedStyle.label}
-                              </span>
-                            </div>
-
-                            <div
-                              className="rounded-xl border border-parchment-deep/80 bg-white p-4 sm:p-5 shadow-[0_16px_28px_-24px_rgba(26,20,14,0.45)]"
-                              style={{ backgroundColor: form.coverBackgroundColor }}
-                            >
-                              <LinenBookThumbnail
-                                title={form.title}
-                                subtitle={form.subtitle}
-                                author={resolvedAuthorName}
-                                style={form.coverStyle}
-                                imageUrl={coverImageUrl}
-                                alignment={form.coverAlignment}
-                                titleColor={form.coverTitleColor}
-                                subtitleColor={form.coverAuthorColor}
-                                authorColor={form.coverAuthorColor}
-                                variant="builder"
-                                className="mx-auto h-[230px] w-[164px] sm:h-[250px] sm:w-[176px]"
-                              />
-                            </div>
-
-                            <div className="rounded-lg border border-parchment-deep/80 bg-white/80 p-3">
-                              <p className="text-[11px] text-ink-muted leading-relaxed">
-                                This same setup continues in the writing workspace Cover tab. You can refine it anytime.
-                              </p>
-                            </div>
-                          </div>
-                        </aside>
-                      </div>
-                    </div>
-                  </StepPanel>
-                </div>
-              )}
-
-              {step === 3 && (
-                <div className="animate-fade-in space-y-5">
-                  <div className="px-1 sm:px-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-label">
-                      {STEP_COPY[3].eyebrow}
-                    </p>
-                    <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-ink">
-                      {STEP_COPY[3].title}
-                    </h1>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-                      {STEP_COPY[3].description}
-                    </p>
-                  </div>
-
                   <StepPanel sectionTitle="Review">
                     <div className="rounded-t-2xl rounded-b-none border border-parchment-deep bg-white p-5 sm:p-6">
                       <p className="mb-4 text-xs text-ink-muted">
@@ -776,20 +361,18 @@ export default function NewBookPage() {
                             subtitle={form.subtitle}
                             author={resolvedAuthorName}
                             style={selectedStyle.id}
-                            imageUrl={coverImageUrl}
-                            alignment={form.coverAlignment}
-                            titleColor={form.coverTitleColor}
-                            subtitleColor={form.coverAuthorColor}
-                            authorColor={form.coverAuthorColor}
                             variant="builder"
                             className="mx-auto h-[206px] w-[148px] sm:h-[220px] sm:w-[160px]"
                           />
                           <p className="mt-3 text-[10px] uppercase tracking-[0.15em] text-amber-label">
-                            Selected Cover
+                            Default Cover
                           </p>
                           <p className="mt-1 text-sm font-medium text-ink">{selectedStyle.label}</p>
                           <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
                             {selectedStyle.description}
+                          </p>
+                          <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">
+                            You can fully customize this later in the Cover tab inside your writing workspace.
                           </p>
                         </div>
 
