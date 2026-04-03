@@ -287,11 +287,12 @@ function KanbanCard({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "rounded-xl border border-parchment-deep/75 bg-parchment-warm/70 p-2 pb-0 overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
+        "rounded-xl border border-parchment-deep/75 pt-2 px-0 pb-0 overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
+        meta.cardTone,
         "hover:border-gold/35 hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)]"
       )}
     >
-      <div className={cn("h-8 px-1.5 flex items-center justify-between rounded-lg", meta.cardTone)}>
+      <div className="h-8 px-3 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", meta.dot)} />
           <p className="text-xs font-medium text-ink truncate">{book.title}</p>
