@@ -593,25 +593,34 @@ function WeeklyActivity({ books }: { books: Book[] }) {
       </div>
 
       {/* Bars */}
-      <div className="flex items-end justify-between gap-1 h-12 mb-2.5">
-        {activity.map(({ label, words, isToday }) => {
-          const heightPct = Math.max((words / maxWords) * 100, words > 0 ? 8 : 4);
-          return (
-            <div key={label} className="flex-1 flex flex-col items-center gap-1" title={`${words.toLocaleString()} words`}>
-              <div
-                className="w-full rounded-t-sm transition-all duration-300"
-                style={{
-                  height: `${heightPct}%`,
-                  backgroundColor: isToday
-                    ? "rgb(var(--color-bar-today))"
-                    : words > 0
-                    ? "rgb(var(--color-gold))"
-                    : "rgb(var(--color-bar-empty))",
-                }}
-              />
-            </div>
-          );
-        })}
+      <div className="relative rounded-lg border border-parchment-deep/70 bg-parchment-warm/20 px-2 pt-2 pb-2.5 mb-2.5">
+        <div className="absolute inset-x-2 top-2 bottom-2.5 pointer-events-none grid grid-rows-4">
+          <div className="border-t border-parchment-deep/60" />
+          <div className="border-t border-parchment-deep/45" />
+          <div className="border-t border-parchment-deep/35" />
+          <div className="border-t border-parchment-deep/30" />
+        </div>
+
+        <div className="relative flex items-end justify-between gap-1.5 h-20">
+          {activity.map(({ label, words, isToday }) => {
+            const heightPct = words > 0 ? Math.max((words / maxWords) * 100, 12) : 6;
+            return (
+              <div key={label} className="flex-1 h-full flex items-end" title={`${words.toLocaleString()} words`}>
+                <div
+                  className="w-full rounded-t-md transition-all duration-300"
+                  style={{
+                    height: `${heightPct}%`,
+                    backgroundColor: isToday
+                      ? "rgb(var(--color-bar-today))"
+                      : words > 0
+                      ? "rgb(var(--color-gold))"
+                      : "rgb(var(--color-bar-empty))",
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Day labels */}
