@@ -6,13 +6,17 @@ import {
   ArrowRight,
   Bell,
   BookOpen,
+  Calendar,
   Download,
   Feather,
+  Filter,
+  MoreHorizontal,
   Menu,
   Moon,
   PenLine,
   Plus,
   Search,
+  Settings2,
   Sun,
   X,
 } from "lucide-react";
@@ -194,24 +198,36 @@ const COLUMN_META: Array<{
   title: string;
   hint: string;
   dot: string;
+  laneTone: string;
+  cardTone: string;
+  progressTone: string;
 }> = [
   {
     status: "draft",
     title: "Draft",
     hint: "Early ideas and first passes",
-    dot: "bg-gold/80",
+    dot: "bg-gold",
+    laneTone: "bg-parchment-warm/55",
+    cardTone: "bg-gold/15",
+    progressTone: "bg-gold/70",
   },
   {
     status: "ongoing",
     title: "In Progress",
     hint: "Actively being written",
-    dot: "bg-ink-faint",
+    dot: "bg-sage",
+    laneTone: "bg-parchment/75",
+    cardTone: "bg-sage/14",
+    progressTone: "bg-sage",
   },
   {
     status: "completed",
     title: "Completed",
     hint: "Ready and finished manuscripts",
-    dot: "bg-sage",
+    dot: "bg-ink-faint",
+    laneTone: "bg-parchment-warm/45",
+    cardTone: "bg-parchment-deep/85",
+    progressTone: "bg-ink/60",
   },
 ];
 
@@ -221,17 +237,28 @@ function statusLabel(status: BookStatus): string {
   return "Completed";
 }
 
+function formatBoardDate(value: string): string {
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function KanbanCard({
   book,
+  status,
   saving,
   onDragStart,
   onDragEnd,
 }: {
   book: Book;
+  status: BookStatus;
   saving: boolean;
   onDragStart: (bookId: string) => void;
   onDragEnd: () => void;
 }) {
+  const meta = COLUMN_META.find((column) => column.status === status)!;
   const wordCount = totalWordCount(book.chapters);
   const progress = progressPercent(wordCount, book.targetWordCount);
 
@@ -245,46 +272,69 @@ function KanbanCard({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "rounded-xl border border-parchment-deep bg-white p-3.5 transition-all duration-200 cursor-grab active:cursor-grabbing",
-        "hover:border-gold/35 hover:shadow-[0_4px_14px_rgba(0,0,0,0.06)]"
+        "rounded-xl border border-parchment-deep/85 bg-white overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
+        "hover:border-gold/35 hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)]"
       )}
     >
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="min-w-0">
-          <p className="font-serif text-sm font-semibold text-ink leading-snug truncate">
+      <div className={cn("h-9 border-b border-parchment-deep/75 px-3 flex items-center justify-between", meta.cardTone)}>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", meta.dot)} />
+          <p className="text-xs font-medium text-ink truncate">
             {book.title}
           </p>
-          <p className="text-[11px] text-ink-muted mt-0.5 truncate">{book.genre}</p>
+        </div>
+        <button className="text-ink-faint hover:text-ink transition-colors" aria-label="Card options">
+          <MoreHorizontal className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="p-3.5">
+        <div className="mb-3">
+          <p className="font-serif text-[15px] leading-tight font-semibold text-ink truncate">
+            {book.subtitle || book.title}
+          </p>
+          <p className="text-[11px] text-ink-muted mt-1 truncate">{book.genre}</p>
+        </div>
+
+        <div className="space-y-1.5 mb-3">
+          <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+            <BookOpen className="w-3.5 h-3.5 text-ink-faint" />
+            <span>{wordCount.toLocaleString()} words</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+            <Calendar className="w-3.5 h-3.5 text-ink-faint" />
+            <span>Updated {formatBoardDate(book.updatedAt)}</span>
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-[11px] text-ink-muted mb-1.5">
+            <span>{book.chapters.length} chapters</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden">
+            <div
+              className={cn("h-full rounded-full transition-all duration-300", meta.progressTone)}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] text-ink-faint">
+          <span>{statusLabel(book.status)}</span>
+          <Link
+            href={`/books/${book.id}`}
+            className="inline-flex items-center gap-1 text-ink-muted hover:text-ink transition-colors"
+          >
+            Open
+            <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
         {saving ? (
-          <span className="text-[10px] uppercase tracking-[0.14em] text-amber-label font-semibold">
+          <span className="inline-block mt-2 text-[10px] uppercase tracking-[0.14em] text-amber-label font-semibold">
             Saving
           </span>
         ) : null}
-      </div>
-
-      <div className="mb-3">
-        <div className="flex items-center justify-between text-[11px] text-ink-muted mb-1.5">
-          <span>{wordCount.toLocaleString()} words</span>
-          <span>{progress}%</span>
-        </div>
-        <div className="h-[3px] rounded-full bg-parchment-deep overflow-hidden">
-          <div
-            className="h-full rounded-full bg-ink/70 transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-[10px] text-ink-faint">
-        <span>{book.chapters.length} chapters</span>
-        <Link
-          href={`/books/${book.id}`}
-          className="inline-flex items-center gap-1 text-ink-muted hover:text-ink transition-colors"
-        >
-          Open
-          <ArrowRight className="w-3 h-3" />
-        </Link>
       </div>
     </article>
   );
@@ -320,10 +370,11 @@ function KanbanColumn({
   return (
     <section
       className={cn(
-        "rounded-xl border bg-parchment p-3 transition-colors",
+        "rounded-2xl border p-3 transition-colors",
+        meta.laneTone,
         isActiveDrop
-          ? "border-gold/45 ring-2 ring-gold/25"
-          : "border-parchment-deep"
+          ? "border-gold/45 ring-2 ring-gold/20"
+          : "border-parchment-deep/70"
       )}
       onDragOver={(event) => {
         if (!isDragging) return;
@@ -337,32 +388,59 @@ function KanbanColumn({
       }}
       onDrop={(event) => onDrop(status, event)}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <span className={cn("w-1.5 h-1.5 rounded-full", meta.dot)} />
-            <h3 className="font-serif text-sm font-semibold text-ink">{meta.title}</h3>
+      <div className="flex items-center justify-between mb-3 px-0.5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={cn("w-2 h-2 rounded-full", meta.dot)} />
+            <h3 className="font-serif text-[15px] font-semibold text-ink truncate">{meta.title}</h3>
+            <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md border border-parchment-deep/80 bg-parchment text-[10px] font-semibold text-ink-muted">
+              {books.length}
+            </span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-0.5">{meta.hint}</p>
+          <p className="text-[11px] text-ink-faint mt-1">{meta.hint}</p>
         </div>
-        <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full border border-parchment-deep bg-parchment-warm text-[11px] font-medium text-ink">
-          {books.length}
-        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {status === "draft" ? (
+            <Link
+              href="/books/new"
+              className="w-7 h-7 rounded-md border border-parchment-deep/80 bg-parchment/85 text-ink-faint hover:text-ink hover:border-gold/35 transition-colors flex items-center justify-center"
+              aria-label="Create manuscript"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="w-7 h-7 rounded-md border border-parchment-deep/80 bg-parchment/85 text-ink-faint flex items-center justify-center"
+              aria-label="Lane action"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <button
+            type="button"
+            className="w-7 h-7 rounded-md border border-parchment-deep/80 bg-parchment/85 text-ink-faint hover:text-ink transition-colors flex items-center justify-center"
+            aria-label="More lane options"
+          >
+            <MoreHorizontal className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      <div className="min-h-[190px] space-y-2.5">
+      <div className="min-h-[420px] space-y-3">
         {books.length > 0 ? (
           books.map((book) => (
             <KanbanCard
               key={book.id}
               book={book}
+              status={status}
               saving={savingBookId === book.id}
               onDragStart={onCardDragStart}
               onDragEnd={onCardDragEnd}
             />
           ))
         ) : (
-          <div className="rounded-lg border border-dashed border-parchment-deep bg-parchment-warm/35 px-3 py-5 text-center">
+          <div className="rounded-xl border border-dashed border-parchment-deep/80 bg-parchment/55 px-3 py-8 text-center">
             <p className="text-xs text-ink-faint">Drop a manuscript here</p>
             {showCreateNew && (
               <Link
@@ -518,68 +596,24 @@ export default function LibraryPage() {
         <TopBar query={query} onQuery={setQuery} onOpenNav={() => setMobileNavOpen(true)} />
 
         <div className="px-4 md:px-8 pt-8 pb-0 max-w-5xl mx-auto">
-          <div className="flex items-end justify-between gap-5 mb-8">
-            <div>
-              <h1 className="font-serif text-[2.25rem] font-semibold text-ink tracking-tight leading-none mb-2">
-                Your Library
-              </h1>
-              {books.length > 0 && (
-                <p className="text-[11px] font-sans uppercase tracking-[0.18em] text-ink-faint">
-                  {books.length} manuscript{books.length !== 1 ? "s" : ""}
-                  <span className="mx-2 opacity-40">·</span>
-                  {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
-                  <span className="mx-2 opacity-40">·</span>
-                  {totalWords.toLocaleString()} words
-                  {inProgress > 0 && (
-                    <>
-                      <span className="mx-2 opacity-40">·</span>
-                      <span className="text-sage">{inProgress} in progress</span>
-                    </>
-                  )}
-                </p>
-              )}
-            </div>
-
+          <div className="mb-7">
+            <h1 className="font-serif text-[2.25rem] font-semibold text-ink tracking-tight leading-none mb-2">
+              Your Library
+            </h1>
             {books.length > 0 && (
-              <div className="shrink-0 flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-1 bg-parchment-warm border border-parchment-deep rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode("board")}
-                    className={cn(
-                      "px-3 py-1 rounded-md text-xs transition-colors",
-                      viewMode === "board"
-                        ? "bg-parchment text-ink shadow-sm font-medium"
-                        : "text-ink-muted hover:text-ink"
-                    )}
-                  >
-                    Board
-                  </button>
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={cn(
-                      "px-3 py-1 rounded-md text-xs transition-colors",
-                      viewMode === "grid"
-                        ? "bg-parchment text-ink shadow-sm font-medium"
-                        : "text-ink-muted hover:text-ink"
-                    )}
-                  >
-                    Grid
-                  </button>
-                </div>
-
-                <Link href="/export">
-                  <button className="flex items-center gap-1.5 bg-parchment text-ink px-4 py-2 rounded-lg border border-parchment-deep font-sans font-medium text-sm hover:bg-parchment-warm transition-colors duration-200 whitespace-nowrap">
-                    <Download className="w-3.5 h-3.5" strokeWidth={2.2} />
-                    Export Manuscript
-                  </button>
-                </Link>
-                <Link href="/books/new">
-                  <button className="flex items-center gap-1.5 bg-ink text-parchment px-4 py-2 rounded-lg font-sans font-medium text-sm hover:bg-ink-soft transition-colors duration-200 shadow-sm whitespace-nowrap">
-                    <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                    New Manuscript
-                  </button>
-                </Link>
-              </div>
+              <p className="text-[11px] font-sans uppercase tracking-[0.18em] text-ink-faint">
+                {books.length} manuscript{books.length !== 1 ? "s" : ""}
+                <span className="mx-2 opacity-40">&middot;</span>
+                {totalChapters} chapter{totalChapters !== 1 ? "s" : ""}
+                <span className="mx-2 opacity-40">&middot;</span>
+                {totalWords.toLocaleString()} words
+                {inProgress > 0 && (
+                  <>
+                    <span className="mx-2 opacity-40">&middot;</span>
+                    <span className="text-sage">{inProgress} in progress</span>
+                  </>
+                )}
+              </p>
             )}
           </div>
 
@@ -597,53 +631,132 @@ export default function LibraryPage() {
               )}
 
               {viewMode === "board" ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pb-8">
-                  <KanbanColumn
-                    status="draft"
-                    books={grouped.draft}
-                    isActiveDrop={dropStatus === "draft"}
-                    isDragging={Boolean(draggingBookId)}
-                    savingBookId={statusSavingBookId}
-                    onDragOver={setDropStatus}
-                    onDragLeave={() => setDropStatus(null)}
-                    onDrop={handleDrop}
-                    onCardDragStart={handleCardDragStart}
-                    onCardDragEnd={handleCardDragEnd}
-                    showCreateNew={!query}
-                  />
-                  <KanbanColumn
-                    status="ongoing"
-                    books={grouped.ongoing}
-                    isActiveDrop={dropStatus === "ongoing"}
-                    isDragging={Boolean(draggingBookId)}
-                    savingBookId={statusSavingBookId}
-                    onDragOver={setDropStatus}
-                    onDragLeave={() => setDropStatus(null)}
-                    onDrop={handleDrop}
-                    onCardDragStart={handleCardDragStart}
-                    onCardDragEnd={handleCardDragEnd}
-                    showCreateNew={false}
-                  />
-                  <KanbanColumn
-                    status="completed"
-                    books={grouped.completed}
-                    isActiveDrop={dropStatus === "completed"}
-                    isDragging={Boolean(draggingBookId)}
-                    savingBookId={statusSavingBookId}
-                    onDragOver={setDropStatus}
-                    onDragLeave={() => setDropStatus(null)}
-                    onDrop={handleDrop}
-                    onCardDragStart={handleCardDragStart}
-                    onCardDragEnd={handleCardDragEnd}
-                    showCreateNew={false}
-                  />
+                <div className="rounded-[22px] border border-parchment-deep/85 bg-parchment/82 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-hidden mb-8">
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-3 md:px-4 py-2.5 border-b border-parchment-deep/80 bg-parchment-warm/60">
+                    <div className="flex items-center gap-2">
+                      <button className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs font-medium text-ink">
+                        Manuscript Pipeline
+                      </button>
+                      <button className="hidden sm:inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs text-ink-muted hover:text-ink transition-colors">
+                        <Settings2 className="w-3.5 h-3.5" />
+                        View settings
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="hidden sm:flex items-center gap-1 bg-parchment border border-parchment-deep rounded-lg p-1">
+                        <button
+                          onClick={() => setViewMode("board")}
+                          className="px-3 py-1 rounded-md text-xs transition-colors bg-parchment-warm text-ink shadow-sm font-medium"
+                        >
+                          Board
+                        </button>
+                        <button
+                          onClick={() => setViewMode("grid")}
+                          className="px-3 py-1 rounded-md text-xs transition-colors text-ink-muted hover:text-ink"
+                        >
+                          Grid
+                        </button>
+                      </div>
+
+                      <button className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs text-ink-muted hover:text-ink transition-colors">
+                        <Filter className="w-3.5 h-3.5" />
+                        Filter
+                      </button>
+
+                      <Link href="/export">
+                        <button className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-parchment-deep bg-parchment text-xs font-medium text-ink hover:bg-parchment-warm transition-colors">
+                          <Download className="w-3.5 h-3.5" strokeWidth={2} />
+                          Export
+                        </button>
+                      </Link>
+
+                      <Link href="/books/new">
+                        <button className="inline-flex items-center gap-1.5 px-3.5 h-8 rounded-lg bg-ink text-parchment text-xs font-medium hover:bg-ink-soft transition-colors">
+                          <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
+                          New Manuscript
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 md:p-3">
+                    <div className="overflow-x-auto">
+                      <div className="min-w-[790px] grid grid-cols-3 gap-3">
+                        <KanbanColumn
+                          status="draft"
+                          books={grouped.draft}
+                          isActiveDrop={dropStatus === "draft"}
+                          isDragging={Boolean(draggingBookId)}
+                          savingBookId={statusSavingBookId}
+                          onDragOver={setDropStatus}
+                          onDragLeave={() => setDropStatus(null)}
+                          onDrop={handleDrop}
+                          onCardDragStart={handleCardDragStart}
+                          onCardDragEnd={handleCardDragEnd}
+                          showCreateNew={!query}
+                        />
+                        <KanbanColumn
+                          status="ongoing"
+                          books={grouped.ongoing}
+                          isActiveDrop={dropStatus === "ongoing"}
+                          isDragging={Boolean(draggingBookId)}
+                          savingBookId={statusSavingBookId}
+                          onDragOver={setDropStatus}
+                          onDragLeave={() => setDropStatus(null)}
+                          onDrop={handleDrop}
+                          onCardDragStart={handleCardDragStart}
+                          onCardDragEnd={handleCardDragEnd}
+                          showCreateNew={false}
+                        />
+                        <KanbanColumn
+                          status="completed"
+                          books={grouped.completed}
+                          isActiveDrop={dropStatus === "completed"}
+                          isDragging={Boolean(draggingBookId)}
+                          savingBookId={statusSavingBookId}
+                          onDragOver={setDropStatus}
+                          onDragLeave={() => setDropStatus(null)}
+                          onDrop={handleDrop}
+                          onCardDragStart={handleCardDragStart}
+                          onCardDragEnd={handleCardDragEnd}
+                          showCreateNew={false}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pb-8">
-                  {filtered.map((book) => (
-                    <BookCard key={book.id} book={book} onDelete={handleDelete} />
-                  ))}
-                  {!query && <AddBookCard />}
+                <div className="pb-8">
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="flex items-center gap-1 bg-parchment-warm border border-parchment-deep rounded-lg p-1">
+                      <button
+                        onClick={() => setViewMode("board")}
+                        className="px-3 py-1 rounded-md text-xs transition-colors text-ink-muted hover:text-ink"
+                      >
+                        Board
+                      </button>
+                      <button
+                        onClick={() => setViewMode("grid")}
+                        className="px-3 py-1 rounded-md text-xs transition-colors bg-parchment text-ink shadow-sm font-medium"
+                      >
+                        Grid
+                      </button>
+                    </div>
+                    <Link href="/books/new">
+                      <button className="inline-flex items-center gap-1.5 px-3.5 h-8 rounded-lg bg-ink text-parchment text-xs font-medium hover:bg-ink-soft transition-colors">
+                        <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
+                        New Manuscript
+                      </button>
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {filtered.map((book) => (
+                      <BookCard key={book.id} book={book} onDelete={handleDelete} />
+                    ))}
+                    {!query && <AddBookCard />}
+                  </div>
                 </div>
               )}
             </section>
