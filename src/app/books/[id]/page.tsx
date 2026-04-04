@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BookOpen,
+  Download,
   Eye,
   Image as ImageIcon,
   List,
@@ -285,6 +286,12 @@ export default function BookWorkspacePage() {
           <Link href={`/books/${bookId}/cover`}>
             <Button variant="outline" size="sm" className="text-xs h-7 hidden sm:inline-flex">
               Edit Cover
+            </Button>
+          </Link>
+          <Link href={`/export?bookId=${bookId}`}>
+            <Button variant="outline" size="sm" className="text-xs h-7 gap-1.5">
+              <Download className="w-3 h-3" />
+              <span className="hidden sm:inline">Export</span>
             </Button>
           </Link>
           <Link href={`/books/${bookId}/preview`}>

@@ -91,7 +91,13 @@ async function copyText(text: string): Promise<boolean> {
   return copied;
 }
 
-export function ExportCenter({ className }: { className?: string }) {
+export function ExportCenter({
+  className,
+  initialBookId,
+}: {
+  className?: string;
+  initialBookId?: string | null;
+}) {
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -124,6 +130,9 @@ export function ExportCenter({ className }: { className?: string }) {
           if (current && items.some((book) => book.id === current)) {
             return current;
           }
+          if (initialBookId && items.some((book) => book.id === initialBookId)) {
+            return initialBookId;
+          }
           return "";
         });
       })
@@ -141,7 +150,7 @@ export function ExportCenter({ className }: { className?: string }) {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, initialBookId]);
 
   const selectedBook = useMemo(
     () => books.find((book) => book.id === selectedBookId) ?? null,

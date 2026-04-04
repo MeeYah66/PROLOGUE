@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Download, Menu } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppNav } from "@/components/layout/AppNav";
 import { ExportCenter } from "@/components/export/ExportCenter";
 
@@ -39,6 +39,13 @@ function ExportTopBar({ onOpenNav }: { onOpenNav: () => void }) {
 
 export default function ExportPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [initialBookId, setInitialBookId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const query = new URLSearchParams(window.location.search);
+    setInitialBookId(query.get("bookId"));
+  }, []);
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--page-gradient)" }}>
@@ -64,11 +71,10 @@ export default function ExportPage() {
               </div>
               <p className="text-sm font-medium text-ink">Manuscript Export</p>
             </div>
-            <ExportCenter />
+            <ExportCenter initialBookId={initialBookId} />
           </div>
         </div>
       </main>
     </div>
   );
 }
-
