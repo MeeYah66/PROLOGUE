@@ -99,20 +99,60 @@ DROP POLICY IF EXISTS "Users can delete their own chapters" ON public.chapters;
 
 CREATE POLICY "Users can view their own chapters"
   ON public.chapters FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = chapters.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Users can insert their own chapters"
   ON public.chapters FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = chapters.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Users can update their own chapters"
   ON public.chapters FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = chapters.book_id
+        AND b.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = chapters.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Users can delete their own chapters"
   ON public.chapters FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = chapters.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 -- book_notes policies
 DROP POLICY IF EXISTS "Users can view their own book notes"   ON public.book_notes;
@@ -122,20 +162,60 @@ DROP POLICY IF EXISTS "Users can delete their own book notes" ON public.book_not
 
 CREATE POLICY "Users can view their own book notes"
   ON public.book_notes FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = book_notes.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Users can insert their own book notes"
   ON public.book_notes FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = book_notes.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Users can update their own book notes"
   ON public.book_notes FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = book_notes.book_id
+        AND b.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = book_notes.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Users can delete their own book notes"
   ON public.book_notes FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.books b
+      WHERE b.id = book_notes.book_id
+        AND b.user_id = auth.uid()
+    )
+  );
 
 -- ─── updated_at trigger ───────────────────────────────────────────────────────
 

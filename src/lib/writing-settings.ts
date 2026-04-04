@@ -23,8 +23,9 @@ const DEFAULT_SETTINGS: WritingSettings = {
   sessionTimer: false,
 };
 
-function storageKey(userId?: string): string {
-  return userId ? `${STORAGE_PREFIX}_${userId}` : STORAGE_PREFIX;
+function storageKey(userId?: string): string | null {
+  if (!userId) return null;
+  return `${STORAGE_PREFIX}_${userId}`;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -63,9 +64,11 @@ function sanitizeSettings(value: unknown): WritingSettings {
 
 export function readWritingSettings(userId?: string): WritingSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
+  const key = storageKey(userId);
+  if (!key) return DEFAULT_SETTINGS;
 
   try {
-    const raw = window.localStorage.getItem(storageKey(userId));
+    const raw = window.localStorage.getItem(key);
     if (!raw) return DEFAULT_SETTINGS;
     return sanitizeSettings(JSON.parse(raw));
   } catch {
@@ -78,9 +81,11 @@ export function writeWritingSettings(
   settings: WritingSettings
 ): void {
   if (typeof window === "undefined") return;
+  const key = storageKey(userId);
+  if (!key) return;
 
   try {
-    window.localStorage.setItem(storageKey(userId), JSON.stringify(settings));
+    window.localStorage.setItem(key, JSON.stringify(settings));
     window.dispatchEvent(
       new CustomEvent(SETTINGS_EVENT, { detail: { userId: userId ?? null } })
     );
@@ -99,6 +104,7 @@ export function useWritingSettings(userId?: string) {
 
     const onStorage = (event: StorageEvent) => {
       const key = storageKey(userId);
+      if (!key) return;
       if (event.key !== key) return;
       setSettings(readWritingSettings(userId));
     };
@@ -126,4 +132,3 @@ export function useWritingSettings(userId?: string) {
 
   return { settings, updateSettings };
 }
-

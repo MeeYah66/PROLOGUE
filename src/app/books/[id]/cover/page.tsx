@@ -20,7 +20,11 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { getBook, saveBook } from "@/lib/store";
-import { uploadCoverImage, deleteCoverImage } from "@/lib/supabase/storage";
+import {
+  uploadCoverImage,
+  deleteCoverImage,
+  validateImageUpload,
+} from "@/lib/supabase/storage";
 import { useAuth } from "@/lib/auth/context";
 import type { Book, CoverStyle, CoverAlignment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -120,27 +124,79 @@ export default function CoverDesignPage() {
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [mobileTab, setMobileTab] = useState<"preview" | "editor">("preview");
+  const [saveError, setSaveError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     if (!user) return;
-    getBook(user.id, bookId).then((b) => {
-      if (!b) {
-        router.push("/");
-        return;
-      }
-      setBook(b);
-    });
+    setLoading(true);
+    setLoadError("");
+    getBook(user.id, bookId)
+      .then((b) => {
+        if (!b) {
+          setLoadError("Could not find that manuscript.");
+          return;
+        }
+        setBook(b);
+      })
+      .catch((error) => {
+        setLoadError(
+          error instanceof Error ? error.message : "Could not load cover settings."
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [bookId, user, router]);
 
-  if (!book) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-parchment items-center justify-center">
+        <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
+      </div>
+    );
+  }
 
-  async function update(updates: Partial<Book["cover"]>) {
-    if (!book || !user) return;
+  if (!book) {
+    return (
+      <div className="flex min-h-screen bg-parchment items-center justify-center px-4">
+        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 max-w-md w-full">
+          <p className="text-sm font-medium text-red-600">Cover unavailable</p>
+          <p className="mt-1 text-xs text-red-600/90">
+            {loadError || "Could not load this manuscript cover."}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => router.push("/library")}
+          >
+            Back to Library
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  async function update(updates: Partial<Book["cover"]>): Promise<boolean> {
+    if (!book || !user) return false;
     const updated = { ...book, cover: { ...book.cover, ...updates } };
-    await saveBook(user.id, updated);
-    setBook(updated);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await saveBook(user.id, updated);
+      setBook(updated);
+      setSaveError("");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      return true;
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Could not save cover changes. Please try again."
+      );
+      return false;
+    }
   }
 
   function applyStylePreset(style: CoverStyle) {
@@ -151,12 +207,17 @@ export default function CoverDesignPage() {
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !book) return;
+    if (fileRef.current) fileRef.current.value = "";
     setUploading(true);
     try {
+      validateImageUpload(file, { maxBytes: 8 * 1024 * 1024, label: "Cover image" });
       const url = await uploadCoverImage(book.id, file);
-      await update({ imageUrl: url, overlayOpacity: 0 });
+      const persisted = await update({ imageUrl: url, overlayOpacity: 0 });
+      if (!persisted) {
+        setSaveError("Cover image uploaded but failed to save to this manuscript.");
+      }
     } catch (err) {
-      console.error("Cover upload error:", err);
+      setSaveError(err instanceof Error ? err.message : "Cover upload failed.");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -176,9 +237,9 @@ export default function CoverDesignPage() {
   const { cover } = book;
 
   const controls = (
-    <div className="flex flex-col h-full bg-parchment">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-parchment-deep">
-        <p className="text-xs font-medium text-ink-muted uppercase tracking-wider">Cover Design</p>
+      <div className="flex flex-col h-full bg-parchment">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-parchment-deep">
+          <p className="text-xs font-medium text-ink-muted uppercase tracking-wider">Cover Design</p>
         {saved && (
           <span className="flex items-center gap-1 text-xs text-emerald-500">
             <Check className="w-3 h-3" /> Saved
@@ -186,9 +247,12 @@ export default function CoverDesignPage() {
         )}
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-5">
-          <div className="space-y-2">
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-5">
+            {saveError && (
+              <p className="text-xs text-red-500">{saveError}</p>
+            )}
+            <div className="space-y-2">
             <Label className="text-xs">Cover Image</Label>
             {cover.imageUrl ? (
               <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-parchment-warm">
@@ -228,7 +292,7 @@ export default function CoverDesignPage() {
             <input
               ref={fileRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="hidden"
               onChange={handleImageUpload}
             />

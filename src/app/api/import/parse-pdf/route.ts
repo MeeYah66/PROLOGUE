@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { createRequire } from "node:module";
 
 export const runtime = "nodejs";
+const MAX_PDF_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MAX_PDF_TEXT_CHARS = 2_000_000;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const requestRateLimit = new Map<string, { count: number; windowStart: number }>();
 
 const require = createRequire(import.meta.url);
 type PdfParseFunction = (
@@ -32,6 +37,26 @@ type Pdf2JsonOutput = {
     }>;
   }>;
 };
+
+function getClientIdentifier(request: Request): string {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor.split(",")[0]?.trim() || "unknown";
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+  return "unknown";
+}
+
+function isRateLimited(clientId: string): boolean {
+  const now = Date.now();
+  const slot = requestRateLimit.get(clientId);
+  if (!slot || now - slot.windowStart > RATE_LIMIT_WINDOW_MS) {
+    requestRateLimit.set(clientId, { count: 1, windowStart: now });
+    return false;
+  }
+  slot.count += 1;
+  requestRateLimit.set(clientId, slot);
+  return slot.count > RATE_LIMIT_MAX_REQUESTS;
+}
 
 function normalizeExtractedText(value: string): string {
   return value
@@ -159,6 +184,25 @@ async function extractWithPdf2Json(buffer: Buffer): Promise<string> {
 
 export async function POST(request: Request) {
   try {
+    const clientId = getClientIdentifier(request);
+    if (isRateLimited(clientId)) {
+      return NextResponse.json(
+        { error: "Too many import attempts. Please wait a minute and try again." },
+        { status: 429 }
+      );
+    }
+
+    const contentLength = request.headers.get("content-length");
+    if (contentLength) {
+      const length = Number.parseInt(contentLength, 10);
+      if (!Number.isNaN(length) && length > MAX_PDF_UPLOAD_BYTES) {
+        return NextResponse.json(
+          { error: "PDF is too large. Maximum supported size is 20 MB." },
+          { status: 413 }
+        );
+      }
+    }
+
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -181,6 +225,12 @@ export async function POST(request: Request) {
     }
 
     const arrayBuffer = await file.arrayBuffer();
+    if (arrayBuffer.byteLength > MAX_PDF_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: "PDF is too large. Maximum supported size is 20 MB." },
+        { status: 413 }
+      );
+    }
     const buffer = Buffer.from(arrayBuffer);
 
     let text = "";
@@ -229,6 +279,16 @@ export async function POST(request: Request) {
             : "We could not detect readable text in this PDF. If it contains scanned pages/images, run OCR and export as searchable PDF, .docx, or .txt.",
         },
         { status: 422 }
+      );
+    }
+
+    if (text.length > MAX_PDF_TEXT_CHARS) {
+      return NextResponse.json(
+        {
+          error:
+            "This PDF contains too much text for a single import. Please split it into smaller files.",
+        },
+        { status: 413 }
       );
     }
 

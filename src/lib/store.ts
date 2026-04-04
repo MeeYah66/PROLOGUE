@@ -6,11 +6,22 @@
 
 import { createClient } from "@/lib/supabase/client";
 import type { Book, Chapter, BookNotes } from "@/lib/types";
+import {
+  htmlToSafeBlocks,
+  safeBlocksToHtml,
+} from "@/lib/sanitization/chapter-content";
 
 // ─── Internal helpers ──────────────────────────────────────────────────────
 
 function newId(): string {
   return crypto.randomUUID();
+}
+
+export class StoreConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StoreConflictError";
+  }
 }
 
 // Map a DB book row (with joined chapters + book_notes) → Book
@@ -59,11 +70,12 @@ function mapBook(row: any): Book {
 // Map a DB chapter row → Chapter
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapChapter(ch: any): Chapter {
+  const safeContent = safeBlocksToHtml(htmlToSafeBlocks(ch.content ?? ""));
   return {
     id:           ch.id,
     number:       ch.number,
     title:        ch.title ?? "",
-    content:      ch.content ?? "",
+    content:      safeContent,
     summary:      ch.summary ?? undefined,
     status:       ch.status ?? "draft",
     wordCount:    ch.word_count ?? 0,
@@ -74,7 +86,13 @@ function mapChapter(ch: any): Chapter {
   };
 }
 
-const BOOK_SELECT = `
+const BOOK_LIST_SELECT = `
+  *,
+  chapters(id, number, title, status, word_count, summary, pov, scene, created_at, updated_at),
+  book_notes(arc, timeline, characters, world_notes)
+`.trim();
+
+const BOOK_DETAIL_SELECT = `
   *,
   chapters(id, number, title, content, status, word_count, summary, pov, scene, created_at, updated_at),
   book_notes(arc, timeline, characters, world_notes)
@@ -82,17 +100,22 @@ const BOOK_SELECT = `
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
-export async function getBooks(userId: string): Promise<Book[]> {
+export async function getBooks(
+  userId: string,
+  options?: { includeChapterContent?: boolean }
+): Promise<Book[]> {
   const supabase = createClient();
+  const selectFields = options?.includeChapterContent
+    ? BOOK_DETAIL_SELECT
+    : BOOK_LIST_SELECT;
   const { data, error } = await supabase
     .from("books")
-    .select(BOOK_SELECT)
+    .select(selectFields)
     .eq("user_id", userId)
     .order("updated_at", { ascending: false });
 
   if (error) {
-    console.error("getBooks error:", error);
-    return [];
+    throw new Error(`Could not load manuscripts: ${error.message}`);
   }
 
   return (data ?? []).map(mapBook);
@@ -102,7 +125,7 @@ export async function getBook(userId: string, bookId: string): Promise<Book | un
   const supabase = createClient();
   const { data, error } = await supabase
     .from("books")
-    .select(BOOK_SELECT)
+    .select(BOOK_DETAIL_SELECT)
     .eq("user_id", userId)
     .eq("id", bookId)
     .single();
@@ -113,10 +136,10 @@ export async function getBook(userId: string, bookId: string): Promise<Book | un
 
 export async function saveBook(userId: string, book: Book): Promise<void> {
   const supabase = createClient();
-  const now = new Date().toISOString();
+  const expectedUpdatedAt = book.updatedAt;
 
   // Update books table (exclude chapters and notes — they live in separate tables)
-  const { error: bookError } = await supabase
+  let bookUpdateQuery = supabase
     .from("books")
     .update({
       title:                 book.title,
@@ -128,12 +151,27 @@ export async function saveBook(userId: string, book: Book): Promise<void> {
       target_word_count:     book.targetWordCount,
       cover:                 book.cover,
       last_edited_chapter_id: book.lastEditedChapterId ?? null,
-      updated_at:            now,
     })
     .eq("id", book.id)
     .eq("user_id", userId);
 
-  if (bookError) console.error("saveBook (books) error:", bookError);
+  if (expectedUpdatedAt) {
+    bookUpdateQuery = bookUpdateQuery.eq("updated_at", expectedUpdatedAt);
+  }
+
+  const {
+    data: updatedBookRow,
+    error: bookError,
+  } = await bookUpdateQuery
+    .select("updated_at")
+    .maybeSingle();
+
+  if (bookError) throw new Error(`Failed to save manuscript details: ${bookError.message}`);
+  if (!updatedBookRow) {
+    throw new StoreConflictError(
+      "This manuscript changed in another session. Refresh to continue with the latest version."
+    );
+  }
 
   // Upsert book_notes
   const { error: notesError } = await supabase
@@ -150,12 +188,15 @@ export async function saveBook(userId: string, book: Book): Promise<void> {
       { onConflict: "book_id" }
     );
 
-  if (notesError) console.error("saveBook (book_notes) error:", notesError);
+  if (notesError) throw new Error(`Failed to save manuscript notes: ${notesError.message}`);
+
+  book.updatedAt = updatedBookRow.updated_at;
 }
 
 export async function createBook(
   userId: string,
-  data: Omit<Book, "id" | "createdAt" | "updatedAt" | "chapters" | "notes">
+  data: Omit<Book, "id" | "createdAt" | "updatedAt" | "chapters" | "notes">,
+  notesSeed?: BookNotes
 ): Promise<Book> {
   const supabase = createClient();
   const now = new Date().toISOString();
@@ -182,19 +223,30 @@ export async function createBook(
   const { error: notesError } = await supabase.from("book_notes").insert({
     book_id:     id,
     user_id:     userId,
-    arc:         "",
-    timeline:    "",
-    characters:  [],
-    world_notes: [],
+    arc:         notesSeed?.arc ?? "",
+    timeline:    notesSeed?.timeline ?? "",
+    characters:  notesSeed?.characters ?? [],
+    world_notes: notesSeed?.world ?? [],
   });
 
-  if (notesError) console.error("createBook (book_notes) error:", notesError);
+  if (notesError) {
+    await supabase.from("books").delete().eq("id", id).eq("user_id", userId);
+    throw new Error(`Failed to initialize manuscript notes: ${notesError.message}`);
+  }
 
   const book: Book = {
     ...data,
     id,
     chapters: [],
-    notes: { arc: "", timeline: "", characters: [], world: [], arcs: [] },
+    notes: notesSeed
+      ? {
+          arc: notesSeed.arc,
+          timeline: notesSeed.timeline,
+          characters: [...notesSeed.characters],
+          world: [...notesSeed.world],
+          arcs: [...notesSeed.arcs],
+        }
+      : { arc: "", timeline: "", characters: [], world: [], arcs: [] },
     createdAt: now,
     updatedAt: now,
   };
@@ -211,41 +263,153 @@ export async function deleteBook(userId: string, bookId: string): Promise<void> 
     .eq("id", bookId)
     .eq("user_id", userId);
 
-  if (error) console.error("deleteBook error:", error);
+  if (error) throw new Error(`Failed to delete manuscript: ${error.message}`);
 }
 
-export async function updateChapter(userId: string, bookId: string, chapter: Chapter): Promise<void> {
+export async function updateChapter(
+  userId: string,
+  bookId: string,
+  chapter: Chapter
+): Promise<{ chapterUpdatedAt: string; bookUpdatedAt: string }> {
   const supabase = createClient();
   const now = new Date().toISOString();
-
-  const { error: chapterError } = await supabase.from("chapters").upsert({
-    id:         chapter.id,
-    book_id:    bookId,
-    user_id:    userId,
-    number:     chapter.number,
-    title:      chapter.title,
-    content:    chapter.content,
-    status:     chapter.status,
+  const safeContent = safeBlocksToHtml(htmlToSafeBlocks(chapter.content ?? ""));
+  const basePayload = {
+    book_id: bookId,
+    user_id: userId,
+    number: chapter.number,
+    title: chapter.title,
+    content: safeContent,
+    status: chapter.status,
     word_count: chapter.wordCount,
-    summary:    chapter.summary ?? null,
-    pov:        chapter.povCharacter ?? null,
-    scene:      chapter.sceneLabel ?? null,
-    created_at: chapter.createdAt,
+    summary: chapter.summary ?? null,
+    pov: chapter.povCharacter ?? null,
+    scene: chapter.sceneLabel ?? null,
     updated_at: now,
-  });
+  };
 
-  if (chapterError) console.error("updateChapter error:", chapterError);
+  const { data: existingChapter, error: chapterLookupError } = await supabase
+    .from("chapters")
+    .select("id")
+    .eq("id", chapter.id)
+    .eq("book_id", bookId)
+    .eq("user_id", userId)
+    .maybeSingle();
 
-  const { error: bookError } = await supabase
+  if (chapterLookupError) {
+    throw new Error(`Failed to check chapter state: ${chapterLookupError.message}`);
+  }
+
+  let chapterUpdatedAt = now;
+  if (existingChapter) {
+    const {
+      data: updatedChapter,
+      error: chapterUpdateError,
+    } = await supabase
+      .from("chapters")
+      .update(basePayload)
+      .eq("id", chapter.id)
+      .eq("book_id", bookId)
+      .eq("user_id", userId)
+      .eq("updated_at", chapter.updatedAt)
+      .select("updated_at")
+      .maybeSingle();
+
+    if (chapterUpdateError) {
+      throw new Error(`Failed to save chapter: ${chapterUpdateError.message}`);
+    }
+    if (!updatedChapter) {
+      throw new StoreConflictError(
+        "This chapter changed in another session. Refresh to continue with the latest version."
+      );
+    }
+    chapterUpdatedAt = updatedChapter.updated_at;
+  } else {
+    const { error: chapterInsertError } = await supabase.from("chapters").insert({
+      id: chapter.id,
+      ...basePayload,
+      created_at: chapter.createdAt,
+    });
+    if (chapterInsertError) {
+      throw new Error(`Failed to save chapter: ${chapterInsertError.message}`);
+    }
+  }
+
+  const {
+    data: updatedBookRow,
+    error: bookError,
+  } = await supabase
     .from("books")
     .update({
       last_edited_chapter_id: chapter.id,
       updated_at:             now,
     })
     .eq("id", bookId)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("updated_at")
+    .single();
 
-  if (bookError) console.error("updateChapter (books) error:", bookError);
+  if (bookError) throw new Error(`Failed to update manuscript metadata: ${bookError.message}`);
+  return {
+    chapterUpdatedAt,
+    bookUpdatedAt: updatedBookRow.updated_at,
+  };
+}
+
+export async function insertBookChapters(
+  userId: string,
+  bookId: string,
+  chapters: Chapter[]
+): Promise<{ bookUpdatedAt: string; lastEditedChapterId: string | null } | undefined> {
+  if (chapters.length === 0) return undefined;
+
+  const supabase = createClient();
+  const now = new Date().toISOString();
+  const ordered = [...chapters].sort((a, b) => a.number - b.number);
+
+  const rows = ordered.map((chapter) => ({
+    id: chapter.id,
+    book_id: bookId,
+    user_id: userId,
+    number: chapter.number,
+    title: chapter.title,
+    content: safeBlocksToHtml(htmlToSafeBlocks(chapter.content ?? "")),
+    status: chapter.status,
+    word_count: chapter.wordCount,
+    summary: chapter.summary ?? null,
+    pov: chapter.povCharacter ?? null,
+    scene: chapter.sceneLabel ?? null,
+    created_at: chapter.createdAt,
+    updated_at: now,
+  }));
+
+  const { error: chaptersError } = await supabase.from("chapters").insert(rows);
+  if (chaptersError) {
+    throw new Error(`Failed to import chapters: ${chaptersError.message}`);
+  }
+
+  const lastEditedChapterId = ordered[ordered.length - 1]?.id ?? null;
+  const {
+    data: updatedBookRow,
+    error: bookError,
+  } = await supabase
+    .from("books")
+    .update({
+      last_edited_chapter_id: lastEditedChapterId,
+      updated_at: now,
+    })
+    .eq("id", bookId)
+    .eq("user_id", userId)
+    .select("updated_at")
+    .single();
+
+  if (bookError) {
+    throw new Error(`Failed to finalize manuscript chapters: ${bookError.message}`);
+  }
+  return {
+    bookUpdatedAt: updatedBookRow.updated_at,
+    lastEditedChapterId,
+  };
 }
 
 export async function deleteChapter(userId: string, bookId: string, chapterId: string): Promise<void> {
@@ -259,7 +423,7 @@ export async function deleteChapter(userId: string, bookId: string, chapterId: s
     .eq("book_id", bookId)
     .eq("user_id", userId);
 
-  if (chapterError) console.error("deleteChapter error:", chapterError);
+  if (chapterError) throw new Error(`Failed to delete chapter: ${chapterError.message}`);
 
   const { error: bookError } = await supabase
     .from("books")
@@ -267,14 +431,14 @@ export async function deleteChapter(userId: string, bookId: string, chapterId: s
     .eq("id", bookId)
     .eq("user_id", userId);
 
-  if (bookError) console.error("deleteChapter (books) error:", bookError);
+  if (bookError) throw new Error(`Failed to refresh manuscript metadata: ${bookError.message}`);
 }
 
 export async function reorderChapters(userId: string, bookId: string, chapterIds: string[]): Promise<void> {
   const supabase = createClient();
   const now = new Date().toISOString();
 
-  await Promise.all(
+  const results = await Promise.all(
     chapterIds.map((id, i) =>
       supabase
         .from("chapters")
@@ -284,4 +448,9 @@ export async function reorderChapters(userId: string, bookId: string, chapterIds
         .eq("user_id", userId)
     )
   );
+
+  const failed = results.find((result) => result.error);
+  if (failed?.error) {
+    throw new Error(`Failed to reorder chapters: ${failed.error.message}`);
+  }
 }

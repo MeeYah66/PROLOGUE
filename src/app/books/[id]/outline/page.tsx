@@ -190,6 +190,7 @@ export default function OutlinePage() {
   const [addingChar, setAddingChar] = useState(false);
   const [addingWorld, setAddingWorld] = useState(false);
   const [mobileChaptersOpen, setMobileChaptersOpen] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [newChar, setNewChar] = useState({
     name: "",
     role: "",
@@ -220,8 +221,17 @@ export default function OutlinePage() {
 
   async function save(updated: Book) {
     if (!user) return;
-    await saveBook(user.id, updated);
-    setBook({ ...updated });
+    try {
+      await saveBook(user.id, updated);
+      setBook({ ...updated });
+      setSaveError("");
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Could not save outline changes. Please retry."
+      );
+    }
   }
 
   function handleArcChange(value: string) {
@@ -354,6 +364,9 @@ export default function OutlinePage() {
               <div className="mb-5 md:mb-6">
                 <h1 className="font-serif text-xl sm:text-2xl font-semibold text-ink">{book.title}</h1>
                 <p className="text-sm text-ink-faint mt-1">Story notes, characters, and world building</p>
+                {saveError && (
+                  <p className="mt-2 text-xs text-red-500">{saveError}</p>
+                )}
               </div>
 
               <Tabs defaultValue="arc">

@@ -35,6 +35,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const isApiRoute = pathname.startsWith("/api/");
 
   // Auth pages — redirect into app if already signed in
   if (AUTH_ROUTES.has(pathname)) {
@@ -46,6 +47,9 @@ export async function middleware(request: NextRequest) {
 
   // All other routes — require auth
   if (!user) {
+    if (isApiRoute) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.redirect(new URL("/signup", request.url));
   }
 

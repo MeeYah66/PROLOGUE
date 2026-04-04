@@ -94,6 +94,7 @@ export default function NewBookPage() {
   const defaultCover = LINEN_COVER_OPTIONS[0];
   const [step, setStep] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
@@ -125,6 +126,7 @@ export default function NewBookPage() {
   async function handleCreate() {
     if (!user || isCreating) return;
     setIsCreating(true);
+    setSubmitError("");
     try {
       const book = await createBook(user.id, {
         title: form.title,
@@ -145,6 +147,12 @@ export default function NewBookPage() {
       });
 
       router.push(`/books/${book.id}`);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "We could not create your manuscript. Please try again."
+      );
     } finally {
       setIsCreating(false);
     }
@@ -465,6 +473,9 @@ export default function NewBookPage() {
               </Button>
             )}
           </div>
+          {submitError && (
+            <p className="mt-3 text-sm text-red-500">{submitError}</p>
+          )}
         </div>
       </main>
     </div>

@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth/context";
-import { uploadAvatarImage } from "@/lib/supabase/storage";
+import { uploadAvatarImage, validateImageUpload } from "@/lib/supabase/storage";
 import { GENRES } from "@/lib/data/mockData";
 import { cn } from "@/lib/utils";
 
@@ -66,12 +66,12 @@ function SectionCard({ title, description, children }: {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, updateProfile, updatePassword } = useAuth();
+  const { user, loading, updateProfile, updatePassword } = useAuth();
 
   // Redirect if not logged in
   useEffect(() => {
-    if (user === null) router.push("/signin");
-  }, [user, router]);
+    if (!loading && user === null) router.push("/signin");
+  }, [user, loading, router]);
 
   // ── Identity state ──────────────────────────────────────────────────────
   const [name, setName]               = useState(user?.name ?? "");
@@ -81,6 +81,7 @@ export default function ProfilePage() {
   const [instagram, setInstagram]     = useState(user?.instagramHandle ?? "");
   const [identitySaving, setIdentitySaving] = useState(false);
   const [identitySaved,  setIdentitySaved]  = useState(false);
+  const [identityError, setIdentityError]   = useState("");
 
   // ── Avatar ──────────────────────────────────────────────────────────────
   const fileRef                   = useRef<HTMLInputElement>(null);
@@ -93,11 +94,13 @@ export default function ProfilePage() {
   const [styleTags, setStyleTags]           = useState<string[]>([]);
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [prefsSaved,  setPrefsSaved]  = useState(false);
+  const [prefsError, setPrefsError]   = useState("");
 
   // ── Goals state ─────────────────────────────────────────────────────────
   const [dailyGoal, setDailyGoal] = useState(user?.dailyWordGoal ?? 500);
   const [goalSaving, setGoalSaving] = useState(false);
   const [goalSaved,  setGoalSaved]  = useState(false);
+  const [goalError, setGoalError]   = useState("");
 
   // ── Password state ──────────────────────────────────────────────────────
   const [currentPass, setCurrentPass] = useState("");
@@ -106,6 +109,17 @@ export default function ProfilePage() {
   const [passSaving,  setPassSaving]  = useState(false);
   const [passSaved,   setPassSaved]   = useState(false);
   const [passError,   setPassError]   = useState("");
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-parchment">
+        <AppNav />
+        <main className="flex-1 ml-48 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
+        </main>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
@@ -119,13 +133,11 @@ export default function ProfilePage() {
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError("Image must be under 5 MB.");
-      return;
-    }
+    if (fileRef.current) fileRef.current.value = "";
     setAvatarError("");
     setAvatarUploading(true);
     try {
+      validateImageUpload(file, { maxBytes: 5 * 1024 * 1024, label: "Avatar image" });
       const url = await uploadAvatarImage(file);
       await updateProfile({ avatarUrl: url });
       setAvatarPreview(url);
@@ -138,11 +150,16 @@ export default function ProfilePage() {
 
   async function handleIdentitySave(e: React.FormEvent) {
     e.preventDefault();
+    setIdentityError("");
     setIdentitySaving(true);
     try {
       await updateProfile({ name: name.trim(), bio, website, twitterHandle: twitter, instagramHandle: instagram });
       setIdentitySaved(true);
       setTimeout(() => setIdentitySaved(false), 2500);
+    } catch (error) {
+      setIdentityError(
+        error instanceof Error ? error.message : "Could not save identity details."
+      );
     } finally {
       setIdentitySaving(false);
     }
@@ -150,11 +167,16 @@ export default function ProfilePage() {
 
   async function handlePrefsSave(e: React.FormEvent) {
     e.preventDefault();
+    setPrefsError("");
     setPrefsSaving(true);
     try {
       await updateProfile({ genrePreferences: selectedGenres });
       setPrefsSaved(true);
       setTimeout(() => setPrefsSaved(false), 2500);
+    } catch (error) {
+      setPrefsError(
+        error instanceof Error ? error.message : "Could not save writing preferences."
+      );
     } finally {
       setPrefsSaving(false);
     }
@@ -162,11 +184,16 @@ export default function ProfilePage() {
 
   async function handleGoalSave(e: React.FormEvent) {
     e.preventDefault();
+    setGoalError("");
     setGoalSaving(true);
     try {
       await updateProfile({ dailyWordGoal: dailyGoal });
       setGoalSaved(true);
       setTimeout(() => setGoalSaved(false), 2500);
+    } catch (error) {
+      setGoalError(
+        error instanceof Error ? error.message : "Could not save daily goal."
+      );
     } finally {
       setGoalSaving(false);
     }
@@ -175,6 +202,10 @@ export default function ProfilePage() {
   async function handlePasswordSave(e: React.FormEvent) {
     e.preventDefault();
     setPassError("");
+    if (!currentPass.trim()) {
+      setPassError("Please enter your current password.");
+      return;
+    }
     if (newPass.length < 8) {
       setPassError("New password must be at least 8 characters.");
       return;
@@ -185,7 +216,7 @@ export default function ProfilePage() {
     }
     setPassSaving(true);
     try {
-      await updatePassword(newPass);
+      await updatePassword(currentPass, newPass);
       setPassSaved(true);
       setCurrentPass("");
       setNewPass("");
@@ -370,6 +401,9 @@ export default function ProfilePage() {
               <div className="flex justify-end pt-1">
                 <SaveButton saving={identitySaving} saved={identitySaved} />
               </div>
+              {identityError && (
+                <p className="text-xs text-red-500">{identityError}</p>
+              )}
             </form>
           </SectionCard>
 
@@ -427,6 +461,9 @@ export default function ProfilePage() {
               <div className="flex justify-end pt-1">
                 <SaveButton saving={prefsSaving} saved={prefsSaved} />
               </div>
+              {prefsError && (
+                <p className="text-xs text-red-500">{prefsError}</p>
+              )}
             </form>
           </SectionCard>
 
@@ -477,6 +514,9 @@ export default function ProfilePage() {
               <div className="flex justify-end">
                 <SaveButton saving={goalSaving} saved={goalSaved} />
               </div>
+              {goalError && (
+                <p className="text-xs text-red-500">{goalError}</p>
+              )}
             </form>
           </SectionCard>
 

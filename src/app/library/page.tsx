@@ -22,7 +22,15 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { createBook, deleteBook, getBooks, saveBook, updateChapter } from "@/lib/store";
+import {
+  createBook,
+  deleteBook,
+  getBook,
+  getBooks,
+  insertBookChapters,
+  saveBook,
+  StoreConflictError,
+} from "@/lib/store";
 import type { Book, BookStatus } from "@/lib/types";
 import { cn, progressPercent, totalWordCount } from "@/lib/utils";
 import { BookCard, AddBookCard } from "@/components/dashboard/BookCard";
@@ -33,6 +41,7 @@ import { AmbientButton } from "@/components/ambient/AmbientButton";
 import { useToast } from "@/lib/toast/context";
 import { LinenBookThumbnail } from "@/components/cover/LinenBookThumbnail";
 import { NewManuscriptDialog } from "@/components/dashboard/NewManuscriptDialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -539,6 +548,7 @@ export default function LibraryPage() {
   const { toast } = useToast();
   const [books, setBooks] = useState<Book[]>([]);
   const [booksReady, setBooksReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"board" | "grid">("board");
@@ -556,10 +566,21 @@ export default function LibraryPage() {
 
   useEffect(() => {
     if (!user) return;
-    getBooks(user.id).then((items) => {
-      setBooks(items);
-      setBooksReady(true);
-    });
+    setBooksReady(false);
+    setLoadError(null);
+    getBooks(user.id)
+      .then((items) => {
+        setBooks(items);
+      })
+      .catch((error) => {
+        setLoadError(
+          error instanceof Error ? error.message : "Could not load your library."
+        );
+        setBooks([]);
+      })
+      .finally(() => {
+        setBooksReady(true);
+      });
   }, [user]);
 
   if (authLoading || !booksReady) {
@@ -568,6 +589,31 @@ export default function LibraryPage() {
         <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
         <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
+        </main>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen bg-parchment">
+        <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
+        <main className="flex-1 md:ml-48">
+          <TopBar query={query} onQuery={setQuery} onOpenNav={() => setMobileNavOpen(true)} />
+          <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+            <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+              <p className="text-sm font-medium text-red-600">Could not load your library</p>
+              <p className="mt-1 text-xs text-red-600/90">{loadError}</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
         </main>
       </div>
     );
@@ -601,12 +647,21 @@ export default function LibraryPage() {
   async function handleDeleteBook(book: Book) {
     const shouldDelete = window.confirm(`Delete "${book.title}"? This cannot be undone.`);
     if (!shouldDelete) return;
-    await handleDelete(book.id);
-    toast({
-      variant: "success",
-      title: "Manuscript deleted",
-      description: `"${book.title}" has been removed from your library.`,
-    });
+    try {
+      await handleDelete(book.id);
+      toast({
+        variant: "success",
+        title: "Manuscript deleted",
+        description: `"${book.title}" has been removed from your library.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Delete failed",
+        description:
+          error instanceof Error ? error.message : "Could not delete this manuscript.",
+      });
+    }
   }
 
   async function handleRenameBook(book: Book) {
@@ -614,23 +669,30 @@ export default function LibraryPage() {
     const nextTitle = window.prompt("Rename manuscript", book.title)?.trim();
     if (!nextTitle || nextTitle === book.title) return;
 
-    const now = new Date().toISOString();
-    const updated: Book = { ...book, title: nextTitle, updatedAt: now };
+    const updated: Book = { ...book, title: nextTitle };
 
     setBooks((prev) => prev.map((item) => (item.id === book.id ? updated : item)));
     try {
       await saveBook(user.id, updated);
+      setBooks((prev) =>
+        prev.map((item) =>
+          item.id === book.id ? { ...item, updatedAt: updated.updatedAt } : item
+        )
+      );
       toast({
         variant: "success",
         title: "Manuscript renamed",
         description: `"${book.title}" is now "${nextTitle}".`,
       });
-    } catch {
+    } catch (error) {
       setBooks((prev) => prev.map((item) => (item.id === book.id ? book : item)));
       toast({
         variant: "error",
         title: "Rename failed",
-        description: "Please try renaming this manuscript again.",
+        description:
+          error instanceof StoreConflictError
+            ? "This manuscript changed in another session. Refresh and try again."
+            : "Please try renaming this manuscript again.",
       });
     }
   }
@@ -640,22 +702,29 @@ export default function LibraryPage() {
     const userId = user.id;
     const now = new Date().toISOString();
     const duplicateTitle = `${book.title} (Copy)`;
+    let createdBookId: string | null = null;
 
     try {
+      const sourceBook = await getBook(userId, book.id);
+      if (!sourceBook) {
+        throw new Error("Could not load manuscript content for duplication.");
+      }
+
       const duplicated = await createBook(userId, {
         title: duplicateTitle,
-        subtitle: book.subtitle,
-        genre: book.genre,
-        blurb: book.blurb,
-        authorName: book.authorName,
-        status: book.status,
-        cover: book.cover,
-        targetWordCount: book.targetWordCount,
+        subtitle: sourceBook.subtitle,
+        genre: sourceBook.genre,
+        blurb: sourceBook.blurb,
+        authorName: sourceBook.authorName,
+        status: sourceBook.status,
+        cover: sourceBook.cover,
+        targetWordCount: sourceBook.targetWordCount,
         lastEditedChapterId: undefined,
-      });
+      }, sourceBook.notes);
+      createdBookId = duplicated.id;
 
       const chapterIdMap = new Map<string, string>();
-      const duplicatedChapters = book.chapters.map((chapter) => {
+      const duplicatedChapters = sourceBook.chapters.map((chapter) => {
         const newId = crypto.randomUUID();
         chapterIdMap.set(chapter.id, newId);
         return {
@@ -666,26 +735,28 @@ export default function LibraryPage() {
         };
       });
 
-      await Promise.all(
-        duplicatedChapters.map((chapter) => updateChapter(userId, duplicated.id, chapter))
+      const chapterInsertResult = await insertBookChapters(
+        userId,
+        duplicated.id,
+        duplicatedChapters
       );
 
       const duplicatedBook: Book = {
         ...duplicated,
         title: duplicateTitle,
-        subtitle: book.subtitle,
-        genre: book.genre,
-        blurb: book.blurb,
-        authorName: book.authorName,
-        status: book.status,
-        cover: book.cover,
+        subtitle: sourceBook.subtitle,
+        genre: sourceBook.genre,
+        blurb: sourceBook.blurb,
+        authorName: sourceBook.authorName,
+        status: sourceBook.status,
+        cover: sourceBook.cover,
         chapters: duplicatedChapters,
-        notes: book.notes,
-        targetWordCount: book.targetWordCount,
-        lastEditedChapterId: book.lastEditedChapterId
-          ? chapterIdMap.get(book.lastEditedChapterId)
-          : undefined,
-        updatedAt: now,
+        notes: sourceBook.notes,
+        targetWordCount: sourceBook.targetWordCount,
+        lastEditedChapterId: sourceBook.lastEditedChapterId
+          ? chapterIdMap.get(sourceBook.lastEditedChapterId)
+          : chapterInsertResult?.lastEditedChapterId ?? undefined,
+        updatedAt: chapterInsertResult?.bookUpdatedAt ?? duplicated.updatedAt,
       };
 
       await saveBook(userId, duplicatedBook);
@@ -696,6 +767,9 @@ export default function LibraryPage() {
         description: `"${duplicateTitle}" is ready in your library.`,
       });
     } catch {
+      if (createdBookId) {
+        await deleteBook(userId, createdBookId).catch(() => undefined);
+      }
       toast({
         variant: "error",
         title: "Duplicate failed",
@@ -719,23 +793,29 @@ export default function LibraryPage() {
     }
 
     const previousStatus = book.status;
-    const nextUpdatedAt = new Date().toISOString();
 
     setBooks((prev) =>
       prev.map((item) =>
         item.id === bookId
-          ? { ...item, status: nextStatus, updatedAt: nextUpdatedAt }
+          ? { ...item, status: nextStatus }
           : item
       )
     );
     setStatusSavingBookId(bookId);
 
     try {
-      await saveBook(user.id, {
+      const next = {
         ...book,
         status: nextStatus,
-        updatedAt: nextUpdatedAt,
-      });
+      };
+      await saveBook(user.id, next);
+      setBooks((prev) =>
+        prev.map((item) =>
+          item.id === bookId
+            ? { ...item, status: nextStatus, updatedAt: next.updatedAt }
+            : item
+        )
+      );
       if (nextStatus === "completed") {
         toast({
           variant: "success",
@@ -755,7 +835,7 @@ export default function LibraryPage() {
           description: `"${book.title}" is in Draft, ready for fresh ideas and revisions.`,
         });
       }
-    } catch {
+    } catch (error) {
       setBooks((prev) =>
         prev.map((item) =>
           item.id === bookId ? { ...item, status: previousStatus } : item
@@ -764,7 +844,10 @@ export default function LibraryPage() {
       toast({
         variant: "error",
         title: "Could not update manuscript status",
-        description: "Please try dragging the manuscript again.",
+        description:
+          error instanceof StoreConflictError
+            ? "This manuscript changed in another session. Refresh and try again."
+            : "Please try dragging the manuscript again.",
       });
     } finally {
       setStatusSavingBookId(null);
@@ -954,7 +1037,15 @@ export default function LibraryPage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pb-8">
                   {filtered.map((book) => (
-                    <BookCard key={book.id} book={book} onDelete={handleDelete} />
+                    <BookCard
+                      key={book.id}
+                      book={book}
+                      onDelete={(id) => {
+                        const target = books.find((item) => item.id === id);
+                        if (!target) return;
+                        void handleDeleteBook(target);
+                      }}
+                    />
                   ))}
                   {!query && <AddBookCard />}
                 </div>

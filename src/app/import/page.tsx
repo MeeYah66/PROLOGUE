@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth/context";
 import { GENRES } from "@/lib/data/mockData";
-import { createBook, updateChapter } from "@/lib/store";
+import { createBook, deleteBook, insertBookChapters } from "@/lib/store";
 import { countWords } from "@/lib/utils";
 import {
   getImportFileType,
@@ -46,6 +46,7 @@ const PROCESSING_MESSAGES = [
   "Detecting chapter breaks...",
   "Structuring your manuscript...",
 ];
+const MAX_IMPORT_UI_FILE_BYTES = 20 * 1024 * 1024;
 
 function chapterSnippet(content: string): string {
   const parser = new DOMParser();
@@ -160,7 +161,13 @@ export default function ImportManuscriptPage() {
     [chapters]
   );
 
-  async function beginParsing(file: File) {
+async function beginParsing(file: File) {
+    if (file.size > MAX_IMPORT_UI_FILE_BYTES) {
+      setError("File is too large. Please upload a file under 20 MB.");
+      setStage("upload");
+      return;
+    }
+
     const fileType = getImportFileType(file);
     if (!fileType) {
       setError("Please upload a .docx, .txt, or .pdf manuscript.");
@@ -279,6 +286,7 @@ export default function ImportManuscriptPage() {
 
     setError("");
     setStage("importing");
+    let createdBookId: string | null = null;
 
     try {
       const targetWordCount = Math.max(
@@ -303,12 +311,12 @@ export default function ImportManuscriptPage() {
           overlayOpacity: 0.5,
         },
       });
+      createdBookId = newBook.id;
 
-      for (let index = 0; index < chapters.length; index += 1) {
-        const chapter = chapters[index];
+      const chapterPayloads: Chapter[] = chapters.map((chapter, index) => {
         const now = new Date().toISOString();
 
-        const payload: Chapter = {
+        return {
           id: crypto.randomUUID(),
           number: index + 1,
           title: chapter.title.trim() || `Chapter ${index + 1}`,
@@ -321,12 +329,15 @@ export default function ImportManuscriptPage() {
           createdAt: now,
           updatedAt: now,
         };
+      });
 
-        await updateChapter(user.id, newBook.id, payload);
-      }
+      await insertBookChapters(user.id, newBook.id, chapterPayloads);
 
       router.push(`/books/${newBook.id}`);
     } catch (importError) {
+      if (createdBookId) {
+        await deleteBook(user.id, createdBookId).catch(() => undefined);
+      }
       const message =
         importError instanceof Error
           ? importError.message

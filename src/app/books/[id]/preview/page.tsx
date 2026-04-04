@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { estimateReadingTime } from "@/lib/utils";
+import { htmlToSafeBlocks } from "@/lib/sanitization/chapter-content";
 
 function WorkspaceNav({
   bookId,
@@ -173,6 +174,8 @@ function TitlePage({ book }: { book: Book }) {
 }
 
 function ChapterPage({ chapter }: { chapter: Chapter }) {
+  const blocks = useMemo(() => htmlToSafeBlocks(chapter.content), [chapter.content]);
+
   return (
     <div className="w-full min-h-full bg-[#faf8f5] px-5 sm:px-10 md:px-16 py-8 sm:py-12 md:py-16">
       <div className="text-center mb-10 md:mb-12">
@@ -184,7 +187,7 @@ function ChapterPage({ chapter }: { chapter: Chapter }) {
       </div>
 
       <div
-        className="tiptap-editor book-page max-w-none"
+        className="book-page max-w-none space-y-4"
         style={{
           fontFamily: "var(--font-lora)",
           fontSize: "1rem",
@@ -192,7 +195,49 @@ function ChapterPage({ chapter }: { chapter: Chapter }) {
           color: "#1a1a1a",
         }}
       >
-        <div className="ProseMirror" dangerouslySetInnerHTML={{ __html: chapter.content }} />
+        {blocks.map((block, index) => {
+          if (block.type === "heading") {
+            return (
+              <h3 key={`${chapter.id}-block-${index}`} className="font-serif text-xl font-semibold text-ink mt-6">
+                {block.text}
+              </h3>
+            );
+          }
+
+          if (block.type === "blockquote") {
+            return (
+              <blockquote
+                key={`${chapter.id}-block-${index}`}
+                className="border-l-2 border-parchment-deep pl-4 italic text-ink-muted"
+              >
+                {block.text}
+              </blockquote>
+            );
+          }
+
+          if (block.type === "unordered-list" || block.type === "ordered-list") {
+            const ListTag = block.type === "ordered-list" ? "ol" : "ul";
+            return (
+              <ListTag
+                key={`${chapter.id}-block-${index}`}
+                className={cn(
+                  "ml-6 space-y-1 marker:text-ink-faint",
+                  block.type === "ordered-list" ? "list-decimal" : "list-disc"
+                )}
+              >
+                {(block.items ?? []).map((item, itemIndex) => (
+                  <li key={`${chapter.id}-block-${index}-item-${itemIndex}`}>{item}</li>
+                ))}
+              </ListTag>
+            );
+          }
+
+          return (
+            <p key={`${chapter.id}-block-${index}`} className="leading-relaxed">
+              {block.text}
+            </p>
+          );
+        })}
       </div>
 
       <div className="flex items-center gap-4 mt-12 pt-6 border-t border-parchment-deep">

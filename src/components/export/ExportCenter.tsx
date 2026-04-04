@@ -30,6 +30,7 @@ import {
   manuscriptToWordHtml,
   manuscriptWordCount,
 } from "@/lib/manuscript-export";
+import { uploadPublicSharePreview } from "@/lib/supabase/storage";
 
 type ExportAction = "pdf" | "document" | "print" | "share" | null;
 
@@ -96,6 +97,7 @@ export function ExportCenter({ className }: { className?: string }) {
 
   const [books, setBooks] = useState<Book[]>([]);
   const [booksLoading, setBooksLoading] = useState(true);
+  const [booksError, setBooksError] = useState<string | null>(null);
   const [selectedBookId, setSelectedBookId] = useState("");
   const [exportAction, setExportAction] = useState<ExportAction>(null);
 
@@ -104,6 +106,7 @@ export function ExportCenter({ className }: { className?: string }) {
 
     if (!user) {
       setBooks([]);
+      setBooksError(null);
       setSelectedBookId("");
       setBooksLoading(false);
       return () => {
@@ -112,7 +115,8 @@ export function ExportCenter({ className }: { className?: string }) {
     }
 
     setBooksLoading(true);
-    getBooks(user.id)
+    setBooksError(null);
+    getBooks(user.id, { includeChapterContent: true })
       .then((items) => {
         if (!active) return;
         setBooks(items);
@@ -122,6 +126,13 @@ export function ExportCenter({ className }: { className?: string }) {
           }
           return "";
         });
+      })
+      .catch((error) => {
+        if (!active) return;
+        setBooks([]);
+        setBooksError(
+          error instanceof Error ? error.message : "Could not load manuscripts."
+        );
       })
       .finally(() => {
         if (active) setBooksLoading(false);
@@ -264,7 +275,6 @@ export function ExportCenter({ className }: { className?: string }) {
     const book = withSelectedBook();
     if (!book) return;
 
-    const previewUrl = `${window.location.origin}/books/${book.id}/preview`;
     const shareText = `Preview "${book.title}" on Prologue.`;
     const textFile =
       typeof File !== "undefined"
@@ -275,10 +285,16 @@ export function ExportCenter({ className }: { className?: string }) {
 
     setExportAction("share");
     try {
+      const publicPreviewUrl = await uploadPublicSharePreview(
+        book.id,
+        manuscriptToPrintHtml(book)
+      );
+
       if (navigator.share && textFile && navigator.canShare?.({ files: [textFile] })) {
         await navigator.share({
           title: book.title,
           text: shareText,
+          url: publicPreviewUrl,
           files: [textFile],
         });
         toast({
@@ -290,20 +306,20 @@ export function ExportCenter({ className }: { className?: string }) {
         await navigator.share({
           title: book.title,
           text: shareText,
-          url: previewUrl,
+          url: publicPreviewUrl,
         });
         toast({
           variant: "success",
           title: "Preview shared",
-          description: "Share sheet opened successfully.",
+          description: "Public preview link is ready to share.",
         });
       } else {
-        const copied = await copyText(previewUrl);
+        const copied = await copyText(publicPreviewUrl);
         if (!copied) throw new Error("copy_failed");
         toast({
           variant: "success",
           title: "Preview link copied",
-          description: "Share it with readers to open the preview page.",
+          description: "Share it with readers to open the public preview.",
         });
       }
     } catch (error) {
@@ -347,6 +363,15 @@ export function ExportCenter({ className }: { className?: string }) {
       <div className={cn("rounded-xl border border-parchment-deep bg-parchment p-5 flex items-center gap-2 text-sm text-ink-muted", className)}>
         <Loader2 className="w-4 h-4 animate-spin" />
         Loading your manuscripts...
+      </div>
+    );
+  }
+
+  if (booksError) {
+    return (
+      <div className={cn("rounded-xl border border-red-500/30 bg-red-500/5 p-5", className)}>
+        <p className="text-sm font-medium text-red-600">Could not load manuscripts</p>
+        <p className="mt-1 text-xs text-red-600/90">{booksError}</p>
       </div>
     );
   }

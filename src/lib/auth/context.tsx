@@ -10,6 +10,23 @@ function getRedirectUrl(): string {
   return window.location.origin + "/auth/callback";
 }
 
+function clearUserLocalData(userId?: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (userId) {
+      window.localStorage.removeItem(`prologue_captures_${userId}`);
+      window.localStorage.removeItem(`prologue_daily_goal_${userId}`);
+      window.localStorage.removeItem(`prologue_writing_settings_${userId}`);
+    }
+    // Legacy non-namespaced keys from earlier builds.
+    window.localStorage.removeItem("prologue_captures");
+    window.localStorage.removeItem("prologue_daily_goal");
+    window.localStorage.removeItem("prologue_writing_settings");
+  } catch {
+    // ignore storage errors
+  }
+}
+
 function mapUser(sbUser: NonNullable<Awaited<ReturnType<ReturnType<typeof createClient>["auth"]["getUser"]>>["data"]["user"]>): User {
   const meta = sbUser.user_metadata ?? {};
   return {
@@ -48,7 +65,7 @@ interface AuthContextValue {
   signInWithGoogle: () => Promise<void>;
   signOut:         () => void;
   updateProfile:   (updates: ProfileUpdates) => Promise<void>;
-  updatePassword:  (newPassword: string) => Promise<void>;
+  updatePassword:  (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -102,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function signOut(): void {
     const supabase = createClient();
+    clearUserLocalData(user?.id);
     supabase.auth.signOut().then(() => {
       window.location.href = "/signup";
     });
@@ -114,8 +132,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.user) setUser(mapUser(data.user));
   }
 
-  async function updatePassword(newPassword: string): Promise<void> {
+  async function updatePassword(currentPassword: string, newPassword: string): Promise<void> {
     const supabase = createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError) throw new Error(userError.message);
+    if (!user?.email) throw new Error("No authenticated user found.");
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+    if (verifyError) {
+      throw new Error("Current password is incorrect.");
+    }
+
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw new Error(error.message);
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,7 +12,7 @@ import {
   Settings,
   Feather,
 } from "lucide-react";
-import { getBook, updateChapter, deleteChapter } from "@/lib/store";
+import { getBook, updateChapter, deleteChapter, StoreConflictError } from "@/lib/store";
 import { useAuth } from "@/lib/auth/context";
 import type { Book, Chapter } from "@/lib/types";
 import { countWords } from "@/lib/utils";
@@ -22,11 +22,13 @@ import { MetaPanel } from "@/components/workspace/MetaPanel";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/lib/toast/context";
 
 export default function BookWorkspacePage() {
   const params    = useParams();
   const router    = useRouter();
   const { user }  = useAuth();
+  const { toast } = useToast();
   const bookId    = params.id as string;
 
   const [book, setBook] = useState<Book | null>(null);
@@ -36,6 +38,9 @@ export default function BookWorkspacePage() {
   const [focusMode, setFocusMode] = useState(false);
   const [mobileChaptersOpen, setMobileChaptersOpen] = useState(false);
   const [mobileMetaOpen, setMobileMetaOpen] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const pendingChapterRef = useRef<Chapter | null>(null);
+  const chapterSaveInFlightRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
@@ -56,11 +61,81 @@ export default function BookWorkspacePage() {
     if (b) setBook({ ...b });
   }
 
+  async function flushQueuedChapterSave() {
+    if (!user || chapterSaveInFlightRef.current || !pendingChapterRef.current) return;
+
+    chapterSaveInFlightRef.current = true;
+
+    while (pendingChapterRef.current) {
+      const chapterToSave: Chapter | null = pendingChapterRef.current;
+      pendingChapterRef.current = null;
+      if (!chapterToSave) break;
+
+      try {
+        const persisted = await updateChapter(user.id, bookId, chapterToSave);
+        setBook((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            updatedAt: persisted.bookUpdatedAt,
+            lastEditedChapterId: chapterToSave.id,
+            chapters: prev.chapters.map((chapter) =>
+              chapter.id === chapterToSave.id
+                ? {
+                    ...chapterToSave,
+                    updatedAt: persisted.chapterUpdatedAt,
+                  }
+                : chapter
+            ),
+          };
+        });
+        const queuedChapter = pendingChapterRef.current as Chapter | null;
+        if (queuedChapter && queuedChapter.id === chapterToSave.id) {
+          pendingChapterRef.current = {
+            ...queuedChapter,
+            updatedAt: persisted.chapterUpdatedAt,
+          };
+        }
+        setSaveError(null);
+      } catch (error) {
+        setSaveError(
+          error instanceof StoreConflictError
+            ? "This chapter changed in another session. Refresh to continue with the latest version."
+            : error instanceof Error
+              ? error.message
+              : "Could not save chapter changes."
+        );
+        pendingChapterRef.current = null;
+        await refreshBook();
+        break;
+      }
+    }
+
+    chapterSaveInFlightRef.current = false;
+    if (pendingChapterRef.current) {
+      void flushQueuedChapterSave();
+    }
+  }
+
   async function handleChapterChange(updates: Partial<Chapter>) {
     if (!activeChapter || !user) return;
-    const updated = { ...activeChapter, ...updates };
-    await updateChapter(user.id, bookId, updated);
-    await refreshBook();
+    let nextSnapshot: Chapter | null = null;
+    setBook((prev) => {
+      if (!prev) return prev;
+      const base = pendingChapterRef.current ?? activeChapter;
+      const merged = { ...base, ...updates };
+      nextSnapshot = merged;
+      return {
+        ...prev,
+        lastEditedChapterId: merged.id,
+        chapters: prev.chapters.map((chapter) =>
+          chapter.id === merged.id ? merged : chapter
+        ),
+      };
+    });
+    if (!nextSnapshot) return;
+    pendingChapterRef.current = nextSnapshot;
+    void flushQueuedChapterSave();
   }
 
   async function handleAddChapter() {
@@ -75,18 +150,38 @@ export default function BookWorkspacePage() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await updateChapter(user.id, bookId, newChapter);
-    await refreshBook();
-    setActiveChapterId(newChapter.id);
+    try {
+      await updateChapter(user.id, bookId, newChapter);
+      await refreshBook();
+      setActiveChapterId(newChapter.id);
+      setSaveError(null);
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not add chapter",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
+    }
   }
 
   async function handleDeleteChapter(id: string) {
     if (!user) return;
-    await deleteChapter(user.id, bookId, id);
-    await refreshBook();
-    if (activeChapterId === id) {
-      const remaining = (await getBook(user.id, bookId))?.chapters ?? [];
-      setActiveChapterId(remaining[0]?.id ?? null);
+    try {
+      await deleteChapter(user.id, bookId, id);
+      await refreshBook();
+      if (activeChapterId === id) {
+        const remaining = (await getBook(user.id, bookId))?.chapters ?? [];
+        setActiveChapterId(remaining[0]?.id ?? null);
+      }
+      setSaveError(null);
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not delete chapter",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }
 
@@ -103,9 +198,19 @@ export default function BookWorkspacePage() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await updateChapter(user.id, bookId, dup);
-    await refreshBook();
-    setActiveChapterId(dup.id);
+    try {
+      await updateChapter(user.id, bookId, dup);
+      await refreshBook();
+      setActiveChapterId(dup.id);
+      setSaveError(null);
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not duplicate chapter",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
+    }
   }
 
   const navLinks = [
@@ -206,6 +311,11 @@ export default function BookWorkspacePage() {
           ))}
         </div>
       </div>
+      {saveError && (
+        <div className="border-b border-red-500/30 bg-red-500/5 px-4 py-2 text-xs text-red-500">
+          {saveError}
+        </div>
+      )}
 
       {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">

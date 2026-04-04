@@ -1,4 +1,8 @@
 import { countWords } from "@/lib/utils";
+import {
+  htmlToSafeBlocks,
+  safeBlocksToHtml,
+} from "@/lib/sanitization/chapter-content";
 
 export type ImportFileType = "docx" | "txt" | "pdf";
 
@@ -38,6 +42,9 @@ const CHAPTER_HEADING_PATTERN =
   /^(chapter|chap\.?|part|book|prologue|epilogue)\s+([a-z0-9ivxlcdm\-: ]+)?$/i;
 const MARKDOWN_HEADING_PATTERN = /^#{1,6}\s+/;
 const SERVER_PDF_SIZE_HINT_BYTES = 4 * 1024 * 1024;
+const MAX_IMPORT_FILE_BYTES = 20 * 1024 * 1024;
+const MAX_IMPORT_CHAPTERS = 400;
+const MAX_IMPORT_WORDS = 1_500_000;
 
 function makeId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -95,11 +102,12 @@ function htmlToPlainText(value: string): string {
 }
 
 function buildChapter(title: string, content: string): ParsedChapter {
+  const safeContent = safeBlocksToHtml(htmlToSafeBlocks(content));
   return {
     id: makeId(),
     title: cleanText(title) || "Untitled Section",
-    content: content.trim() || "<p></p>",
-    wordCount: countWords(content),
+    content: safeContent,
+    wordCount: countWords(safeContent),
   };
 }
 
@@ -519,7 +527,25 @@ export async function parseManuscriptFile(file: File): Promise<ParsedManuscript>
     );
   }
 
-  if (fileType === "docx") return parseDocx(file);
-  if (fileType === "txt") return parseTxt(file);
-  return parsePdf(file);
+  if (file.size > MAX_IMPORT_FILE_BYTES) {
+    throw new Error("File is too large. Please upload a file under 20 MB.");
+  }
+  const parsed =
+    fileType === "docx" ? await parseDocx(file) :
+    fileType === "txt" ? await parseTxt(file) :
+    await parsePdf(file);
+
+  if (parsed.chapters.length > MAX_IMPORT_CHAPTERS) {
+    throw new Error(
+      `This manuscript has too many sections (${parsed.chapters.length}). Keep it under ${MAX_IMPORT_CHAPTERS} chapters per import.`
+    );
+  }
+
+  if (parsed.totalWords > MAX_IMPORT_WORDS) {
+    throw new Error(
+      `This manuscript is too large (${parsed.totalWords.toLocaleString()} words). Please split it into smaller imports.`
+    );
+  }
+
+  return parsed;
 }

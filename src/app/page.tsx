@@ -96,6 +96,11 @@ function computeWeeklyActivity(books: Book[]): { label: string; words: number; i
   });
 }
 
+function userStorageKey(base: string, userId?: string): string | null {
+  if (!userId) return null;
+  return `${base}_${userId}`;
+}
+
 // ─── Section Frame ────────────────────────────────────────────────────────────
 
 function SectionFrame({
@@ -312,7 +317,7 @@ const TAG_COLORS: Record<CaptureTag, string> = {
   research: "bg-ink/5 text-ink-muted",
 };
 
-function QuickCapture() {
+function QuickCapture({ userId }: { userId?: string }) {
   const [text, setText]         = useState("");
   const [tag, setTag]           = useState<CaptureTag>("idea");
   const [notes, setNotes]       = useState<CaptureNote[]>([]);
@@ -320,15 +325,28 @@ function QuickCapture() {
 
   useEffect(() => {
     setMounted(true);
+    if (!userId) {
+      setNotes([]);
+      return;
+    }
     try {
-      const saved = localStorage.getItem("prologue_captures");
+      const key = userStorageKey("prologue_captures", userId);
+      if (!key) return;
+      const saved = localStorage.getItem(key);
       if (saved) setNotes(JSON.parse(saved));
     } catch { /* ignore */ }
-  }, []);
+  }, [userId]);
 
   function save(next: CaptureNote[]) {
+    if (!userId) return;
     setNotes(next);
-    try { localStorage.setItem("prologue_captures", JSON.stringify(next)); } catch { /* ignore */ }
+    try {
+      const key = userStorageKey("prologue_captures", userId);
+      if (!key) return;
+      localStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      // ignore
+    }
   }
 
   function handleAdd() {
@@ -409,28 +427,46 @@ function QuickCapture() {
 
 // ─── Daily Goal ───────────────────────────────────────────────────────────────
 
-function DailyGoal({ wordsToday, enabled }: { wordsToday: number; enabled: boolean }) {
+function DailyGoal({
+  wordsToday,
+  enabled,
+  userId,
+}: {
+  wordsToday: number;
+  enabled: boolean;
+  userId?: string;
+}) {
   const [goal, setGoal]       = useState(0);
   const [hasGoal, setHasGoal] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft]     = useState("");
 
   useEffect(() => {
+    if (!userId) return;
     try {
-      const saved = localStorage.getItem("prologue_daily_goal");
+      const key = userStorageKey("prologue_daily_goal", userId);
+      if (!key) return;
+      const saved = localStorage.getItem(key);
       if (saved) {
         const n = parseInt(saved, 10);
         if (n > 0) { setGoal(n); setDraft(String(n)); setHasGoal(true); }
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [userId]);
 
   function applyGoal() {
+    if (!userId) return;
     const n = parseInt(draft, 10);
     if (n > 0) {
       setGoal(n);
       setHasGoal(true);
-      try { localStorage.setItem("prologue_daily_goal", String(n)); } catch { /* ignore */ }
+      try {
+        const key = userStorageKey("prologue_daily_goal", userId);
+        if (!key) return;
+        localStorage.setItem(key, String(n));
+      } catch {
+        // ignore
+      }
     }
     setEditing(false);
   }
@@ -754,6 +790,7 @@ export default function DashboardPage() {
   const { settings: writingSettings } = useWritingSettings(user?.id);
   const [books, setBooks]           = useState<Book[]>([]);
   const [booksReady, setBooksReady] = useState(false);
+  const [booksError, setBooksError] = useState<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showNewManuscriptDialog, setShowNewManuscriptDialog] = useState(false);
   const [hour, setHour]             = useState(new Date().getHours());
@@ -765,10 +802,21 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    getBooks(user.id).then((b) => {
-      setBooks(b);
-      setBooksReady(true);
-    });
+    setBooksReady(false);
+    setBooksError(null);
+    getBooks(user.id)
+      .then((b) => {
+        setBooks(b);
+      })
+      .catch((error) => {
+        setBooksError(
+          error instanceof Error ? error.message : "Could not load your dashboard data."
+        );
+        setBooks([]);
+      })
+      .finally(() => {
+        setBooksReady(true);
+      });
   }, [user]);
 
   if (authLoading || !booksReady) {
@@ -777,6 +825,31 @@ export default function DashboardPage() {
         <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
         <main className="flex-1 md:ml-48 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-ink/15 border-t-ink/60 animate-spin" />
+        </main>
+      </div>
+    );
+  }
+
+  if (booksError) {
+    return (
+      <div className="flex min-h-screen" style={{ background: "var(--page-gradient)" }}>
+        <AppNav mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
+        <main className="flex-1 md:ml-48">
+          <TopBar onOpenNav={() => setMobileNavOpen(true)} />
+          <div className="max-w-2xl mx-auto px-4 md:px-8 pt-10">
+            <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+              <p className="text-sm font-medium text-red-600">Could not load your manuscripts</p>
+              <p className="mt-1 text-xs text-red-600/90">{booksError}</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
         </main>
       </div>
     );
@@ -847,7 +920,7 @@ export default function DashboardPage() {
                 <CurrentlyWriting book={featured} onCreateNew={() => setShowNewManuscriptDialog(true)} />
               </SectionFrame>
               <SectionFrame title="Quick Capture">
-                <QuickCapture />
+                <QuickCapture userId={user?.id} />
               </SectionFrame>
               <SectionFrame title="Recent Manuscripts">
                 <RecentManuscripts books={sorted} />
@@ -856,7 +929,11 @@ export default function DashboardPage() {
 
             {/* Right — Daily Goal + Activity + Snapshot in a shared frame */}
             <div className="rounded-2xl border border-parchment-deep/60 bg-white p-3 flex flex-col gap-3">
-              <DailyGoal wordsToday={wordsToday} enabled={writingSettings.dailyWordGoalEnabled} />
+              <DailyGoal
+                wordsToday={wordsToday}
+                enabled={writingSettings.dailyWordGoalEnabled}
+                userId={user?.id}
+              />
               <WeeklyActivity books={books} />
               <WriterSnapshot books={books} />
             </div>
