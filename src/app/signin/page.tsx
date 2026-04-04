@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
@@ -31,6 +31,15 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [callbackError, setCallbackError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setVerified(params.get("verified") === "1");
+    setCallbackError(params.get("error"));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -174,6 +183,16 @@ export default function SignInPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
+              {verified && (
+                <p className="rounded-[10px] border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-600 dark:text-emerald-400">
+                  Email verified. Sign in to continue to your writing studio.
+                </p>
+              )}
+              {callbackError && !error && (
+                <p className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400">
+                  Verification link is invalid or expired. Request a new link by signing up again.
+                </p>
+              )}
               <input
                 type="email"
                 placeholder="Email address"
