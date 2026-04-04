@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
@@ -21,6 +21,20 @@ function GoogleIcon({ className }: { className?: string }) {
 
 const INPUT =
   "w-full h-11 px-3.5 rounded-[12px] border border-ink/12 bg-[#f6f3ec]/92 text-[15px] text-ink placeholder:text-ink-faint/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] focus:outline-none focus:border-gold/65 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
+
+const AUTH_LIGHT_TOKENS: CSSProperties = {
+  colorScheme: "light",
+  ["--color-ink" as string]: "26 26 26",
+  ["--color-ink-soft" as string]: "45 45 45",
+  ["--color-ink-muted" as string]: "107 107 107",
+  ["--color-ink-faint" as string]: "154 154 154",
+  ["--color-parchment" as string]: "250 248 245",
+  ["--color-parchment-warm" as string]: "245 240 232",
+  ["--color-parchment-deep" as string]: "237 232 222",
+  ["--color-gold" as string]: "201 168 76",
+  ["--color-gold-light" as string]: "232 201 122",
+  ["--color-gold-dark" as string]: "158 122 45",
+};
 
 export default function SignInPage() {
   const { signIn, signInWithGoogle } = useAuth();
@@ -58,7 +72,11 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f2efe8]">
+    <div
+      data-theme="light"
+      style={AUTH_LIGHT_TOKENS}
+      className="relative min-h-screen overflow-hidden bg-[#f2efe8]"
+    >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(232,201,122,0.16),transparent_38%),radial-gradient(circle_at_84%_82%,rgba(201,168,76,0.13),transparent_42%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.46] bg-[repeating-linear-gradient(to_bottom,rgba(56,45,30,0.085)_0px,rgba(56,45,30,0.085)_1px,transparent_1px,transparent_30px)]" />
       <div className="pointer-events-none absolute inset-y-0 left-7 w-[1.5px] bg-gradient-to-b from-transparent via-[#b08f4f]/62 to-transparent sm:left-[8.5%]" />
@@ -380,4 +398,3 @@ export default function SignInPage() {
     </div>
   );
 }
-
