@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
@@ -9,21 +9,7 @@ import { useAuth } from "@/lib/auth/context";
 import { BrandLogo, BrandMark } from "@/components/brand/BrandLogo";
 
 const INPUT =
-  "w-full h-11 px-3.5 rounded-[12px] border border-ink/12 bg-[#f6f3ec]/92 text-[15px] text-ink placeholder:text-ink-faint/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] focus:outline-none focus:border-gold/65 focus:ring-2 focus:ring-gold/10 transition-all duration-200";
-
-const AUTH_LIGHT_TOKENS: CSSProperties = {
-  colorScheme: "light",
-  ["--color-ink" as string]: "26 26 26",
-  ["--color-ink-soft" as string]: "45 45 45",
-  ["--color-ink-muted" as string]: "107 107 107",
-  ["--color-ink-faint" as string]: "154 154 154",
-  ["--color-parchment" as string]: "250 248 245",
-  ["--color-parchment-warm" as string]: "245 240 232",
-  ["--color-parchment-deep" as string]: "237 232 222",
-  ["--color-gold" as string]: "201 168 76",
-  ["--color-gold-light" as string]: "232 201 122",
-  ["--color-gold-dark" as string]: "158 122 45",
-};
+  "auth-input w-full h-11 px-3.5 rounded-[12px] border text-[15px] transition-all duration-200 focus:outline-none";
 
 export default function SignupPage() {
   const { signUp } = useAuth();
@@ -69,29 +55,19 @@ export default function SignupPage() {
 
   if (confirmed) {
     return (
-      <div
-        data-theme="light"
-        style={AUTH_LIGHT_TOKENS}
-        className="relative min-h-screen overflow-hidden bg-[#f2efe8]"
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(232,201,122,0.16),transparent_38%),radial-gradient(circle_at_84%_82%,rgba(201,168,76,0.13),transparent_42%)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.44] bg-[repeating-linear-gradient(to_bottom,rgba(56,45,30,0.082)_0px,rgba(56,45,30,0.082)_1px,transparent_1px,transparent_30px)]" />
-        <div className="pointer-events-none absolute inset-y-0 left-7 w-[1.5px] bg-gradient-to-b from-transparent via-[#b08f4f]/62 to-transparent sm:left-[8.5%]" />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.16]"
-          style={{
-            backgroundImage: "radial-gradient(rgba(78,62,38,0.6) 0.55px, transparent 0.55px)",
-            backgroundSize: "2.8px 2.8px",
-          }}
-        />
-        <div className="pointer-events-none absolute inset-0 opacity-45 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.44)_0%,rgba(243,236,224,0.22)_45%,rgba(232,223,206,0.28)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.5),transparent_58%)]" />
+      <div className="auth-page relative min-h-screen overflow-hidden">
+        <div className="auth-glow pointer-events-none absolute inset-0" />
+        <div className="auth-lines pointer-events-none absolute inset-0" />
+        <div className="auth-rule pointer-events-none absolute inset-y-0 left-7 w-[1.5px] sm:left-[8.5%]" />
+        <div className="auth-grain pointer-events-none absolute inset-0" />
+        <div className="auth-wash-1 pointer-events-none absolute inset-0" />
+        <div className="auth-wash-2 pointer-events-none absolute inset-0" />
 
         <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-7 sm:px-8">
           <BrandLogo className="w-fit" />
 
           <div className="mx-auto my-auto w-full max-w-[460px]">
-            <section className="rounded-[26px] border border-white/70 bg-white/52 px-6 py-8 shadow-[0_22px_50px_-28px_rgba(26,20,8,0.4)] backdrop-blur-xl sm:px-8">
+            <section className="auth-card rounded-[26px] px-6 py-8 sm:px-8">
               <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/70 bg-white/80 shadow-[0_8px_20px_-14px_rgba(26,20,8,0.35)]">
                 <BrandMark className="h-8 w-6" />
               </div>
@@ -116,23 +92,13 @@ export default function SignupPage() {
   }
 
   return (
-    <div
-      data-theme="light"
-      style={AUTH_LIGHT_TOKENS}
-      className="relative min-h-screen overflow-hidden bg-[#f2efe8]"
-    >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(232,201,122,0.16),transparent_38%),radial-gradient(circle_at_84%_82%,rgba(201,168,76,0.13),transparent_42%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.46] bg-[repeating-linear-gradient(to_bottom,rgba(56,45,30,0.085)_0px,rgba(56,45,30,0.085)_1px,transparent_1px,transparent_30px)]" />
-      <div className="pointer-events-none absolute inset-y-0 left-7 w-[1.5px] bg-gradient-to-b from-transparent via-[#b08f4f]/62 to-transparent sm:left-[8.5%]" />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.16]"
-        style={{
-          backgroundImage: "radial-gradient(rgba(78,62,38,0.6) 0.55px, transparent 0.55px)",
-          backgroundSize: "2.8px 2.8px",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-0 opacity-45 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.44)_0%,rgba(243,236,224,0.22)_45%,rgba(232,223,206,0.28)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.5),transparent_58%)]" />
+    <div className="auth-page relative min-h-screen overflow-hidden">
+      <div className="auth-glow pointer-events-none absolute inset-0" />
+      <div className="auth-lines pointer-events-none absolute inset-0" />
+      <div className="auth-rule pointer-events-none absolute inset-y-0 left-7 w-[1.5px] sm:left-[8.5%]" />
+      <div className="auth-grain pointer-events-none absolute inset-0" />
+      <div className="auth-wash-1 pointer-events-none absolute inset-0" />
+      <div className="auth-wash-2 pointer-events-none absolute inset-0" />
       <div className="pointer-events-none absolute inset-0 overflow-hidden quill-motion">
         <svg
           className="absolute inset-0 h-full w-full opacity-60"
@@ -189,15 +155,15 @@ export default function SignupPage() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-7 sm:px-8">
         <header className="flex items-center justify-between">
           <BrandLogo className="gap-2.5" />
-          <span className="hidden rounded-full border border-ink/10 bg-white/70 px-4 py-1.5 text-xs font-medium text-ink-muted backdrop-blur-sm sm:inline-flex">
+          <span className="auth-top-chip hidden rounded-full px-4 py-1.5 text-xs font-medium text-ink-muted backdrop-blur-sm sm:inline-flex">
             Novel Writing Studio
           </span>
         </header>
 
         <main className="mx-auto my-auto w-full max-w-[500px]">
-          <section className="rounded-[26px] border border-white/75 bg-white/56 px-6 py-7 shadow-[0_34px_66px_-34px_rgba(26,20,8,0.46)] backdrop-blur-xl sm:px-8 sm:py-8">
+          <section className="auth-card rounded-[26px] px-6 py-7 sm:px-8 sm:py-8">
             <div className="mb-6 text-center">
-              <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-[10px] border border-gold/35 bg-[#f6f2e8]/88 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-label shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+              <div className="auth-pill mx-auto mb-4 inline-flex items-center gap-2 rounded-[10px] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-label">
                 <Sparkles className="h-3 w-3 text-gold/90" />
                 Writing Studio Setup
               </div>
