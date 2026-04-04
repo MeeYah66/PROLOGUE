@@ -14,6 +14,8 @@ import {
   User,
   Globe,
   ScrollText,
+  List,
+  X,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -37,36 +39,89 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-function WorkspaceNav({ bookId, bookTitle, genre }: { bookId: string; bookTitle: string; genre: string }) {
+function WorkspaceNav({
+  bookId,
+  bookTitle,
+  genre,
+  onOpenChapters,
+}: {
+  bookId: string;
+  bookTitle: string;
+  genre: string;
+  onOpenChapters: () => void;
+}) {
   const navLinks = [
     { icon: Feather, label: "Write", href: `/books/${bookId}` },
     { icon: ScrollText, label: "Outline", href: `/books/${bookId}/outline`, active: true },
     { icon: Eye, label: "Preview", href: `/books/${bookId}/preview` },
     { icon: ImageIcon, label: "Cover", href: `/books/${bookId}/cover` },
   ];
+
   return (
-    <header className="flex items-center justify-between px-4 py-2.5 border-b border-parchment-deep bg-parchment/95 backdrop-blur-sm z-30 shrink-0">
-      <div className="flex items-center gap-2">
-        <Link href="/"><Button variant="ghost" size="icon-sm" className="text-ink-faint"><ArrowLeft className="w-3.5 h-3.5" /></Button></Link>
-        <div className="h-3.5 w-px bg-parchment-deep" />
-        <BookOpen className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
-        <span className="text-sm font-serif font-semibold text-ink truncate max-w-[200px]">{bookTitle}</span>
-        <span className="text-xs text-ink-faint hidden sm:inline">· {genre}</span>
-      </div>
-      <div className="flex items-center gap-0.5 bg-parchment-warm rounded-lg p-1">
-        {navLinks.map(({ icon: Icon, label, href, active }) => (
-          <Link key={href} href={href}>
-            <button className={cn(
-              "px-3 py-1 text-xs rounded-md flex items-center gap-1.5 transition-colors",
-              active ? "bg-parchment text-ink shadow-sm font-medium" : "text-ink-muted hover:text-ink"
-            )}>
-              <Icon className="w-3 h-3" /> {label}
-            </button>
+    <>
+      <header className="flex items-center justify-between gap-2 px-3 md:px-4 py-2.5 border-b border-parchment-deep bg-parchment/95 backdrop-blur-sm z-30 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <Link href="/">
+            <Button variant="ghost" size="icon-sm" className="text-ink-faint">
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </Button>
           </Link>
-        ))}
+          <div className="h-3.5 w-px bg-parchment-deep" />
+          <BookOpen className="w-3.5 h-3.5 text-ink-faint" strokeWidth={1.5} />
+          <span className="text-sm font-serif font-semibold text-ink truncate max-w-[140px] sm:max-w-[200px]">
+            {bookTitle}
+          </span>
+          <span className="text-xs text-ink-faint hidden sm:inline">| {genre}</span>
+        </div>
+
+        <div className="hidden md:flex items-center gap-0.5 bg-parchment-warm rounded-lg p-1">
+          {navLinks.map(({ icon: Icon, label, href, active }) => (
+            <Link key={href} href={href}>
+              <button
+                className={cn(
+                  "px-3 py-1 text-xs rounded-md flex items-center gap-1.5 transition-colors",
+                  active
+                    ? "bg-parchment text-ink shadow-sm font-medium"
+                    : "text-ink-muted hover:text-ink"
+                )}
+              >
+                <Icon className="w-3 h-3" /> {label}
+              </button>
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-end md:w-32">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="md:hidden text-ink-faint hover:text-ink"
+            onClick={onOpenChapters}
+          >
+            <List className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </header>
+
+      <div className="md:hidden border-b border-parchment-deep bg-parchment/90">
+        <div className="flex items-center gap-1 overflow-x-auto px-3 py-1.5">
+          {navLinks.map(({ icon: Icon, label, href, active }) => (
+            <Link key={href} href={href} className="shrink-0">
+              <span
+                className={cn(
+                  "px-2.5 py-1 text-xs rounded-md flex items-center gap-1.5 transition-colors",
+                  active
+                    ? "text-ink bg-parchment-warm font-medium"
+                    : "text-ink-muted hover:text-ink"
+                )}
+              >
+                <Icon className="w-3 h-3" /> {label}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
-      <div className="w-32" />
-    </header>
+    </>
   );
 }
 
@@ -84,14 +139,23 @@ function CharacterCard({ char, onDelete }: { char: CharacterNote; onDelete: () =
           </div>
           <div className="text-left min-w-0">
             <p className="text-sm font-medium text-ink">{char.name}</p>
-            <p className="text-xs text-ink-faint">{char.role}{char.age ? ` · ${char.age}` : ""}</p>
+            <p className="text-xs text-ink-faint">
+              {char.role}
+              {char.age ? ` | ${char.age}` : ""}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {char.traits.slice(0, 2).map((t) => (
-            <Badge key={t} variant="default" className="text-xs hidden sm:flex">{t}</Badge>
+            <Badge key={t} variant="default" className="text-xs hidden sm:flex">
+              {t}
+            </Badge>
           ))}
-          {expanded ? <ChevronDown className="w-3.5 h-3.5 text-ink-faint" /> : <ChevronRight className="w-3.5 h-3.5 text-ink-faint" />}
+          {expanded ? (
+            <ChevronDown className="w-3.5 h-3.5 text-ink-faint" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 text-ink-faint" />
+          )}
         </div>
       </button>
       {expanded && (
@@ -99,7 +163,11 @@ function CharacterCard({ char, onDelete }: { char: CharacterNote; onDelete: () =
           <p className="text-sm text-ink-muted mt-3 leading-relaxed">{char.description}</p>
           {char.appearance && <p className="text-xs text-ink-faint mt-2 italic">{char.appearance}</p>}
           <div className="flex flex-wrap gap-1.5 mt-3">
-            {char.traits.map((t) => <Badge key={t} variant="default" className="text-xs">{t}</Badge>)}
+            {char.traits.map((t) => (
+              <Badge key={t} variant="default" className="text-xs">
+                {t}
+              </Badge>
+            ))}
           </div>
           <button
             onClick={onDelete}
@@ -114,25 +182,41 @@ function CharacterCard({ char, onDelete }: { char: CharacterNote; onDelete: () =
 }
 
 export default function OutlinePage() {
-  const params   = useParams();
-  const router   = useRouter();
+  const params = useParams();
+  const router = useRouter();
   const { user } = useAuth();
-  const bookId   = params.id as string;
+  const bookId = params.id as string;
   const [book, setBook] = useState<Book | null>(null);
   const [addingChar, setAddingChar] = useState(false);
   const [addingWorld, setAddingWorld] = useState(false);
-  const [newChar, setNewChar] = useState({ name: "", role: "", description: "", traits: "", age: "", appearance: "" });
-  const [newWorld, setNewWorld] = useState({ title: "", content: "", category: "location" as WorldNote["category"] });
+  const [mobileChaptersOpen, setMobileChaptersOpen] = useState(false);
+  const [newChar, setNewChar] = useState({
+    name: "",
+    role: "",
+    description: "",
+    traits: "",
+    age: "",
+    appearance: "",
+  });
+  const [newWorld, setNewWorld] = useState({
+    title: "",
+    content: "",
+    category: "location" as WorldNote["category"],
+  });
 
   useEffect(() => {
     if (!user) return;
     getBook(user.id, bookId).then((b) => {
-      if (!b) { router.push("/"); return; }
+      if (!b) {
+        router.push("/");
+        return;
+      }
       setBook(b);
     });
-  }, [bookId, user]);
+  }, [bookId, user, router]);
 
   if (!book) return null;
+  const currentBook = book;
 
   async function save(updated: Book) {
     if (!user) return;
@@ -141,11 +225,11 @@ export default function OutlinePage() {
   }
 
   function handleArcChange(value: string) {
-    save({ ...book!, notes: { ...book!.notes, arc: value } });
+    save({ ...currentBook, notes: { ...currentBook.notes, arc: value } });
   }
 
   function handleTimelineChange(value: string) {
-    save({ ...book!, notes: { ...book!.notes, timeline: value } });
+    save({ ...currentBook, notes: { ...currentBook.notes, timeline: value } });
   }
 
   function handleAddChar() {
@@ -155,17 +239,26 @@ export default function OutlinePage() {
       name: newChar.name,
       role: newChar.role,
       description: newChar.description,
-      traits: newChar.traits.split(",").map((t) => t.trim()).filter(Boolean),
+      traits: newChar.traits
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
       age: newChar.age || undefined,
       appearance: newChar.appearance || undefined,
     };
-    save({ ...book!, notes: { ...book!.notes, characters: [...book!.notes.characters, char] } });
+    save({
+      ...currentBook,
+      notes: { ...currentBook.notes, characters: [...currentBook.notes.characters, char] },
+    });
     setNewChar({ name: "", role: "", description: "", traits: "", age: "", appearance: "" });
     setAddingChar(false);
   }
 
   function handleDeleteChar(id: string) {
-    save({ ...book!, notes: { ...book!.notes, characters: book!.notes.characters.filter((c) => c.id !== id) } });
+    save({
+      ...currentBook,
+      notes: { ...currentBook.notes, characters: currentBook.notes.characters.filter((c) => c.id !== id) },
+    });
   }
 
   function handleAddWorld() {
@@ -176,13 +269,16 @@ export default function OutlinePage() {
       content: newWorld.content,
       category: newWorld.category,
     };
-    save({ ...book!, notes: { ...book!.notes, world: [...book!.notes.world, entry] } });
+    save({ ...currentBook, notes: { ...currentBook.notes, world: [...currentBook.notes.world, entry] } });
     setNewWorld({ title: "", content: "", category: "location" });
     setAddingWorld(false);
   }
 
   function handleDeleteWorld(id: string) {
-    save({ ...book!, notes: { ...book!.notes, world: book!.notes.world.filter((w) => w.id !== id) } });
+    save({
+      ...currentBook,
+      notes: { ...currentBook.notes, world: currentBook.notes.world.filter((w) => w.id !== id) },
+    });
   }
 
   const CATEGORY_COLORS: Record<string, string> = {
@@ -193,104 +289,129 @@ export default function OutlinePage() {
     other: "bg-gray-50 text-gray-700",
   };
 
+  const chapterList = (
+    <>
+      <div className="px-4 py-3 border-b border-parchment-deep flex items-center justify-between">
+        <p className="text-xs font-medium text-ink-muted uppercase tracking-wider">Chapters</p>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="md:hidden text-ink-faint hover:text-ink"
+          onClick={() => setMobileChaptersOpen(false)}
+        >
+          <X className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="py-2 px-2">
+          {book.chapters.map((ch) => (
+            <div
+              key={ch.id}
+              className="flex items-start gap-2.5 px-2 py-2 rounded-lg hover:bg-parchment-warm/60 transition-colors"
+            >
+              <div
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full mt-1.5 shrink-0",
+                  ch.status === "final"
+                    ? "bg-emerald-400"
+                    : ch.status === "revised"
+                    ? "bg-blue-400"
+                    : "bg-amber-400"
+                )}
+              />
+              <div className="min-w-0">
+                <p className="text-xs text-ink-faint">Ch. {ch.number}</p>
+                <p className="text-sm text-ink font-medium leading-tight truncate">{ch.title}</p>
+                {ch.summary && <p className="text-xs text-ink-faint mt-0.5 line-clamp-2">{ch.summary}</p>}
+              </div>
+            </div>
+          ))}
+          {book.chapters.length === 0 && (
+            <p className="text-xs text-ink-faint px-4 py-6 text-center">No chapters yet</p>
+          )}
+        </div>
+      </ScrollArea>
+    </>
+  );
+
   return (
     <div className="flex flex-col h-screen bg-parchment overflow-hidden">
-      <WorkspaceNav bookId={bookId} bookTitle={book.title} genre={book.genre} />
+      <WorkspaceNav
+        bookId={bookId}
+        bookTitle={book.title}
+        genre={book.genre}
+        onOpenChapters={() => setMobileChaptersOpen(true)}
+      />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Chapters list */}
-        <div className="w-56 border-r border-parchment-deep flex flex-col bg-parchment shrink-0">
-          <div className="px-4 py-3 border-b border-parchment-deep">
-            <p className="text-xs font-medium text-ink-muted uppercase tracking-wider">Chapters</p>
-          </div>
-          <ScrollArea className="flex-1">
-            <div className="py-2 px-2">
-              {book.chapters.map((ch) => (
-                <div key={ch.id} className="flex items-start gap-2.5 px-2 py-2 rounded-lg hover:bg-parchment-warm/60 transition-colors">
-                  <div className={cn(
-                    "w-1.5 h-1.5 rounded-full mt-1.5 shrink-0",
-                    ch.status === "final" ? "bg-emerald-400" : ch.status === "revised" ? "bg-blue-400" : "bg-amber-400"
-                  )} />
-                  <div className="min-w-0">
-                    <p className="text-xs text-ink-faint">Ch. {ch.number}</p>
-                    <p className="text-sm text-ink font-medium leading-tight truncate">{ch.title}</p>
-                    {ch.summary && <p className="text-xs text-ink-faint mt-0.5 line-clamp-2">{ch.summary}</p>}
-                  </div>
-                </div>
-              ))}
-              {book.chapters.length === 0 && (
-                <p className="text-xs text-ink-faint px-4 py-6 text-center">No chapters yet</p>
-              )}
-            </div>
-          </ScrollArea>
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+        <div className="hidden md:flex w-56 border-r border-parchment-deep flex-col bg-parchment shrink-0">
+          {chapterList}
         </div>
 
-        {/* Main content */}
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <div className="max-w-3xl mx-auto px-8 py-8">
-              <div className="mb-6">
-                <h1 className="font-serif text-2xl font-semibold text-ink">{book.title}</h1>
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-5 sm:py-6 md:py-8">
+              <div className="mb-5 md:mb-6">
+                <h1 className="font-serif text-xl sm:text-2xl font-semibold text-ink">{book.title}</h1>
                 <p className="text-sm text-ink-faint mt-1">Story notes, characters, and world building</p>
               </div>
 
               <Tabs defaultValue="arc">
-                <TabsList className="mb-6">
-                  <TabsTrigger value="arc">
+                <TabsList className="mb-5 md:mb-6 w-full justify-start overflow-x-auto whitespace-nowrap px-1">
+                  <TabsTrigger value="arc" className="shrink-0">
                     <ScrollText className="w-3.5 h-3.5 mr-1.5" /> Story Arc
                   </TabsTrigger>
-                  <TabsTrigger value="characters">
+                  <TabsTrigger value="characters" className="shrink-0">
                     <User className="w-3.5 h-3.5 mr-1.5" /> Characters ({book.notes.characters.length})
                   </TabsTrigger>
-                  <TabsTrigger value="world">
+                  <TabsTrigger value="world" className="shrink-0">
                     <Globe className="w-3.5 h-3.5 mr-1.5" /> World ({book.notes.world.length})
                   </TabsTrigger>
                 </TabsList>
 
-                {/* Arc & Timeline */}
                 <TabsContent value="arc">
-                  <div className="space-y-6 animate-fade-in">
-                    <div className="rounded-xl border border-parchment-deep p-5">
+                  <div className="space-y-4 md:space-y-6 animate-fade-in">
+                    <div className="rounded-xl border border-parchment-deep p-4 md:p-5">
                       <h3 className="font-serif text-base font-semibold text-ink mb-3">Story Arc</h3>
                       <Textarea
                         value={book.notes.arc}
                         onChange={(e) => handleArcChange(e.target.value)}
-                        placeholder="Describe your story's three-act structure, major turning points, and overall arc…"
+                        placeholder="Describe your story's three-act structure, major turning points, and overall arc..."
                         rows={6}
                         className="text-sm"
                       />
                     </div>
-                    <div className="rounded-xl border border-parchment-deep p-5">
+                    <div className="rounded-xl border border-parchment-deep p-4 md:p-5">
                       <h3 className="font-serif text-base font-semibold text-ink mb-3">Timeline</h3>
                       <Textarea
                         value={book.notes.timeline}
                         onChange={(e) => handleTimelineChange(e.target.value)}
-                        placeholder="Chronicle key dates and events in your story's timeline…"
+                        placeholder="Chronicle key dates and events in your story's timeline..."
                         rows={6}
                         className="text-sm"
                       />
                     </div>
-                    {/* Chapter summaries */}
                     {book.chapters.some((c) => c.summary) && (
-                      <div className="rounded-xl border border-parchment-deep p-5">
+                      <div className="rounded-xl border border-parchment-deep p-4 md:p-5">
                         <h3 className="font-serif text-base font-semibold text-ink mb-4">Chapter Summaries</h3>
                         <div className="space-y-3">
-                          {book.chapters.filter((c) => c.summary).map((ch) => (
-                            <div key={ch.id} className="flex gap-3">
-                              <span className="text-xs text-ink-faint pt-0.5 w-12 shrink-0">Ch. {ch.number}</span>
-                              <div>
-                                <p className="text-sm font-medium text-ink mb-0.5">{ch.title}</p>
-                                <p className="text-sm text-ink-muted leading-relaxed">{ch.summary}</p>
+                          {book.chapters
+                            .filter((c) => c.summary)
+                            .map((ch) => (
+                              <div key={ch.id} className="flex gap-3">
+                                <span className="text-xs text-ink-faint pt-0.5 w-12 shrink-0">Ch. {ch.number}</span>
+                                <div>
+                                  <p className="text-sm font-medium text-ink mb-0.5">{ch.title}</p>
+                                  <p className="text-sm text-ink-muted leading-relaxed">{ch.summary}</p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       </div>
                     )}
                   </div>
                 </TabsContent>
 
-                {/* Characters */}
                 <TabsContent value="characters">
                   <div className="space-y-3 animate-fade-in">
                     <div className="flex justify-end">
@@ -299,7 +420,7 @@ export default function OutlinePage() {
                       </Button>
                     </div>
                     {book.notes.characters.length === 0 ? (
-                      <div className="text-center py-16">
+                      <div className="text-center py-10 sm:py-14 md:py-16">
                         <div className="w-12 h-12 rounded-full bg-parchment-warm flex items-center justify-center mx-auto mb-4">
                           <User className="w-5 h-5 text-ink-faint" />
                         </div>
@@ -314,7 +435,6 @@ export default function OutlinePage() {
                   </div>
                 </TabsContent>
 
-                {/* World */}
                 <TabsContent value="world">
                   <div className="space-y-3 animate-fade-in">
                     <div className="flex justify-end">
@@ -323,7 +443,7 @@ export default function OutlinePage() {
                       </Button>
                     </div>
                     {book.notes.world.length === 0 ? (
-                      <div className="text-center py-16">
+                      <div className="text-center py-10 sm:py-14 md:py-16">
                         <div className="w-12 h-12 rounded-full bg-parchment-warm flex items-center justify-center mx-auto mb-4">
                           <Globe className="w-5 h-5 text-ink-faint" />
                         </div>
@@ -340,7 +460,10 @@ export default function OutlinePage() {
                                 <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", CATEGORY_COLORS[entry.category])}>
                                   {entry.category}
                                 </span>
-                                <button onClick={() => handleDeleteWorld(entry.id)} className="text-ink-faint hover:text-red-500 transition-colors">
+                                <button
+                                  onClick={() => handleDeleteWorld(entry.id)}
+                                  className="text-ink-faint hover:text-red-500 transition-colors"
+                                >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
                               </div>
@@ -358,23 +481,54 @@ export default function OutlinePage() {
         </div>
       </div>
 
-      {/* Add Character Dialog */}
+      {mobileChaptersOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileChaptersOpen(false)}
+            className="absolute inset-0 bg-black/35"
+            aria-label="Close chapters panel"
+          />
+          <div className="absolute inset-y-0 left-0 w-[86vw] max-w-[320px] bg-parchment border-r border-parchment-deep shadow-2xl flex flex-col">
+            {chapterList}
+          </div>
+        </div>
+      )}
+
       <Dialog open={addingChar} onOpenChange={setAddingChar}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add Character</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs">Name *</Label><Input value={newChar.name} onChange={(e) => setNewChar({ ...newChar, name: e.target.value })} placeholder="Character name" /></div>
-              <div className="space-y-1.5"><Label className="text-xs">Role</Label><Input value={newChar.role} onChange={(e) => setNewChar({ ...newChar, role: e.target.value })} placeholder="Protagonist, Ally…" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Name *</Label>
+                <Input value={newChar.name} onChange={(e) => setNewChar({ ...newChar, name: e.target.value })} placeholder="Character name" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Role</Label>
+                <Input value={newChar.role} onChange={(e) => setNewChar({ ...newChar, role: e.target.value })} placeholder="Protagonist, Ally..." />
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs">Age</Label><Input value={newChar.age} onChange={(e) => setNewChar({ ...newChar, age: e.target.value })} placeholder="e.g. 34" /></div>
-              <div className="space-y-1.5"><Label className="text-xs">Traits (comma-separated)</Label><Input value={newChar.traits} onChange={(e) => setNewChar({ ...newChar, traits: e.target.value })} placeholder="brave, loyal…" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Age</Label>
+                <Input value={newChar.age} onChange={(e) => setNewChar({ ...newChar, age: e.target.value })} placeholder="e.g. 34" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Traits (comma-separated)</Label>
+                <Input value={newChar.traits} onChange={(e) => setNewChar({ ...newChar, traits: e.target.value })} placeholder="brave, loyal..." />
+              </div>
             </div>
-            <div className="space-y-1.5"><Label className="text-xs">Description</Label><Textarea value={newChar.description} onChange={(e) => setNewChar({ ...newChar, description: e.target.value })} rows={3} placeholder="Who are they? What drives them?" /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Appearance</Label><Input value={newChar.appearance} onChange={(e) => setNewChar({ ...newChar, appearance: e.target.value })} placeholder="Physical description" /></div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Description</Label>
+              <Textarea value={newChar.description} onChange={(e) => setNewChar({ ...newChar, description: e.target.value })} rows={3} placeholder="Who are they? What drives them?" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Appearance</Label>
+              <Input value={newChar.appearance} onChange={(e) => setNewChar({ ...newChar, appearance: e.target.value })} placeholder="Physical description" />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAddingChar(false)}>Cancel</Button>
@@ -383,20 +537,34 @@ export default function OutlinePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Add World Entry Dialog */}
       <Dialog open={addingWorld} onOpenChange={setAddingWorld}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Add World Entry</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-md sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add World Entry</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-1.5"><Label className="text-xs">Title *</Label><Input value={newWorld.title} onChange={(e) => setNewWorld({ ...newWorld, title: e.target.value })} placeholder="e.g. The Ember Throne" /></div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Title *</Label>
+              <Input value={newWorld.title} onChange={(e) => setNewWorld({ ...newWorld, title: e.target.value })} placeholder="e.g. The Ember Throne" />
+            </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Category</Label>
-              <select value={newWorld.category} onChange={(e) => setNewWorld({ ...newWorld, category: e.target.value as WorldNote["category"] })}
-                className="flex h-10 w-full rounded-md border border-parchment-deep bg-parchment px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-ink/20">
-                {["location","magic","lore","politics","other"].map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              <select
+                value={newWorld.category}
+                onChange={(e) => setNewWorld({ ...newWorld, category: e.target.value as WorldNote["category"] })}
+                className="flex h-10 w-full rounded-md border border-parchment-deep bg-parchment px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-ink/20"
+              >
+                {["location", "magic", "lore", "politics", "other"].map((c) => (
+                  <option key={c} value={c}>
+                    {c.charAt(0).toUpperCase() + c.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="space-y-1.5"><Label className="text-xs">Notes</Label><Textarea value={newWorld.content} onChange={(e) => setNewWorld({ ...newWorld, content: e.target.value })} rows={4} placeholder="Describe this element of your world…" /></div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Notes</Label>
+              <Textarea value={newWorld.content} onChange={(e) => setNewWorld({ ...newWorld, content: e.target.value })} rows={4} placeholder="Describe this element of your world..." />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAddingWorld(false)}>Cancel</Button>

@@ -24,6 +24,7 @@ interface MetaPanelProps {
   onUpdateChapter: (updates: Partial<Chapter>) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  className?: string;
 }
 
 export function MetaPanel({
@@ -32,6 +33,7 @@ export function MetaPanel({
   onUpdateChapter,
   collapsed,
   onToggleCollapse,
+  className,
 }: MetaPanelProps) {
   const [summaryDraft, setSummaryDraft] = useState(chapter.summary ?? "");
 
@@ -48,7 +50,7 @@ export function MetaPanel({
 
   if (collapsed) {
     return (
-      <div className="w-10 flex flex-col items-center py-4 border-l border-parchment-deep bg-parchment shrink-0">
+      <div className={cn("w-10 flex flex-col items-center py-4 border-l border-parchment-deep bg-parchment shrink-0", className)}>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -65,7 +67,7 @@ export function MetaPanel({
   }
 
   return (
-    <div className="w-60 flex flex-col border-l border-parchment-deep bg-parchment shrink-0">
+    <div className={cn("w-60 flex flex-col border-l border-parchment-deep bg-parchment shrink-0", className)}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-parchment-deep">
         <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">

@@ -38,6 +38,7 @@ interface ChapterSidebarProps {
   onDuplicateChapter: (id: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  className?: string;
 }
 
 const statusDot: Record<string, string> = {
@@ -55,12 +56,13 @@ export function ChapterSidebar({
   onDuplicateChapter,
   collapsed,
   onToggleCollapse,
+  className,
 }: ChapterSidebarProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   if (collapsed) {
     return (
-      <div className="w-10 flex flex-col items-center py-4 border-r border-parchment-deep bg-parchment shrink-0">
+      <div className={cn("w-10 flex flex-col items-center py-4 border-r border-parchment-deep bg-parchment shrink-0", className)}>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -77,7 +79,7 @@ export function ChapterSidebar({
   }
 
   return (
-    <div className="w-60 flex flex-col border-r border-parchment-deep bg-parchment shrink-0">
+    <div className={cn("w-60 flex flex-col border-r border-parchment-deep bg-parchment shrink-0", className)}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-parchment-deep">
         <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">

@@ -345,11 +345,11 @@ export function WritingEditor({
     <div className="flex h-full flex-col bg-parchment">
       <div
         className={cn(
-          "flex items-center justify-between border-b border-parchment-deep/50 px-6 py-2.5 transition-opacity",
+          "flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-parchment-deep/50 px-3 md:px-6 py-2.5 transition-opacity",
           focusMode && "opacity-0 hover:opacity-100"
         )}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 min-w-0">
           <Select value={chapter.status} onValueChange={(v) => onChange({ status: v as Chapter["status"] })}>
             <SelectTrigger className="h-7 w-28 border-none bg-transparent p-0 text-xs shadow-none focus:ring-0">
               <SelectValue />
@@ -361,9 +361,9 @@ export function WritingEditor({
             </SelectContent>
           </Select>
 
-          <div className="h-3.5 w-px bg-parchment-deep" />
+          <div className="hidden md:block h-3.5 w-px bg-parchment-deep" />
 
-          <div className="flex items-center gap-3 text-xs text-ink-faint">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs text-ink-faint">
             <span className="flex items-center gap-1">
               <AlignLeft className="h-3.5 w-3.5" />
               {wordCount.toLocaleString()} words
@@ -381,7 +381,7 @@ export function WritingEditor({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-end md:self-auto">
           {!settings.autoSave && (
             <Button
               type="button"
@@ -432,7 +432,7 @@ export function WritingEditor({
 
       <div
         className={cn(
-          "flex flex-wrap items-center gap-1 border-b border-parchment-deep/40 bg-parchment/50 px-5 py-1.5 transition-opacity",
+          "flex flex-nowrap items-center gap-1 border-b border-parchment-deep/40 bg-parchment/50 px-2 md:px-5 py-1.5 overflow-x-auto transition-opacity",
           focusMode && "opacity-0 hover:opacity-100"
         )}
       >
@@ -529,9 +529,9 @@ export function WritingEditor({
         </Tooltip>
       </div>
 
-      <div className={cn("flex-1 overflow-y-auto", focusMode ? "py-14" : "py-8")}>
-        <div className={cn("mx-auto px-6", focusMode ? "max-w-[720px]" : "max-w-[800px]")}>
-          <div className="paper-canvas min-h-[70vh] rounded-2xl bg-white px-14 py-12 shadow-[0px_4px_32px_rgba(0,0,0,0.07)]">
+      <div className={cn("flex-1 overflow-y-auto", focusMode ? "py-8 md:py-14" : "py-4 md:py-8")}>
+        <div className={cn("mx-auto px-3 sm:px-6", focusMode ? "max-w-[720px]" : "max-w-[800px]")}>
+          <div className="paper-canvas min-h-[70vh] rounded-xl md:rounded-2xl bg-white px-4 sm:px-8 md:px-14 py-6 sm:py-9 md:py-12 shadow-[0px_4px_32px_rgba(0,0,0,0.07)]">
             <p className="mb-5 font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-label">
               Chapter {chapter.number}
             </p>
@@ -544,7 +544,7 @@ export function WritingEditor({
                 scheduleAutoSaveTitle(e.target.value);
               }}
               placeholder="Chapter title"
-              className="mb-10 w-full border-none bg-transparent font-serif font-semibold leading-tight tracking-tight text-ink placeholder:text-ink-faint/30 outline-none focus:ring-0"
+              className="mb-7 md:mb-10 w-full border-none bg-transparent font-serif font-semibold leading-tight tracking-tight text-ink placeholder:text-ink-faint/30 outline-none focus:ring-0"
               style={{ fontFamily: "var(--font-lora)", fontSize: TITLE_SIZE_MAP[settings.editorFontSize] }}
               spellCheck={settings.spellcheck}
             />
@@ -570,4 +570,3 @@ export function WritingEditor({
     </div>
   );
 }
-
