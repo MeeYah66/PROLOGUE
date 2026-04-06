@@ -942,7 +942,7 @@ export default function LibraryPage() {
                 <Link href="/export">
                   <button className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-parchment-deep bg-parchment text-sm font-medium text-ink hover:bg-parchment-warm transition-colors">
                     <Download className="w-3.5 h-3.5" strokeWidth={2} />
-                    Export Manuscript
+                    Publish Manuscript
                   </button>
                 </Link>
                 <button

@@ -463,7 +463,7 @@ export function ExportCenter({
 
         <ExportRow
           icon={BookMarked}
-          title="Export Manuscript"
+          title="Publish Manuscript"
           description="Download a Word-compatible .doc file for editing and submission."
           action={
             <div className="flex items-center gap-2">

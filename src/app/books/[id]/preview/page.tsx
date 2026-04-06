@@ -9,11 +9,16 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Download,
   Eye,
   Feather,
+  FileText,
   Image as ImageIcon,
   List,
+  Loader2,
+  Printer,
   ScrollText,
+  Share2,
   X,
 } from "lucide-react";
 import { getBook } from "@/lib/store";
@@ -24,6 +29,93 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { estimateReadingTime } from "@/lib/utils";
 import { htmlToSafeBlocks } from "@/lib/sanitization/chapter-content";
+import { useToast } from "@/lib/toast/context";
+import {
+  manuscriptFileName,
+  manuscriptToPlainText,
+  manuscriptToPrintHtml,
+  manuscriptToWordHtml,
+} from "@/lib/manuscript-export";
+import { uploadPublicSharePreview } from "@/lib/supabase/storage";
+
+type PublishIntent = "pdf" | "document" | "text" | "print" | "share";
+type PublishAction = PublishIntent | null;
+
+const PUBLISH_COPY: Record<
+  PublishIntent,
+  { label: string; button: string; icon: typeof Download; description: string }
+> = {
+  pdf: {
+    label: "PDF",
+    button: "Publish PDF",
+    icon: Download,
+    description: "Open print layout and save it as a PDF.",
+  },
+  document: {
+    label: "Word Document",
+    button: "Publish .doc",
+    icon: FileText,
+    description: "Export as a Word-compatible .doc file.",
+  },
+  text: {
+    label: "Plain Text",
+    button: "Publish .txt",
+    icon: FileText,
+    description: "Export a clean plain text manuscript file.",
+  },
+  print: {
+    label: "Print",
+    button: "Publish to Print",
+    icon: Printer,
+    description: "Open print dialog for a physical copy.",
+  },
+  share: {
+    label: "Share Link",
+    button: "Publish Link",
+    icon: Share2,
+    description: "Create a shareable preview link for readers.",
+  },
+};
+
+function isPublishIntent(value: string | null): value is PublishIntent {
+  return (
+    value === "pdf" ||
+    value === "document" ||
+    value === "text" ||
+    value === "print" ||
+    value === "share"
+  );
+}
+
+function triggerDownload(filename: string, content: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1200);
+}
+
+async function copyText(text: string): Promise<boolean> {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  return copied;
+}
 
 function WorkspaceNav({
   bookId,
@@ -258,10 +350,20 @@ export default function PreviewPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { toast } = useToast();
   const bookId = params.id as string;
   const [book, setBook] = useState<Book | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [showToc, setShowToc] = useState(false);
+  const [publishIntent, setPublishIntent] = useState<PublishIntent | null>(null);
+  const [publishAction, setPublishAction] = useState<PublishAction>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const query = new URLSearchParams(window.location.search);
+    const intent = query.get("publish");
+    setPublishIntent(isPublishIntent(intent) ? intent : null);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -274,6 +376,98 @@ export default function PreviewPage() {
     });
   }, [bookId, user, router]);
 
+  function openPrintWindow(currentBook: Book): Window | null {
+    const popup = window.open("", "_blank", "width=1024,height=900");
+    if (!popup) return null;
+    popup.document.open();
+    popup.document.write(manuscriptToPrintHtml(currentBook));
+    popup.document.close();
+    return popup;
+  }
+
+  async function handleFinalizePublish() {
+    if (!book || !publishIntent || publishAction) return;
+
+    setPublishAction(publishIntent);
+    try {
+      if (publishIntent === "pdf") {
+        const popup = openPrintWindow(book);
+        if (!popup) throw new Error("popup_blocked");
+        window.setTimeout(() => {
+          popup.focus();
+          popup.print();
+        }, 280);
+        toast({
+          variant: "success",
+          title: "PDF publish ready",
+          description: "Print dialog opened. Choose Save as PDF.",
+        });
+      }
+
+      if (publishIntent === "document") {
+        const filename = `${manuscriptFileName(book)}.doc`;
+        triggerDownload(filename, manuscriptToWordHtml(book), "application/msword;charset=utf-8");
+        toast({
+          variant: "success",
+          title: "Document published",
+          description: `${filename} has been downloaded.`,
+        });
+      }
+
+      if (publishIntent === "text") {
+        const filename = `${manuscriptFileName(book)}.txt`;
+        triggerDownload(filename, manuscriptToPlainText(book), "text/plain;charset=utf-8");
+        toast({
+          variant: "success",
+          title: "Text manuscript published",
+          description: `${filename} has been downloaded.`,
+        });
+      }
+
+      if (publishIntent === "print") {
+        const popup = openPrintWindow(book);
+        if (!popup) throw new Error("popup_blocked");
+        window.setTimeout(() => {
+          popup.focus();
+          popup.print();
+        }, 280);
+        toast({
+          variant: "success",
+          title: "Print publish ready",
+          description: "Your manuscript is ready to print.",
+        });
+      }
+
+      if (publishIntent === "share") {
+        const publicPreviewUrl = await uploadPublicSharePreview(
+          book.id,
+          manuscriptToPrintHtml(book)
+        );
+        const copied = await copyText(publicPreviewUrl);
+        if (!copied) throw new Error("copy_failed");
+        toast({
+          variant: "success",
+          title: "Share link published",
+          description: "Public preview link copied to clipboard.",
+        });
+      }
+    } catch (error) {
+      const isAbortError = error instanceof DOMException && error.name === "AbortError";
+      if (!isAbortError) {
+        const popupBlocked = error instanceof Error && error.message === "popup_blocked";
+        toast({
+          variant: "error",
+          title: popupBlocked ? "Popup blocked" : "Publish failed",
+          description: popupBlocked
+            ? "Allow popups for Prologue, then try again."
+            : "We could not complete this publish action.",
+        });
+      }
+    } finally {
+      setPublishAction(null);
+    }
+  }
+
   if (!book) return null;
 
   const pages: PreviewPage[] = [
@@ -285,6 +479,7 @@ export default function PreviewPage() {
   const totalPages = pages.length;
   const page = pages[currentPage];
   const totalWords = book.chapters.reduce((s, c) => s + c.wordCount, 0);
+  const PublishIcon = publishIntent ? PUBLISH_COPY[publishIntent].icon : Download;
 
   const tocPanel = (
     <>
@@ -378,6 +573,31 @@ export default function PreviewPage() {
             <p className="text-xs text-ink-faint mt-1.5 px-0.5">
               {totalWords.toLocaleString()} words | {estimateReadingTime(totalWords)} total read
             </p>
+            {publishIntent && (
+              <div className="mt-3 rounded-lg border border-parchment-deep bg-parchment px-3 py-2.5 flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.16em] font-semibold text-amber-label">
+                    Publish in Preview
+                  </p>
+                  <p className="text-xs text-ink-muted mt-1">
+                    {PUBLISH_COPY[publishIntent].description}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs gap-1.5"
+                  onClick={handleFinalizePublish}
+                  disabled={publishAction !== null}
+                >
+                  {publishAction === publishIntent ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <PublishIcon className="w-3.5 h-3.5" />
+                  )}
+                  {publishAction === publishIntent ? "Publishing..." : PUBLISH_COPY[publishIntent].button}
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 w-full flex items-start justify-center px-3 sm:px-6 md:px-8 pb-5 md:pb-8 overflow-y-auto">

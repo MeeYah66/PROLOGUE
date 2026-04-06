@@ -6,11 +6,15 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BookOpen,
+  ChevronDown,
   Download,
   Eye,
+  FileText,
   Image as ImageIcon,
   List,
+  Printer,
   Settings,
+  Share2,
   Feather,
 } from "lucide-react";
 import { getBook, updateChapter, deleteChapter, StoreConflictError } from "@/lib/store";
@@ -21,6 +25,14 @@ import { ChapterSidebar } from "@/components/workspace/ChapterSidebar";
 import { WritingEditor } from "@/components/workspace/WritingEditor";
 import { MetaPanel } from "@/components/workspace/MetaPanel";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/lib/toast/context";
@@ -220,6 +232,12 @@ export default function BookWorkspacePage() {
     { icon: ImageIcon, label: "Cover", href: `/books/${bookId}/cover` },
   ];
 
+  function goToPublishPreview(
+    action: "pdf" | "document" | "text" | "print" | "share"
+  ) {
+    router.push(`/books/${bookId}/preview?publish=${action}`);
+  }
+
   return (
     <div className="flex flex-col h-screen bg-parchment overflow-hidden">
       {/* Top Bar */}
@@ -288,12 +306,44 @@ export default function BookWorkspacePage() {
               Edit Cover
             </Button>
           </Link>
-          <Link href={`/export?bookId=${bookId}`}>
-            <Button variant="outline" size="sm" className="text-xs h-7 gap-1.5">
-              <Download className="w-3 h-3" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-7 gap-1.5">
+                <Download className="w-3 h-3" />
+                <span>Publish</span>
+                <ChevronDown className="w-3 h-3 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="py-2.5 px-3">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-amber-label">Publish Options</p>
+                <p className="text-xs font-normal text-ink-faint mt-1">
+                  Choose a format, review in preview, then publish.
+                </p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => goToPublishPreview("pdf")}>
+                <Download className="w-3.5 h-3.5" />
+                Publish as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => goToPublishPreview("document")}>
+                <FileText className="w-3.5 h-3.5" />
+                Publish as .doc
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => goToPublishPreview("text")}>
+                <FileText className="w-3.5 h-3.5" />
+                Publish as .txt
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => goToPublishPreview("print")}>
+                <Printer className="w-3.5 h-3.5" />
+                Publish to Print
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => goToPublishPreview("share")}>
+                <Share2 className="w-3.5 h-3.5" />
+                Publish Share Link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link href={`/books/${bookId}/preview`}>
             <Button size="sm" className="text-xs h-7 gap-1.5">
               <Eye className="w-3 h-3" />
